@@ -1,19 +1,4 @@
-/**
- * ============================================================================
- * SISTEM OPERASIONAL ENTERPRISE KLINIK AKSHARA DENTAL SPACE & WA BOT GATEWAY
- * File: server.js (Super Big Upgrade Logics - 100% Full Uncut)
- * Fitur: Express Server Engine, Primary Upstash Redis / Vercel KV Database,
- *        Dual-Mode Router Support (V1 & V2 API Endpoints),
- *        Universal Action & Payload Normalizer (loginUser & login),
- *        Dual-Authentication Engine (Tabel USERS & Admins),
- *        Full Clinical Logic (EMR, Odontogram 52 Gigi, E-Resep, Lab, Kasir POS),
- *        Multi-Client Railway WhatsApp Bot Gateway (Baileys Engine),
- *        Broadcast Queue Manager, Two-Way Chat Logging,
- *        Multi-Model AI (Gemini 3.5 Default, Gemini 3.8/3.7/3.6/3.1, 2.5, OpenAI, Groq),
- *        Dukungan Penuh API Key Format AQ... & AIzaSy...,
- *        Orpheus Audio TTS Proxy, Dynamic SEO (GSC), & Asset Delivery Anti-404.
- * ============================================================================
- */
+
 
 const express = require('express');
 const path = require('path');
