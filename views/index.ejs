@@ -1,0 +1,1254 @@
+<!DOCTYPE html>
+<html lang="id" itemscope itemtype="https://schema.org/Dentist">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title><%= seo.title %></title>
+  <meta name="google-site-verification" content="cbSE7olGd0ibEx_bhjC3aitjIovXCSwUKYbVOh7nbLs" />
+  <meta name="title" content="<%= seo.title %>" />
+  <meta name="description" content="<%= seo.description %>" />
+  <meta name="keywords" content="<%= seo.keywords %>" />
+  <meta name="author" content="Klinik Akshara Dental Space" />
+  <meta name="publisher" content="Klinik Akshara Dental Space" />
+  <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+  <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+
+  <!-- Canonical & Alternate Reference -->
+  <link rel="canonical" href="<%= seo.canonicalUrl %>" />
+  <link rel="alternate" hreflang="id-ID" href="<%= seo.canonicalUrl %>" />
+  <link rel="alternate" hreflang="x-default" href="https://aksharadental.space/" />
+  <link rel="alternate" href="https://aksharadental.space/" />
+  <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
+
+  <meta name="geo.region" content="ID-SN" />
+  <meta name="geo.placename" content="Makassar" />
+  <meta name="geo.position" content="-5.171147;119.417230" />
+  <meta name="ICBM" content="-5.171147, 119.417230" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:locale" content="id_ID" />
+  <meta property="og:type" content="website" />
+  <meta property="og:title" content="<%= seo.title %>" />
+  <meta property="og:description" content="<%= seo.description %>" />
+  <meta property="og:url" content="<%= seo.canonicalUrl %>" />
+  <meta property="og:site_name" content="Klinik Akshara Dental Space" />
+  <meta property="og:image" content="<%= seo.baseUrl %>/img/axalogo.png" />
+  <meta property="og:image:secure_url" content="<%= seo.baseUrl %>/img/axalogo.png" />
+  <meta property="og:image:width" content="512" />
+  <meta property="og:image:height" content="512" />
+  <meta property="og:image:alt" content="Logo Resmi Klinik Akshara Dental Space Makassar" />
+  <meta property="og:image:type" content="image/png" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="<%= seo.title %>" />
+  <meta name="twitter:description" content="<%= seo.description %>" />
+  <meta name="twitter:image" content="<%= seo.baseUrl %>/img/axalogo.png" />
+  <meta name="twitter:image:alt" content="Klinik Akshara Dental Space" />
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" href="/img/axalogo.png" />
+  <link rel="shortcut icon" href="/img/axalogo.png" />
+  <link rel="apple-touch-icon" href="/img/axalogo.png" />
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='bg' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' stop-color='%230284c7'/%3E%3Cstop offset='100%25' stop-color='%2306b6d4'/%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23bg)'/%3E%3Cpath fill='%23ffffff' d='M50 18c-15 0-23 9-23 23 0 11 4 19 6 28 2 7 6 15 10 15 4 0 4-5 7-10 2-4 3-4 5-4s3 0 5 4c3 5 3 10 7 10 4 0 8-8 10-15 2-9 6-17 6-28 0-14-8-23-23-23z'/%3E%3Cpath fill='%230284c7' d='M45 29h10v8h8v10h-8v8H45v-8h-8V37h8z'/%3E%3C/svg%3E" />
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22Akshara%20Dental%20Space%22%2C%22short_name%22%3A%22AksharaDental%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%230284c7%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Faxalogo.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D" />
+  <meta name="theme-color" content="#0284c7" />
+
+  <!-- External Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Modular Stylesheet -->
+  <link rel="stylesheet" href="/css/main.css" />
+
+  <!-- Structured Data JSON-LD Dinamis GSC -->
+  <script type="application/ld+json">
+  <%- JSON.stringify(seo.jsonLd) %>
+  </script>
+</head>
+<body class="theme-white">
+
+  <!-- Toast Notification Box -->
+  <div id="toastBox" class="toast-box" role="status" aria-live="polite"></div>
+
+  <!-- Scroll To Top Button -->
+  <button id="scrollToTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Kembali ke Atas" aria-label="Kembali ke atas">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <!-- DevTools Protection Modal -->
+  <div class="modal-overlay" id="devtoolsSecurityModal" role="dialog" aria-modal="true" aria-labelledby="secModalTitle">
+    <div class="glass-card modal-box" style="background:rgba(15,23,42,0.97); border:2px solid #ef4444; color:#ffffff; text-align:center;">
+      <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.2); border:2px solid #ef4444; color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 14px;">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h3 id="secModalTitle" style="font-size:1.2rem; font-weight:800; color:#ef4444; margin-bottom:8px;">
+        AKSES DEVTOOLS DIBATASI
+      </h3>
+      <div style="font-size:0.75rem; font-weight:700; color:#cbd5e1; background:rgba(239,68,68,0.25); padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:12px;">
+        PERMENKES NO. 24 TAHUN 2022 — REKAM MEDIS ELEKTRONIK
+      </div>
+      <p style="font-size:0.84rem; color:#e2e8f0; line-height:1.5; margin-bottom:16px;">
+        Fitur inspeksi kode dan pintasan developer tools dinonaktifkan demi menjaga integritas serta kerahasiaan riwayat medis pasien Klinik Akshara Dental Space.
+      </p>
+      <button class="nav-btn btn-primary" style="background:#ef4444; border:none; padding:10px 20px; margin:0 auto;" onclick="closeDevtoolsSecurityModal()">
+        <i class="fa-solid fa-check"></i> Saya Mengerti & Lanjutkan
+      </button>
+    </div>
+  </div>
+
+  <!-- Header Navigasi -->
+  <header class="site-header" role="banner">
+    <a href="/" class="brand-logo" aria-label="Beranda Klinik Akshara Dental Space">
+      <div class="brand-icon">
+        <img src="/img/axalogo.png" alt="Logo Akshara" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
+      </div>
+      <div>
+        <div class="brand-title">Akshara Dental Space</div>
+        <div class="brand-subtitle">Modern Dental Care & Aesthetic Space</div>
+      </div>
+    </a>
+
+    <!-- Desktop Navigation Links -->
+    <nav class="nav-links" role="navigation" aria-label="Navigasi Utama">
+      <li class="nav-item"><a href="/" class="<%= activeTab === 'beranda' ? 'active' : '' %>">Beranda</a></li>
+      <li class="nav-item"><a href="/layanan" class="<%= activeTab === 'layanan' ? 'active' : '' %>">Layanan Dental</a></li>
+      <li class="nav-item"><a href="/dokter" class="<%= activeTab === 'dokter' ? 'active' : '' %>">Dokter & Jadwal</a></li>
+      <li class="nav-item"><a href="/reservasi" class="<%= activeTab === 'reservasi' ? 'active' : '' %>">Reservasi</a></li>
+      <li class="nav-item"><a href="/kontak" class="<%= activeTab === 'kontak' ? 'active' : '' %>">Kontak</a></li>
+    </nav>
+
+    <!-- Header Actions -->
+    <div class="header-actions">
+      <button class="nav-btn btn-outline" id="themeToggleBtn" onclick="toggleTheme()" title="Ubah Tema Warna">
+        <i class="fa-solid fa-circle-half-stroke"></i> <span id="themeLabel">Tema Putih</span>
+      </button>
+
+      <a href="/antrean-tv" class="nav-btn btn-outline header-extra-btn" style="text-decoration:none;" title="Buka TV Ruang Antrean">
+        <i class="fa-solid fa-tv"></i> <span>TV Antrean</span>
+      </a>
+
+      <button class="nav-btn btn-primary header-extra-btn" onclick="openLoginModal()" title="Gerbang Akses Staf Medis">
+        <i class="fa-solid fa-user-shield"></i> <span>Portal Staf</span>
+      </button>
+
+      <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Buka Menu Navigasi Mobile">
+        <i class="fa-solid fa-bars"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile Drawer Menu -->
+  <div id="mobileDrawer" class="mobile-nav-drawer" role="navigation" aria-label="Navigasi Mobile">
+    <a href="/" onclick="closeMobileMenu();"><i class="fa-solid fa-house"></i> Beranda</a>
+    <a href="/layanan" onclick="closeMobileMenu();"><i class="fa-solid fa-tooth"></i> Layanan Gigi Terpadu</a>
+    <a href="/dokter" onclick="closeMobileMenu();"><i class="fa-solid fa-user-doctor"></i> Dokter & Jadwal Praktek</a>
+    <a href="/reservasi" onclick="closeMobileMenu();"><i class="fa-solid fa-calendar-check"></i> Reservasi Mandiri</a>
+    <a href="/kontak" onclick="closeMobileMenu();"><i class="fa-solid fa-location-dot"></i> Kontak & Lokasi</a>
+    <a href="/antrean-tv" onclick="closeMobileMenu();"><i class="fa-solid fa-tv" style="color:var(--primary);"></i> TV Ruang Antrean</a>
+    <button onclick="closeMobileMenu(); openLoginModal();"><i class="fa-solid fa-user-shield" style="color:#059669;"></i> Portal Staf Medis</button>
+  </div>
+
+  <!-- Breadcrumbs -->
+  <nav class="breadcrumb-trail" aria-label="Breadcrumbs">
+    <a href="/"><i class="fa-solid fa-house"></i> Beranda</a>
+    <span style="color:#94a3b8;">/</span>
+    <a href="/layanan">Layanan Gigi</a>
+    <span style="color:#94a3b8;">/</span>
+    <a href="/dokter">Dokter Gigi Spesialis</a>
+    <span style="color:#94a3b8;">/</span>
+    <a href="/reservasi">Reservasi Online</a>
+  </nav>
+
+  <main id="appRoot">
+
+    <!-- LANDING PAGE VIEW -->
+    <div id="landingView" class="view-transition">
+      
+      <!-- Hero Section -->
+      <section class="hero-section" id="beranda" aria-label="Sorotan Utama">
+        <div class="slider-container">
+          <!-- Slide 1 -->
+          <article class="slide-item active" style="background-image:url('https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&w=1600&q=80');">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <span style="background:rgba(56,189,248,0.25); border:1px solid #38bdf8; padding:4px 10px; border-radius:16px; font-size:0.75rem; font-weight:700;">DIGITAL DENTAL HEALTHCARE 4.0</span>
+              <h1>Presisi Estetika & Konservasi Gigi Modern</h1>
+              <p>Perawatan gigi komprehensif didukung keahlian Spesialis Konservasi Gigi (Endodontik), teknologi radiologi digital, dan Groq LPU AI Medical Inference di Makassar.</p>
+              <div style="display:flex; gap:10px; flex-wrap:wrap;">
+                <a href="/reservasi" class="nav-btn btn-primary" style="text-decoration:none;"><i class="fa-solid fa-calendar-check"></i> Reservasi Mandiri</a>
+                <button class="nav-btn btn-outline" style="color:#fff; border-color:#fff; background:rgba(255,255,255,0.15);" onclick="openPwaModal()"><i class="fa-solid fa-mobile-screen"></i> Unduh App PWA</button>
+              </div>
+            </div>
+          </article>
+          <!-- Slide 2 -->
+          <article class="slide-item" style="background-image:url('https://images.unsplash.com/photo-1588776814546-1ffcf47267a5?auto=format&fit=crop&w=1600&q=80');">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <span style="background:rgba(56,189,248,0.25); border:1px solid #38bdf8; padding:4px 10px; border-radius:16px; font-size:0.75rem; font-weight:700;">REKAM MEDIS ELEKTRONIK (EMR)</span>
+              <h1>Odontogram Interaktif 52 Elemen Gigi</h1>
+              <p>Riwayat karies dentin, restorasi komposit, endodontik, hingga mahkota gigi terpantau presisi dan terenkripsi standar Kemenkes RI.</p>
+              <a href="/dokter" class="nav-btn btn-primary" style="text-decoration:none;"><i class="fa-solid fa-user-doctor"></i> Jadwal Dokter Gigi</a>
+            </div>
+          </article>
+          <!-- Slide 3 -->
+          <article class="slide-item" style="background-image:url('https://images.unsplash.com/photo-1579684385127-1ef15d508118?auto=format&fit=crop&w=1600&q=80');">
+            <div class="slide-overlay"></div>
+            <div class="slide-content">
+              <span style="background:rgba(249,115,22,0.3); border:1px solid #f97316; padding:4px 10px; border-radius:16px; font-size:0.75rem; font-weight:700; color:#fed7aa;">⚡ GROQ LPU AI & ORPHEUS TTS</span>
+              <h1>Diagnosa Cerdas & Monitor Antrean AI</h1>
+              <p>Didukung inferensi Groq LPU super cepat untuk diferensial diagnosa ICD-10 serta suara pemanggilan antrean otomatis bertenaga Canopy Labs Orpheus AI.</p>
+              <a href="/reservasi" class="nav-btn btn-primary" style="text-decoration:none;"><i class="fa-solid fa-hospital-user"></i> Cek Nomor Antrean</a>
+            </div>
+          </article>
+
+          <div class="slider-dots">
+            <div class="slider-dot active" onclick="jumpSlide(0)" aria-label="Slide 1"></div>
+            <div class="slider-dot" onclick="jumpSlide(1)" aria-label="Slide 2"></div>
+            <div class="slider-dot" onclick="jumpSlide(2)" aria-label="Slide 3"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Layanan Unggulan Gigi Terpadu -->
+      <section class="container animate-swipe-up" id="layanan" aria-label="Layanan Dental Unggulan">
+        <div class="section-title">
+          <h2>Layanan Gigi Spesialis Terpadu</h2>
+          <p>Pelayanan kesehatan gigi profesional, modern, dan higienis berstandar mutu tinggi</p>
+        </div>
+        <div class="services-grid">
+          <div class="glass-card service-card">
+            <div class="service-icon"><i class="fa-solid fa-tooth"></i></div>
+            <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">Konservasi & Endodontik</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">Perawatan saluran akar tanpa rasa sakit, penambalan resin komposit estetik, dan preservasi vitalitas pulpa gigi.</p>
+          </div>
+          <div class="glass-card service-card">
+            <div class="service-icon"><i class="fa-solid fa-wand-magic-sparkles"></i></div>
+            <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">Estetika & Pemutihan Gigi</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">Direct veneer, pemutihan gigi (teeth whitening/bleaching) profesional, dan pembersihan karang gigi (scaling ultrasonik).</p>
+          </div>
+          <div class="glass-card service-card">
+            <div class="service-icon"><i class="fa-solid fa-teeth-open"></i></div>
+            <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">Kedokteran Gigi Umum & Preventif</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">Pemeriksaan kesehatan rongga mulut menyeluruh, penambalan preventif, aplikasi fluoride, serta pencabutan gigi atraumatik.</p>
+          </div>
+          <div class="glass-card service-card">
+            <div class="service-icon"><i class="fa-solid fa-flask-vial"></i></div>
+            <h3 style="font-size:1.15rem; font-weight:700; margin-bottom:8px;">Farmasi & Diagnostik Terpadu</h3>
+            <p style="color:var(--text-muted); font-size:0.9rem; line-height:1.5;">Rujukan radiologi panoramik/periapikal, e-resep farmasi instan, dan sistem otomatis pencegahan kontraindikasi alergi obat.</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- Dokter & Jadwal Praktek (3 Dokter Gigi Resmi) -->
+      <section class="container animate-swipe-up" id="dokter" aria-label="Profil Dokter Gigi">
+        <div class="section-title">
+          <h2>Tim Dokter Gigi Profesional</h2>
+          <p>Dokter gigi spesialis dan dokter gigi berpengalaman Klinik Akshara Dental Space Makassar</p>
+        </div>
+        <div id="doctorListContainer" class="services-grid"></div>
+      </section>
+
+      <!-- Form Reservasi Mandiri Pasien -->
+      <section class="container animate-swipe-up" id="reservasi" aria-label="Pendaftaran Pasien Online">
+        <div class="section-title">
+          <h2>Reservasi Mandiri Pasien</h2>
+          <p>Dapatkan nomor antrean dan kepastian slot waktu konsultasi tanpa antre manual di klinik</p>
+        </div>
+        <div class="glass-card reservasi-card">
+          <div class="form-tabs">
+            <button class="tab-btn active" id="tabPasienBaruBtn" onclick="switchReservasiTab('baru')">
+              <i class="fa-solid fa-user-plus"></i> Pasien Baru
+            </button>
+            <button class="tab-btn" id="tabPasienLamaBtn" onclick="switchReservasiTab('lama')">
+              <i class="fa-solid fa-id-card"></i> Pasien Lama (Cari NIK / No RM)
+            </button>
+          </div>
+
+          <!-- Pencarian Pasien Lama -->
+          <div id="boxPasienLama" style="display:none; margin-bottom:20px; padding:14px; border-radius:12px; background:var(--badge-bg);">
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <input type="text" id="searchRmNikInput" placeholder="Masukkan Nomor RM atau 16 Digit NIK KTP..." style="flex:1; min-width:200px;" />
+              <button class="nav-btn btn-primary" onclick="doSearchPatient()"><i class="fa-solid fa-magnifying-glass"></i> Cari Data Pasien</button>
+            </div>
+            <div id="searchResultFeedback" style="margin-top:8px; font-size:0.85rem; font-weight:600;"></div>
+          </div>
+
+          <!-- Form Input Pasien -->
+          <form id="formReservasi" onsubmit="handleReservasiSubmit(event)">
+            <input type="hidden" id="resNomorRm" value="" />
+            <input type="hidden" id="resIsNew" value="true" />
+
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="resNik">Nomor Induk Kependudukan (NIK) *</label>
+                <input type="number" id="resNik" required placeholder="16 Digit NIK KTP Pasien..." />
+              </div>
+              <div class="form-group">
+                <label for="resNama">Nama Lengkap Pasien *</label>
+                <input type="text" id="resNama" required placeholder="Sesuai KTP / Kartu Identitas..." />
+              </div>
+              <div class="form-group">
+                <label for="resTglLahir">Tanggal Lahir *</label>
+                <input type="date" id="resTglLahir" required />
+              </div>
+              <div class="form-group">
+                <label for="resGender">Jenis Kelamin *</label>
+                <select id="resGender" required>
+                  <option value="Laki-Laki">Laki-Laki</option>
+                  <option value="Perempuan">Perempuan</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="resNoHp">Nomor WhatsApp Aktif *</label>
+                <input type="tel" id="resNoHp" required placeholder="08xxxxxxxxxx" />
+              </div>
+              <div class="form-group">
+                <label for="resDokterSelect">Pilih Dokter Gigi Pemeriksa *</label>
+                <select id="resDokterSelect" required></select>
+              </div>
+              <div class="form-group full">
+                <label for="resAlamat">Alamat Domisili Lengkap *</label>
+                <input type="text" id="resAlamat" required placeholder="Nama jalan, nomor rumah, kelurahan, kota domisili..." />
+              </div>
+              <div class="form-group full">
+                <label for="resAlergi">Riwayat Alergi Obat (Sangat Penting Demi Keselamatan Anda) *</label>
+                <input type="text" id="resAlergi" required placeholder="Contoh: Amoxicillin, Asam Mefenamat, atau tulis 'Tidak Ada'..." />
+              </div>
+              <div class="form-group full">
+                <label for="resKeluhan">Keluhan Utama Gigi / Gejala yang Dialami *</label>
+                <textarea id="resKeluhan" rows="3" required placeholder="Jelaskan rasa nyeri, gigi ngilu, tambalan lepas, gusi bengkak, atau kebutuhan estetika gigi Anda..."></textarea>
+              </div>
+            </div>
+
+            <div style="margin-top:24px; text-align:right;">
+              <button type="submit" class="nav-btn btn-primary" style="padding:12px 24px; width:100%; max-width:320px;" id="btnSubmitReservasi">
+                <i class="fa-solid fa-paper-plane"></i> Konfirmasi Pendaftaran Antrean
+              </button>
+            </div>
+          </form>
+        </div>
+      </section>
+
+      <!-- Kontak & Lokasi -->
+      <section class="container animate-swipe-up" id="kontak" aria-label="Kontak dan Lokasi">
+        <div class="section-title">
+          <h2>Lokasi & Informasi Operasional</h2>
+          <p>Klinik gigi modern dan nyaman di pusat kota Makassar dengan fasilitas parkir memadai</p>
+        </div>
+        <div class="form-grid">
+          <div class="glass-card" style="padding:24px;">
+            <h3 style="font-size:1.25rem; font-weight:800; margin-bottom:12px; color:var(--primary);"><i class="fa-solid fa-location-dot"></i> Akshara Dental Space</h3>
+            <p style="color:var(--text-muted); line-height:1.6; font-size:0.92rem; margin-bottom:14px;">
+              Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar, Sulawesi Selatan 90131.<br>
+              <strong>Jam Operasional:</strong> Setiap Hari, 08:00 – 21:00 WITA<br>
+              <strong>Hotline WhatsApp:</strong> +62 853-3892-2586<br>
+              <strong>Email Resmi:</strong> care@aksharadental.space<br>
+              <strong>Web Resmi:</strong> <a href="<%= seo.baseUrl %>" style="color:var(--primary); font-weight:600; text-decoration:none;"><%= seo.baseUrl %></a>
+            </p>
+            <div style="display:flex; gap:10px; flex-wrap:wrap;">
+              <a href="https://instagram.com/aksharadental" target="_blank" rel="noopener noreferrer" class="nav-btn btn-outline"><i class="fa-brands fa-instagram"></i> Instagram</a>
+              <a href="mailto:care@aksharadental.space" class="nav-btn btn-outline"><i class="fa-solid fa-envelope"></i> Kirim Email</a>
+            </div>
+          </div>
+          <div class="glass-card" style="padding:8px; overflow:hidden; min-height:260px;">
+            <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d727.2324807218503!2d119.4172300669712!3d-5.171147028938255!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dbf1d71cf75a47d%3A0xa90a84353b81134a!2sJl.%20Andi%20Tonro%20Blok%20F%20No.30%2C%20Bongaya%2C%20Kec.%20Tamalate%2C%20Kota%20Makassar%2C%20Sulawesi%20Selatan%2090131!5e0!3m2!1sid!2sid!4v1788866524919!5m2!1sid!2sid" width="100%" height="100%" style="border:0; border-radius:12px; min-height:250px;" allowfullscreen="" loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe>
+          </div>
+        </div>
+      </section>
+
+      <!-- Footer -->
+      <footer style="margin-top:50px; border-top:1px solid var(--glass-border); padding:36px 16px; background:var(--glass-card);" role="contentinfo">
+        <div class="container" style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:20px; padding:0;">
+          <div>
+            <div style="font-weight:800; font-size:1.1rem; color:var(--primary);">Klinik Akshara Dental Space</div>
+            <p style="font-size:0.82rem; color:var(--text-muted); margin-top:4px;">Terakreditasi Paripurna Kemenkes RI — No. Akreditasi: YM.02.01/VI/2024</p>
+            <p style="font-size:0.8rem; color:var(--text-muted); margin-top:2px;">Hotline Layanan Pasien: <strong>+62 853-3892-2586</strong></p>
+          </div>
+          <div style="font-size:0.82rem; color:var(--text-muted); text-align:left;">
+            <div>&copy; 2026 Klinik Akshara Dental Space Makassar. All Rights Reserved.</div>
+            <div style="margin-top:4px;">Production Engine on <a href="<%= seo.baseUrl %>" style="color:var(--primary); font-weight:700; text-decoration:none;"><%= seo.baseUrl %></a></div>
+          </div>
+        </div>
+      </footer>
+
+    </div>
+
+    <!-- TV QUEUE DISPLAY VIEW (FULLSCREEN KIOSK MODE) -->
+    <div id="tvView" style="display:none;" class="tv-mode-active view-transition">
+      <div class="tv-container">
+        <div class="tv-header">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <div class="brand-icon">
+              <img src="/img/axalogo.png" alt="Akshara Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
+            </div>
+            <div>
+              <h1 style="font-size:1.35rem; font-weight:800; display:flex; align-items:center; gap:8px;">
+                <span>MONITOR RUANG ANTREAN GIGI</span>
+                <span class="groq-badge-audio"><i class="fa-solid fa-volume-high"></i> GROQ AI TTS</span>
+              </h1>
+              <p style="color:#94a3b8; font-size:0.82rem;">Klinik Akshara Dental Space — Pemanggilan Suara AI Orpheus & Lonceng Chime</p>
+            </div>
+          </div>
+          
+          <!-- TV Controls Toolbar -->
+          <div class="tv-controls-bar">
+            <select id="tvVoiceEngine" class="tv-select" onchange="syncTtsSettingsFromTv(this.value, document.getElementById('tvVoicePersona').value)">
+              <option value="canopylabs/orpheus-arabic-saudi" selected>🎙️ Groq TTS (canopylabs/orpheus-arabic-saudi)</option>
+              <option value="canopylabs/orpheus-v1-english">🎙️ Groq TTS (canopylabs/orpheus-v1-english)</option>
+              <option value="web-speech">🔊 Web Speech Native (Bahasa Indonesia)</option>
+            </select>
+            
+            <select id="tvVoicePersona" class="tv-select" onchange="syncTtsSettingsFromTv(document.getElementById('tvVoiceEngine').value, this.value)">
+              <option value="abdullah" selected>Abdullah (Pria Santun - Rekomendasi)</option>
+              <option value="hannah">Hannah (Wanita Ramah)</option>
+              <option value="diana">Diana (Wanita Resmi)</option>
+              <option value="autumn">Autumn (Wanita Ekspresif)</option>
+              <option value="austin">Austin (Pria Lugas)</option>
+              <option value="daniel">Daniel (Pria Tenang)</option>
+              <option value="troy">Troy (Pria Tegas)</option>
+            </select>
+
+            <button class="nav-btn btn-outline" onclick="testQueueVoiceAnnouncement()" style="color:#38bdf8; border-color:#38bdf8; font-size:0.8rem; padding:6px 12px; height:34px;">
+              <i class="fa-solid fa-play"></i> Test Suara AI
+            </button>
+
+            <select id="tvFilterPoli" onchange="fetchTvQueueData()" class="tv-select" style="color:#fff;">
+              <option value="SEMUA">Semua Poliklinik Gigi</option>
+              <option value="Poli Gigi & Spesialis">Poli Gigi & Spesialis</option>
+              <option value="Poli Spesialis Konservasi">Poli Spesialis Konservasi</option>
+              <option value="Poli Gigi Umum">Poli Gigi Umum</option>
+            </select>
+
+            <button class="nav-btn btn-outline" onclick="closeTvQueue()" style="color:#fff; border-color:#475569; font-size:0.8rem; height:34px;">
+              <i class="fa-solid fa-xmark"></i> Tutup TV Mode
+            </button>
+          </div>
+        </div>
+
+        <div class="tv-main-grid">
+          <div class="tv-call-box" id="tvCallBox">
+            <span style="font-size:0.95rem; font-weight:700; color:#cbd5e1; letter-spacing:1px;">NOMOR ANTREAN SEDANG DIPANGGIL</span>
+            <div id="tvCurrentQueue" class="tv-queue-number">---</div>
+            <div id="tvCurrentRoom" style="font-size:1.8rem; font-weight:800; color:#ffffff; margin-bottom:6px;">Menunggu Pasien...</div>
+            <div id="tvCurrentDoctor" style="font-size:1.05rem; color:#94a3b8;">Silakan persiapkan kartu identitas Anda</div>
+            <div id="tvAudioStatusBadge" style="margin-top:14px; font-size:0.8rem; color:#38bdf8; font-weight:700; display:none;">
+              <i class="fa-solid fa-waveform-lines fa-fade"></i> Suara AI Orpheus Sedang Memanggil Pasien...
+            </div>
+          </div>
+
+          <div style="background:rgba(30,41,59,0.4); border:1px solid #334155; border-radius:20px; padding:18px;">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#38bdf8; margin-bottom:14px; border-bottom:1px solid #334155; padding-bottom:8px;">
+              <i class="fa-solid fa-list-ol"></i> 5 Antrean Gigi Berikutnya
+            </h3>
+            <div id="tvNextList" style="display:flex; flex-direction:column; gap:10px;"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Floating WhatsApp -->
+  <div class="wa-float-container">
+    <div class="glass-card wa-chat-box" id="waChatBox">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <span style="font-weight:700; font-size:0.88rem; color:#25d366;"><i class="fa-brands fa-whatsapp"></i> Chat Admin Akshara Dental</span>
+        <button onclick="toggleWaBox()" style="background:none; border:none; cursor:pointer;" aria-label="Tutup Obrolan WhatsApp"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">Ada yang bisa kami bantu seputar jadwal dokter gigi atau konsultasi perawatan?</p>
+      <input type="text" id="waQuickMsgInput" placeholder="Ketik pesan konsultasi singkat..." style="width:100%; margin-bottom:8px;" />
+      <button class="nav-btn btn-primary" style="width:100%; background:#25d366; justify-content:center;" onclick="sendQuickWa()">
+        Kirim ke WhatsApp <i class="fa-solid fa-arrow-right"></i>
+      </button>
+    </div>
+    <button class="wa-float-btn" onclick="toggleWaBox()" title="Hubungi Kami via WhatsApp" aria-label="Buka Chat WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+    </button>
+  </div>
+
+  <!-- Login Modal Terotorisasi Staf & Dokter -->
+  <div class="modal-overlay" id="loginModal">
+    <div class="glass-card modal-box">
+      <button class="modal-close" onclick="closeLoginModal()" aria-label="Tutup Modal Login"><i class="fa-solid fa-xmark"></i></button>
+      <div style="text-align:center; margin-bottom:18px;">
+        <div class="brand-icon" style="margin:0 auto 10px;">
+          <img src="/img/axalogo.png" alt="Akshara Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-lock\'></i>';" />
+        </div>
+        <h3 style="font-size:1.25rem; font-weight:800;">Gerbang Akses Staf Medis</h3>
+        <p style="font-size:0.82rem; color:var(--text-muted);">Masukkan username & password resmi Anda</p>
+      </div>
+      <form onsubmit="handleLoginSubmit(event)">
+        <div class="form-group" style="margin-bottom:12px;">
+          <label for="loginUsername">Username</label>
+          <input type="text" id="loginUsername" required placeholder="admin / drg_kurniawaty / drg_aksa / drg_tasya / apoteker_dewi / kasir_siti" />
+        </div>
+        <div class="form-group" style="margin-bottom:18px;">
+          <label for="loginPassword">Password</label>
+          <input type="password" id="loginPassword" required placeholder="••••••••" />
+        </div>
+        <button type="submit" class="nav-btn btn-primary" style="width:100%; justify-content:center;" id="btnLoginSubmit">
+          <i class="fa-solid fa-right-to-bracket"></i> Masuk ke Portal
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- PWA Install Modal -->
+  <div class="modal-overlay" id="pwaModal">
+    <div class="glass-card modal-box" style="text-align:center;">
+      <button class="modal-close" onclick="closePwaModal()" aria-label="Tutup Modal PWA"><i class="fa-solid fa-xmark"></i></button>
+      <div class="brand-icon" style="margin:0 auto 10px;">
+        <img src="/img/axalogo.png" alt="Akshara Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-mobile-screen\'></i>';" />
+      </div>
+      <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:8px;">Instal Aplikasi Akshara Dental</h3>
+      <p style="font-size:0.84rem; color:var(--text-muted); line-height:1.5; margin-bottom:16px;">
+        Pasang aplikasi ini di layar utama perangkat Anda untuk reservasi instan dan pemantauan antrean tanpa hambatan.
+      </p>
+      <button class="nav-btn btn-primary" id="btnInstallPwa" onclick="triggerPwaInstall()" style="width:100%; justify-content:center; margin-bottom:8px;">
+        <i class="fa-solid fa-download"></i> Pasang ke Layar Utama
+      </button>
+      <div style="font-size:0.78rem; color:var(--text-muted); text-align:left; background:var(--badge-bg); padding:8px 10px; border-radius:8px;">
+        <strong>Pengguna iOS (Safari):</strong> Tekan ikon <em>Bagikan (Share)</em> di toolbar Safari, lalu pilih <em>"Tambahkan ke Layar Utama (Add to Home Screen)"</em>.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let lastSecurityAlertTime = 0;
+
+    function triggerDevtoolsSecurityAlert(reason) {
+      const now = Date.now();
+      if (now - lastSecurityAlertTime < 2500) return;
+      lastSecurityAlertTime = now;
+
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+
+      const modal = document.getElementById('devtoolsSecurityModal');
+      if (modal) modal.classList.add('show');
+    }
+
+    function closeDevtoolsSecurityModal() {
+      const modal = document.getElementById('devtoolsSecurityModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      triggerDevtoolsSecurityAlert('Context menu blocked');
+      return false;
+    });
+
+    document.addEventListener('keydown', function(e) {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (
+        e.keyCode === 123 ||
+        (cmdOrCtrl && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
+        (cmdOrCtrl && (e.keyCode === 85 || e.keyCode === 83))
+      ) {
+        e.preventDefault();
+        triggerDevtoolsSecurityAlert('DevTools shortcut detected');
+        return false;
+      }
+    });
+
+    setInterval(function() {
+      console.clear();
+    }, 4000);
+
+    // DUAL-MODE API CLIENT: Default Express Local/Redis Router -> Google Apps Script Fallback
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
+
+    function runApi(actionName, payloadData) {
+      return new Promise(function(resolve, reject) {
+        fetch('/api/router', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: actionName, payload: payloadData || {} })
+        })
+        .then(function(res) {
+          if (res.ok) return res.json();
+          throw new Error('Local router HTTP ' + res.status);
+        })
+        .then(function(data) { resolve(data); })
+        .catch(function(localErr) {
+          // Fallback ke Google Apps Script jika local router tidak tersedia
+          fetch(GAS_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: actionName, payload: payloadData || {} })
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) { resolve(data); })
+          .catch(function(gasErr) { reject(localErr); });
+        });
+      });
+    }
+
+    // STATE DOKTER DEFAULT (3 DOKTER GIGI RESMI AKSHARA DENTAL SPACE)
+    let clinicDoctors = [
+      {
+        id: 'DOC-001',
+        nama: 'drg. Hj. Kurniawaty, Sp.KG',
+        kategori: 'Dokter Gigi Spesialis',
+        spesialisasi: 'Konservasi Gigi (Endodontik)',
+        sip: 'SIP: 503/SIP-DS/2024/001',
+        hari: 'Senin - Sabtu',
+        jamMulai: '16:00',
+        jamSelesai: '21:00',
+        kuota: '20'
+      },
+      {
+        id: 'DOC-002',
+        nama: 'drg. M. Aksa Arsyad',
+        kategori: 'Dokter Gigi',
+        spesialisasi: 'Kedokteran Gigi Umum & Estetika',
+        sip: 'SIP: 503/SIP-DG/2024/002',
+        hari: 'Senin - Sabtu',
+        jamMulai: '09:00',
+        jamSelesai: '16:00',
+        kuota: '25'
+      },
+      {
+        id: 'DOC-003',
+        nama: 'drg. Tasya Awaliyah Arsyad',
+        kategori: 'Dokter Gigi',
+        spesialisasi: 'Kedokteran Gigi Umum & Estetika',
+        sip: 'SIP: 503/SIP-DG/2024/003',
+        hari: 'Senin - Sabtu',
+        jamMulai: '13:00',
+        jamSelesai: '20:00',
+        kuota: '25'
+      }
+    ];
+
+    let currentSlide = 0;
+    let slideTimer = null;
+    let deferredPwaPrompt = null;
+    
+    // PERSISTENT GROQ SETTINGS
+    let systemGroqKey = localStorage.getItem('akshara_groq_key') || '';
+    let systemTtsModel = localStorage.getItem('akshara_tts_model') || 'canopylabs/orpheus-arabic-saudi';
+    let systemTtsVoice = localStorage.getItem('akshara_tts_voice') || 'abdullah';
+
+    window.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      initHeroSlider();
+      renderDoctorCards(clinicDoctors);
+      populateDoctorSelect(clinicDoctors);
+      loadPublicData();
+      initInlineServiceWorker();
+      initScrollToTopListener();
+      checkCurrentRouteTab();
+
+      syncTtsSelectors(systemTtsModel, systemTtsVoice);
+    });
+
+    function showToast(msg, type) {
+      const box = document.getElementById('toastBox');
+      box.className = 'toast-box ' + (type || 'info');
+      box.innerText = msg;
+      box.style.display = 'block';
+      setTimeout(function() { box.style.display = 'none'; }, 4000);
+    }
+
+    function checkCurrentRouteTab() {
+      const currentPath = window.location.pathname;
+      if (currentPath === '/antrean-tv' || window.location.search.includes('display=true')) {
+        openTvQueue();
+      } else if (currentPath === '/layanan') {
+        scrollToSection('layanan');
+      } else if (currentPath === '/dokter') {
+        scrollToSection('dokter');
+      } else if (currentPath === '/reservasi') {
+        scrollToSection('reservasi');
+      } else if (currentPath === '/kontak') {
+        scrollToSection('kontak');
+      }
+    }
+
+    function scrollToSection(id) {
+      setTimeout(() => {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: 'smooth' });
+      }, 200);
+    }
+
+    function initScrollToTopListener() {
+      const btn = document.getElementById('scrollToTopBtn');
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 280) {
+          btn.classList.add('show');
+        } else {
+          btn.classList.remove('show');
+        }
+      });
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function toggleMobileMenu() {
+      document.getElementById('mobileDrawer').classList.toggle('open');
+    }
+
+    function closeMobileMenu() {
+      document.getElementById('mobileDrawer').classList.remove('open');
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('akshara_theme') || 'theme-white';
+      document.body.className = savedTheme;
+      updateThemeLabel(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.body.className;
+      const next = current === 'theme-white' ? 'theme-blue' : 'theme-white';
+      document.body.className = next;
+      localStorage.setItem('akshara_theme', next);
+      updateThemeLabel(next);
+      showToast('Tema diubah ke: ' + (next === 'theme-white' ? 'White Higienis' : 'Blue Cyan Soft'), 'info');
+    }
+
+    function updateThemeLabel(theme) {
+      const label = document.getElementById('themeLabel');
+      if (label) {
+        label.innerText = theme === 'theme-white' ? 'Tema Putih' : 'Tema Biru';
+      }
+    }
+
+    function initHeroSlider() {
+      slideTimer = setInterval(function() {
+        nextSlide();
+      }, 5000);
+    }
+
+    function nextSlide() {
+      jumpSlide((currentSlide + 1) % 3);
+    }
+
+    function jumpSlide(index) {
+      currentSlide = index;
+      const slides = document.querySelectorAll('.slide-item');
+      const dots = document.querySelectorAll('.slider-dot');
+      for (let i = 0; i < slides.length; i++) {
+        slides[i].classList.remove('active');
+        if (dots[i]) dots[i].classList.remove('active');
+      }
+      if (slides[currentSlide]) slides[currentSlide].classList.add('active');
+      if (dots[currentSlide]) dots[currentSlide].classList.add('active');
+    }
+
+    function loadPublicData() {
+      runApi('getInitialData', {})
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            if (res.dokters && res.dokters.length > 0) {
+              clinicDoctors = res.dokters;
+              renderDoctorCards(clinicDoctors);
+              populateDoctorSelect(clinicDoctors);
+            }
+            if (res.settings) {
+              if (res.settings.GROQ_TTS_MODEL) systemTtsModel = res.settings.GROQ_TTS_MODEL;
+              if (res.settings.GROQ_TTS_VOICE) systemTtsVoice = res.settings.GROQ_TTS_VOICE;
+              syncTtsSelectors(systemTtsModel, systemTtsVoice);
+            }
+          }
+        })
+        .catch(function(err) {
+          console.warn('Load public data status:', err);
+        });
+    }
+
+    function syncTtsSelectors(modelName, voiceName) {
+      systemTtsModel = modelName || 'canopylabs/orpheus-arabic-saudi';
+      systemTtsVoice = voiceName || 'abdullah';
+      localStorage.setItem('akshara_tts_model', systemTtsModel);
+      localStorage.setItem('akshara_tts_voice', systemTtsVoice);
+
+      const tvTtsSel = document.getElementById('tvVoiceEngine');
+      if (tvTtsSel) tvTtsSel.value = systemTtsModel;
+      const tvVoiceSel = document.getElementById('tvVoicePersona');
+      if (tvVoiceSel) tvVoiceSel.value = systemTtsVoice;
+    }
+
+    function syncTtsSettingsFromTv(modelName, voiceName) {
+      syncTtsSelectors(modelName, voiceName);
+      showToast('Pengaturan suara TV diperbarui: ' + voiceName, 'info');
+    }
+
+    function renderDoctorCards(doctors) {
+      const container = document.getElementById('doctorListContainer');
+      if (!container) return;
+      let html = '';
+      for (let i = 0; i < doctors.length; i++) {
+        const d = doctors[i];
+        html += '<div class="glass-card service-card animate-swipe-up">' +
+          '<div style="font-size:0.75rem; font-weight:700; color:var(--primary); text-transform:uppercase; margin-bottom:6px;">' + d.kategori + '</div>' +
+          '<h3 style="font-size:1.15rem; font-weight:800; margin-bottom:4px;">' + d.nama + '</h3>' +
+          '<div style="color:var(--text-muted); font-size:0.85rem; margin-bottom:10px;">' + d.spesialisasi + '</div>' +
+          '<div style="font-size:0.82rem; color:var(--text-main); line-height:1.5;">' +
+            '<div><i class="fa-solid fa-id-badge" style="color:var(--primary);"></i> ' + (d.sip || 'SIP Terdaftar') + '</div>' +
+            '<div><i class="fa-solid fa-calendar-day" style="color:var(--primary);"></i> ' + d.hari + '</div>' +
+            '<div><i class="fa-solid fa-clock" style="color:var(--primary);"></i> ' + d.jamMulai + ' - ' + d.jamSelesai + ' WITA</div>' +
+          '</div>' +
+          '<div style="margin-top:12px;">' +
+            '<a href="/reservasi" class="nav-btn btn-outline" style="width:100%; justify-content:center; text-decoration:none; font-size:0.8rem;" onclick="selectDoctorBooking(\'' + d.id + '\')">' +
+              '<i class="fa-solid fa-calendar-plus"></i> Buat Janji Konsultasi' +
+            '</a>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function populateDoctorSelect(doctors) {
+      const sel = document.getElementById('resDokterSelect');
+      if (!sel) return;
+      let html = '<option value="">-- Pilih Dokter Gigi Pemeriksa --</option>';
+      for (let i = 0; i < doctors.length; i++) {
+        const d = doctors[i];
+        html += '<option value="' + d.id + '">' + d.nama + ' (' + d.spesialisasi + ')</option>';
+      }
+      sel.innerHTML = html;
+    }
+
+    function selectDoctorBooking(docId) {
+      const sel = document.getElementById('resDokterSelect');
+      if (sel) sel.value = docId;
+    }
+
+    function switchReservasiTab(tab) {
+      const btnBaru = document.getElementById('tabPasienBaruBtn');
+      const btnLama = document.getElementById('tabPasienLamaBtn');
+      const boxLama = document.getElementById('boxPasienLama');
+      const isNewInput = document.getElementById('resIsNew');
+
+      if (tab === 'baru') {
+        btnBaru.classList.add('active');
+        btnLama.classList.remove('active');
+        boxLama.style.display = 'none';
+        isNewInput.value = 'true';
+        document.getElementById('resNomorRm').value = '';
+      } else {
+        btnLama.classList.add('active');
+        btnBaru.classList.remove('active');
+        boxLama.style.display = 'block';
+        isNewInput.value = 'false';
+      }
+    }
+
+    function doSearchPatient() {
+      const q = document.getElementById('searchRmNikInput').value.trim();
+      const feedback = document.getElementById('searchResultFeedback');
+      if (!q) {
+        showToast('Ketik Nomor RM atau NIK untuk mencari data!', 'error');
+        return;
+      }
+      feedback.innerText = 'Mencari data pasien...';
+
+      runApi('searchPatient', { query: q })
+        .then(function(res) {
+          if (res && res.found) {
+            const p = res.patient;
+            document.getElementById('resNomorRm').value = p.nomorRm;
+            document.getElementById('resNik').value = p.nik;
+            document.getElementById('resNama').value = p.nama;
+            document.getElementById('resTglLahir').value = p.tanggalLahir;
+            document.getElementById('resGender').value = p.jenisKelamin;
+            document.getElementById('resNoHp').value = p.noHp;
+            document.getElementById('resAlamat').value = p.alamat;
+            document.getElementById('resAlergi').value = p.alergiObat;
+            feedback.innerHTML = '<span style="color:#059669;"><i class="fa-solid fa-check"></i> Pasien Terdaftar: ' + p.nama + ' (' + p.nomorRm + ')</span>';
+            showToast('Data rekam medis ditemukan!', 'success');
+          } else {
+            feedback.innerHTML = '<span style="color:#dc2626;"><i class="fa-solid fa-xmark"></i> Data tidak ditemukan. Silakan mendaftar di tab Pasien Baru.</span>';
+          }
+        })
+        .catch(function(err) {
+          feedback.innerText = 'Error: ' + err.toString();
+        });
+    }
+
+    function handleReservasiSubmit(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmitReservasi');
+      btn.disabled = true;
+      btn.innerText = 'Mendaftarkan...';
+
+      const payload = {
+        isNewPatient: document.getElementById('resIsNew').value === 'true',
+        nomorRm: document.getElementById('resNomorRm').value,
+        nik: document.getElementById('resNik').value,
+        nama: document.getElementById('resNama').value,
+        tanggalLahir: document.getElementById('resTglLahir').value,
+        jenisKelamin: document.getElementById('resGender').value,
+        noHp: document.getElementById('resNoHp').value,
+        alamat: document.getElementById('resAlamat').value,
+        alergiObat: document.getElementById('resAlergi').value,
+        dokterId: document.getElementById('resDokterSelect').value || 'DOC-001',
+        ruanganPoli: 'Poli Gigi & Spesialis',
+        keluhanUtama: document.getElementById('resKeluhan').value
+      };
+
+      runApi('registerAppointment', payload)
+        .then(function(res) {
+          btn.disabled = false;
+          btn.innerText = 'Konfirmasi Pendaftaran Antrean';
+          if (res && res.status === 'success') {
+            showToast('Pendaftaran Berhasil! Nomor Antrean: ' + res.kodeAntrean, 'success');
+            document.getElementById('formReservasi').reset();
+          } else {
+            showToast('Gagal mendaftar: ' + (res.message || 'Error server'), 'error');
+          }
+        })
+        .catch(function(err) {
+          btn.disabled = false;
+          btn.innerText = 'Konfirmasi Pendaftaran Antrean';
+          showToast('Error: ' + err.toString(), 'error');
+        });
+    }
+
+    // =========================================================================
+    // GROQ AI TEXT-TO-SPEECH & MONITOR TV RUANG ANTREAN
+    // =========================================================================
+
+    let tvPollingInterval = null;
+    let isCurrentlyAnnouncing = false;
+
+    function openTvQueue() {
+      const tvView = document.getElementById('tvView');
+      const landingView = document.getElementById('landingView');
+      const siteHeader = document.querySelector('.site-header');
+      const breadcrumbs = document.querySelector('.breadcrumb-trail');
+
+      if (siteHeader) siteHeader.style.display = 'none';
+      if (breadcrumbs) breadcrumbs.style.display = 'none';
+      if (landingView) landingView.style.display = 'none';
+      if (tvView) {
+        tvView.style.display = 'block';
+        tvView.classList.add('animate-fade-in');
+      }
+
+      fetchTvQueueData();
+      if (!tvPollingInterval) {
+        tvPollingInterval = setInterval(fetchTvQueueData, 5000);
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function closeTvQueue() {
+      if (tvPollingInterval) {
+        clearInterval(tvPollingInterval);
+        tvPollingInterval = null;
+      }
+      window.location.href = '/';
+    }
+
+    function fetchTvQueueData() {
+      const poli = document.getElementById('tvFilterPoli').value;
+      runApi('getQueueTvData', { poli: poli })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            updateTvDisplay(res.activeQueue, res.nextQueues);
+          }
+        })
+        .catch(function(err) {
+          console.error('Error fetchTvQueueData:', err);
+        });
+    }
+
+    function updateTvDisplay(active, nextList) {
+      const numElem = document.getElementById('tvCurrentQueue');
+      const roomElem = document.getElementById('tvCurrentRoom');
+      const docElem = document.getElementById('tvCurrentDoctor');
+      const nextElem = document.getElementById('tvNextList');
+      const boxElem = document.getElementById('tvCallBox');
+
+      if (active) {
+        const isNewCall = numElem.innerText !== active.kode;
+        numElem.innerText = active.kode;
+        roomElem.innerText = active.ruanganPoli;
+        docElem.innerText = active.dokterNama;
+
+        if (isNewCall) {
+          boxElem.classList.add('calling');
+          announceQueueWithAiVoice(active.kode, active.ruanganPoli, active.dokterNama);
+          setTimeout(() => boxElem.classList.remove('calling'), 12000);
+        }
+      } else {
+        numElem.innerText = '---';
+        roomElem.innerText = 'Menunggu Pasien...';
+        docElem.innerText = 'Klinik Akshara Dental Space';
+        boxElem.classList.remove('calling');
+      }
+
+      let html = '';
+      if (nextList && nextList.length > 0) {
+        for (let i = 0; i < nextList.length; i++) {
+          const item = nextList[i];
+          html += '<div style="background:#1e293b; padding:8px 12px; border-radius:10px; display:flex; justify-content:space-between; align-items:center;">' +
+            '<div>' +
+              '<div style="font-weight:700; color:#38bdf8; font-size:0.9rem;">' + item.kode + '</div>' +
+              '<div style="font-size:0.75rem; color:#94a3b8;">' + item.namaPasien + '</div>' +
+            '</div>' +
+            '<div style="font-size:0.75rem; color:#cbd5e1;">' + item.ruanganPoli + '</div>' +
+          '</div>';
+        }
+      } else {
+        html = '<div style="color:#64748b; font-size:0.8rem; text-align:center;">Belum ada antrean berikutnya.</div>';
+      }
+      nextElem.innerHTML = html;
+    }
+
+    function playAudioChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime);
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.18);
+        osc.frequency.setValueAtTime(1174.66, audioCtx.currentTime + 0.38);
+        gain.gain.setValueAtTime(0.25, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.85);
+
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.85);
+      } catch (e) {
+        console.warn('Audio chime note:', e);
+      }
+    }
+
+    function formatKodeForSpeech(kode) {
+      if (!kode) return 'A N T 1';
+      const parts = kode.split('-');
+      const last = parts[parts.length - 1];
+      const numVal = parseInt(last, 10);
+      const friendlyNum = !isNaN(numVal) ? numVal.toString() : last;
+      return "A N T " + friendlyNum;
+    }
+
+    function announceQueueWithAiVoice(kode, poli, dokter) {
+      if (isCurrentlyAnnouncing) return;
+      isCurrentlyAnnouncing = true;
+
+      const badge = document.getElementById('tvAudioStatusBadge');
+      if (badge) badge.style.display = 'block';
+
+      playAudioChime();
+
+      const engineSelect = document.getElementById('tvVoiceEngine');
+      const selectedModel = engineSelect ? engineSelect.value : (systemTtsModel || 'canopylabs/orpheus-arabic-saudi');
+      
+      const personaSelect = document.getElementById('tvVoicePersona');
+      const selectedVoice = personaSelect ? personaSelect.value : (systemTtsVoice || 'abdullah');
+
+      const friendlyKode = formatKodeForSpeech(kode);
+      const cleanRoom = poli || 'ruang periksa poli gigi';
+
+      const indonesianInput = "Nomor antrean, " + friendlyKode + ". Silakan menuju ke " + cleanRoom + ". Terima kasih.";
+
+      setTimeout(function() {
+        if (selectedModel === 'web-speech') {
+          executeNativeWebSpeechAnnouncement(indonesianInput, function() {
+            isCurrentlyAnnouncing = false;
+            if (badge) badge.style.display = 'none';
+          });
+        } else {
+          executeGroqAudioSpeech(selectedModel, selectedVoice, indonesianInput, function() {
+            isCurrentlyAnnouncing = false;
+            if (badge) badge.style.display = 'none';
+          });
+        }
+      }, 700);
+    }
+
+    function executeGroqAudioSpeech(model, voice, inputSpeechText, callback) {
+      showToast('🎙️ Memanggil via Groq Orpheus AI (' + (voice || 'abdullah') + ')...', 'groq');
+
+      // 1. Coba panggil proxy server lokal /api/groq/tts
+      fetch('/api/groq/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: model || 'canopylabs/orpheus-arabic-saudi',
+          voice: voice || 'abdullah',
+          input: inputSpeechText
+        })
+      })
+      .then(function(res) {
+        if (!res.ok) throw new Error('Proxy TTS status ' + res.status);
+        return res.blob();
+      })
+      .then(function(blob) {
+        playTtsAudioBlob(blob, inputSpeechText, callback);
+      })
+      .catch(function(err) {
+        // 2. Direct fallback jika apiKey tersedia di frontend
+        const apiKey = systemGroqKey || localStorage.getItem('akshara_groq_key') || '';
+        if (apiKey) {
+          fetch('https://api.groq.com/openai/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + apiKey,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: model || 'canopylabs/orpheus-arabic-saudi',
+              voice: voice || 'abdullah',
+              response_format: 'wav',
+              input: inputSpeechText
+            })
+          })
+          .then(res => res.blob())
+          .then(blob => playTtsAudioBlob(blob, inputSpeechText, callback))
+          .catch(() => executeNativeWebSpeechAnnouncement(inputSpeechText, callback));
+        } else {
+          executeNativeWebSpeechAnnouncement(inputSpeechText, callback);
+        }
+      });
+    }
+
+    function playTtsAudioBlob(blob, fallbackText, callback) {
+      const audioUrl = URL.createObjectURL(blob);
+      const audio = new Audio(audioUrl);
+      audio.onended = function() {
+        URL.revokeObjectURL(audioUrl);
+        if (callback) callback();
+      };
+      audio.onerror = function() {
+        URL.revokeObjectURL(audioUrl);
+        executeNativeWebSpeechAnnouncement(fallbackText, callback);
+      };
+      audio.play().catch(function() {
+        executeNativeWebSpeechAnnouncement(fallbackText, callback);
+      });
+    }
+
+    function executeNativeWebSpeechAnnouncement(text, callback) {
+      if ('speechSynthesis' in window) {
+        window.speechSynthesis.cancel();
+        const utterance = new SpeechSynthesisUtterance(text);
+        utterance.lang = 'id-ID';
+        utterance.rate = 0.9;
+        utterance.pitch = 1.05;
+        utterance.onend = function() { if (callback) callback(); };
+        utterance.onerror = function() { if (callback) callback(); };
+        window.speechSynthesis.speak(utterance);
+      } else {
+        if (callback) callback();
+      }
+    }
+
+    function testQueueVoiceAnnouncement() {
+      showToast('Menguji pemanggilan suara AI Groq Orpheus...', 'groq');
+      announceQueueWithAiVoice('ANT-20260908-0001', 'Poli Spesialis Konservasi', 'drg. Hj. Kurniawaty, Sp.KG');
+    }
+
+    function openLoginModal() {
+      document.getElementById('loginModal').classList.add('show');
+    }
+    function closeLoginModal() {
+      document.getElementById('loginModal').classList.remove('show');
+    }
+
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const u = document.getElementById('loginUsername').value.trim();
+      const p = document.getElementById('loginPassword').value.trim();
+      const btn = document.getElementById('btnLoginSubmit');
+      btn.disabled = true;
+
+      runApi('login', { username: u, password: p })
+        .then(function(res) {
+          btn.disabled = false;
+          if (res && res.status === 'success') {
+            localStorage.setItem('akshara_user', JSON.stringify(res.user));
+            showToast('Login berhasil! Mengalihkan ke Portal Medis...', 'success');
+            setTimeout(function() {
+              window.location.href = '/admin-dashboard';
+            }, 800);
+          } else {
+            showToast(res.message || 'Username atau Password salah!', 'error');
+          }
+        })
+        .catch(function(err) {
+          btn.disabled = false;
+          showToast('Error login: ' + err.toString(), 'error');
+        });
+    }
+
+    function toggleWaBox() {
+      document.getElementById('waChatBox').classList.toggle('show');
+    }
+
+    function sendQuickWa() {
+      const msg = document.getElementById('waQuickMsgInput').value.trim() || 'Halo Admin Klinik Akshara Dental Space';
+      const targetUrl = 'https://api.whatsapp.com/send/?phone=6285338922586&text=' + encodeURIComponent(msg) + '&type=phone_number&app_absent=0';
+      window.open(targetUrl, '_blank');
+      toggleWaBox();
+    }
+
+    function openPwaModal() {
+      document.getElementById('pwaModal').classList.add('show');
+    }
+    function closePwaModal() {
+      document.getElementById('pwaModal').classList.remove('show');
+    }
+
+    function initInlineServiceWorker() {
+      window.addEventListener('beforeinstallprompt', function(e) {
+        e.preventDefault();
+        deferredPwaPrompt = e;
+        const btn = document.getElementById('btnInstallPwa');
+        if (btn) btn.style.display = 'block';
+      });
+
+      if ('serviceWorker' in navigator) {
+        try {
+          const swBlob = new Blob([
+            "self.addEventListener('install', e => self.skipWaiting()); self.addEventListener('activate', e => self.clients.claim());"
+          ], { type: 'application/javascript' });
+          const swUrl = URL.createObjectURL(swBlob);
+          navigator.serviceWorker.register(swUrl).catch(function() {});
+        } catch (e) {}
+      }
+    }
+
+    function triggerPwaInstall() {
+      if (deferredPwaPrompt) {
+        deferredPwaPrompt.prompt();
+        deferredPwaPrompt.userChoice.then(function() {
+          deferredPwaPrompt = null;
+          closePwaModal();
+        });
+      } else {
+        showToast('Pilih opsi "Add to Home Screen" pada menu peramban Anda.', 'info');
+      }
+    }
+  </script>
+</body>
+</html>

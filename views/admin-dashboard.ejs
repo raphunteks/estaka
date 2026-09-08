@@ -1,0 +1,1887 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+  <title><%= seo.title %></title>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <!-- Favicon & Touch Icons -->
+  <link rel="icon" type="image/png" href="/img/axalogo.png" />
+  <link rel="shortcut icon" href="/img/axalogo.png" />
+  <link rel="apple-touch-icon" href="/img/axalogo.png" />
+
+  <!-- External Typography & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <!-- Modular Stylesheet -->
+  <link rel="stylesheet" href="/css/main.css" />
+</head>
+<body class="theme-white">
+
+  <!-- Toast Notification Box -->
+  <div id="toastBox" class="toast-box" role="status" aria-live="polite"></div>
+
+  <!-- Scroll To Top Button -->
+  <button id="scrollToTopBtn" class="scroll-top-btn" onclick="scrollToTop()" title="Kembali ke Atas" aria-label="Kembali ke atas">
+    <i class="fa-solid fa-arrow-up"></i>
+  </button>
+
+  <!-- DevTools Protection Modal -->
+  <div class="modal-overlay" id="devtoolsSecurityModal" role="dialog" aria-modal="true" aria-labelledby="secModalTitle">
+    <div class="glass-card modal-box" style="background:rgba(15,23,42,0.97); border:2px solid #ef4444; color:#ffffff; text-align:center;">
+      <div style="width:64px; height:64px; border-radius:50%; background:rgba(239,68,68,0.2); border:2px solid #ef4444; color:#ef4444; display:flex; align-items:center; justify-content:center; font-size:1.8rem; margin:0 auto 14px;">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h3 id="secModalTitle" style="font-size:1.2rem; font-weight:800; color:#ef4444; margin-bottom:8px;">
+        AKSES DEVTOOLS DIBATASI
+      </h3>
+      <div style="font-size:0.75rem; font-weight:700; color:#cbd5e1; background:rgba(239,68,68,0.25); padding:4px 10px; border-radius:20px; display:inline-block; margin-bottom:12px;">
+        PERMENKES NO. 24 TAHUN 2022 — REKAM MEDIS ELEKTRONIK
+      </div>
+      <p style="font-size:0.84rem; color:#e2e8f0; line-height:1.5; margin-bottom:16px;">
+        Fitur inspeksi kode dan pintasan developer tools dinonaktifkan demi menjaga integritas serta kerahasiaan riwayat medis pasien Klinik Akshara Dental Space.
+      </p>
+      <button class="nav-btn btn-primary" style="background:#ef4444; border:none; padding:10px 20px; margin:0 auto;" onclick="closeDevtoolsSecurityModal()">
+        <i class="fa-solid fa-check"></i> Saya Mengerti & Lanjutkan
+      </button>
+    </div>
+  </div>
+
+  <!-- Header Khusus Portal Staf & Dokter -->
+  <header class="site-header" role="banner">
+    <div class="brand-logo">
+      <div class="brand-icon">
+        <img src="/img/axalogo.png" alt="Logo Akshara" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
+      </div>
+      <div>
+        <div class="brand-title">Portal Medis & Admin</div>
+        <div class="brand-subtitle">Akshara Dental Space</div>
+      </div>
+    </div>
+
+    <div class="header-actions">
+      <button class="nav-btn btn-outline" id="themeToggleBtn" onclick="toggleTheme()" title="Ubah Tema Warna">
+        <i class="fa-solid fa-circle-half-stroke"></i> <span id="themeLabel">Tema Putih</span>
+      </button>
+
+      <a href="/" class="nav-btn btn-outline" style="text-decoration:none;" title="Lihat Website Publik">
+        <i class="fa-solid fa-globe"></i> <span>Web Utama</span>
+      </a>
+
+      <a href="/antrean-tv" target="_blank" class="nav-btn btn-outline" style="text-decoration:none;" title="Buka Monitor Antrean">
+        <i class="fa-solid fa-tv"></i> <span>TV Display</span>
+      </a>
+
+      <button class="nav-btn btn-outline" style="color:#ef4444; border-color:#ef4444;" onclick="logoutUser()" title="Keluar dari Portal">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i> <span>Logout</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- Kontainer Utama Portal Staf -->
+  <main class="container animate-swipe-up" style="padding-top:20px;">
+    
+    <!-- Baris Profil Staf Aktif -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid var(--glass-border); padding-bottom:14px; flex-wrap:wrap; gap:10px;">
+      <div>
+        <h2 id="portalGreeting" style="font-size:1.4rem; font-weight:800;">Dashboard Portal Medis</h2>
+        <p id="portalRoleBadge" style="color:var(--primary); font-weight:700; font-size:0.85rem;"></p>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="nav-btn btn-outline" onclick="refreshStaffView()"><i class="fa-solid fa-rotate"></i> Refresh Data</button>
+      </div>
+    </div>
+
+    <!-- Tab Navigasi Berdasarkan Hak Akses Role -->
+    <div id="portalNavTabs" style="display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap;"></div>
+
+    <!-- ===================================================================== -->
+    <!-- 1. KONTEN MODUL DOKTER GIGI (CPPT, ODONTOGRAM 52 GIGI, E-RESEP, LAB)  -->
+    <!-- ===================================================================== -->
+    <div id="staffSectionDokter" style="display:none;">
+      <div class="form-grid">
+        <div class="glass-card" style="padding:20px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+            <h3 style="font-size:1.1rem; font-weight:700;"><i class="fa-solid fa-users"></i> Antrean Pasien Gigi Hari Ini</h3>
+            <button class="nav-btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="loadDoctorQueueData()"><i class="fa-solid fa-rotate"></i> Reload</button>
+          </div>
+          <div id="doctorQueueList" style="display:flex; flex-direction:column; gap:10px; max-height:520px; overflow-y:auto;"></div>
+        </div>
+
+        <div class="glass-card" style="padding:20px;" id="doctorWorkArea">
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-stethoscope"></i> Rekam Medis Gigi, Odontogram, E-Resep & Lab</h3>
+          <div id="selectedPatientBadge" style="padding:10px; border-radius:10px; background:var(--badge-bg); font-size:0.85rem; font-weight:700; margin-bottom:14px;">
+            Pilih salah satu pasien di kolom antrean untuk memulai pemeriksaan.
+          </div>
+
+          <div id="patientAllergyAlert" style="display:none; padding:10px; border-radius:10px; background:#fee2e2; border:1px solid #ef4444; color:#991b1b; font-weight:700; margin-bottom:12px; font-size:0.85rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> ALERGI OBAT: <span id="alertAlergiText"></span>
+          </div>
+
+          <!-- ODONTOGRAM 52 ELEMEN INTERAKTIF -->
+          <div id="odontogramModule" style="display:none;" class="odontogram-wrapper">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; flex-wrap:wrap; gap:6px;">
+              <span style="font-weight:700; font-size:0.85rem;"><i class="fa-solid fa-tooth"></i> Odontogram Interaktif Dental Space</span>
+              <select id="odontogramStatusTool" style="font-size:0.8rem; padding:4px 8px; width:auto;">
+                <option value="status-karies">Karies (Merah)</option>
+                <option value="status-tambalan">Tambalan (Oranye)</option>
+                <option value="status-mahkota">Mahkota (Kuning)</option>
+                <option value="status-endo">Endodontik (Ungu)</option>
+                <option value="status-hilang">Hilang / Missing (Abu-abu)</option>
+                <option value="status-normal">Normal (Bersih)</option>
+              </select>
+            </div>
+            <div style="font-size:0.72rem; font-weight:700; text-align:center; color:var(--text-muted);">Gigi Dewasa Rahang Atas (18-11, 21-28)</div>
+            <div class="teeth-row" id="teethAdultUpper"></div>
+            <div style="font-size:0.72rem; font-weight:700; text-align:center; color:var(--text-muted);">Gigi Susu / Anak (55-51, 61-65 & 85-81, 71-75)</div>
+            <div class="teeth-row" id="teethChildUpper"></div>
+            <div class="teeth-row" id="teethChildLower"></div>
+            <div style="font-size:0.72rem; font-weight:700; text-align:center; color:var(--text-muted);">Gigi Dewasa Rahang Bawah (48-41, 31-38)</div>
+            <div class="teeth-row" id="teethAdultLower"></div>
+          </div>
+
+          <!-- Form SOAP -->
+          <div class="form-grid" style="margin-bottom:12px;">
+            <div class="form-group">
+              <label for="cpptTriage">Status Triage</label>
+              <select id="cpptTriage">
+                <option value="Hijau">Hijau (Non-Gawat Darurat)</option>
+                <option value="Kuning">Kuning (Mendesak / Pulpitis Akut)</option>
+                <option value="Merah">Merah (Gawat Darurat Dental)</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="cpptVital">Tanda Vital (Tekanan Darah / Nadi / Suhu)</label>
+              <input type="text" id="cpptVital" placeholder="Contoh: 120/80 mmHg, 78 bpm, 36.5 °C" />
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <label for="cpptSubjektif">Subjektif (Anamnesa / Keluhan Pasien)</label>
+              <button type="button" class="nav-btn btn-outline" style="padding:2px 8px; font-size:0.72rem; min-height:26px;" onclick="toggleSpeechRecognition('cpptSubjektif')">
+                <i class="fa-solid fa-microphone" id="micIcon_cpptSubjektif"></i> Dikte Suara (Voice to Text)
+              </button>
+            </div>
+            <textarea id="cpptSubjektif" rows="2" placeholder="Pasien mengeluhkan ngilu pada gigi geraham bawah saat minum dingin..."></textarea>
+          </div>
+
+          <div class="form-group" style="margin-bottom:8px;">
+            <label for="cpptObjektif">Objektif (Pemeriksaan Klinis & Intraoral)</label>
+            <textarea id="cpptObjektif" rows="2" placeholder="Gigi 46 karies profunda, perkusi (+), palpasi (-), sondasi (+)..."></textarea>
+          </div>
+          
+          <div class="form-group" style="margin-bottom:8px;">
+            <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:6px;">
+              <label for="cpptAsesmen">Asesmen / Diagnosa Klinis (ICD-10 Gigi)</label>
+              <button type="button" class="nav-btn btn-groq" style="padding:5px 12px; font-size:0.75rem; min-height:32px;" onclick="callGroqAiAgent()">
+                <i class="fa-solid fa-bolt"></i> <span>Konsultasi Groq AI Agent</span>
+              </button>
+            </div>
+            <textarea id="cpptAsesmen" rows="2" placeholder="K04.0 Pulpitis Ireversibel Gigi 46..."></textarea>
+          </div>
+
+          <!-- GROQ AI AGENT CLINICAL BOX -->
+          <div id="groqAiAgentBox" style="display:none;" class="groq-agent-box">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; flex-wrap:wrap; gap:6px;">
+              <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
+                <span class="groq-badge"><i class="fa-solid fa-bolt"></i> GROQ LPU AI MEDICAL AGENT</span>
+                <select id="doctorGroqQuickModel" onchange="switchDoctorGroqModel(this.value)" style="font-size:0.72rem; font-weight:700; padding:2px 8px; width:auto; background:#fff; border-color:#f97316; height:28px;">
+                  <option value="openai/gpt-oss-120b" selected>openai/gpt-oss-120b (Flagship Reasoning)</option>
+                  <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (High Intelligence)</option>
+                  <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Ultra Cepat)</option>
+                  <option value="qwen/qwen3.6-27b">qwen/qwen3.6-27b (Fast Reasoning)</option>
+                  <option value="groq/compound">groq/compound (Compound Agent)</option>
+                  <option value="groq/compound-mini">groq/compound-mini (Compound Mini)</option>
+                </select>
+              </div>
+              <div style="display:flex; gap:6px;">
+                <button type="button" class="nav-btn btn-outline" style="padding:2px 8px; font-size:0.7rem; min-height:26px;" onclick="applyAiDiagnosis()">
+                  <i class="fa-solid fa-arrow-turn-down"></i> Terapkan ke Asesmen
+                </button>
+                <button type="button" class="nav-btn btn-outline" style="padding:2px 8px; font-size:0.7rem; min-height:26px;" onclick="applyAiPlan()">
+                  <i class="fa-solid fa-arrow-turn-down"></i> Terapkan ke Plan
+                </button>
+              </div>
+            </div>
+
+            <div id="groqChatContainer" class="groq-chat-history">
+              <div class="groq-msg-bubble groq-msg-agent" id="groqPrimaryResult">
+                <i class="fa-solid fa-spinner fa-spin"></i> Groq AI Agent sedang menganalisis data klinis gigi...
+              </div>
+            </div>
+
+            <div style="display:flex; gap:6px; margin-top:8px;">
+              <input type="text" id="groqFollowUpInput" placeholder="Tanya lanjutan ke AI Agent (misal: teknik preparasi saluran akar, dosis obat)..." style="padding:8px 12px; font-size:0.82rem;" onkeydown="if(event.key==='Enter'){event.preventDefault();sendGroqFollowUp();}" />
+              <button type="button" class="nav-btn btn-groq" style="padding:6px 12px; font-size:0.8rem; height:42px;" onclick="sendGroqFollowUp()">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:12px;">
+            <label for="cpptPlan">Plan / Terapi & Prosedur Tindakan Gigi</label>
+            <textarea id="cpptPlan" rows="2" placeholder="Pulpektomi devitalisasi, preparasi biomekanis saluran akar, medikamen intrakanal..."></textarea>
+          </div>
+
+          <!-- MODUL E-RESEP OBAT KE APOTEK/FARMASI -->
+          <div style="border-top:1.5px solid var(--glass-border); padding-top:14px; margin-bottom:16px;">
+            <h4 style="font-size:0.95rem; font-weight:800; color:var(--primary); margin-bottom:10px;">
+              <i class="fa-solid fa-prescription"></i> E-Resep Obat ke Farmasi / Apotek
+            </h4>
+            <div class="form-grid" style="grid-template-columns:2fr 1fr 2fr auto; gap:8px; align-items:flex-end;">
+              <div class="form-group">
+                <label style="font-size:0.75rem;">Pilih Obat (Dari Master Obat Dental)</label>
+                <select id="resepPilihObat" style="padding:8px 10px; font-size:0.85rem;"></select>
+              </div>
+              <div class="form-group">
+                <label style="font-size:0.75rem;">Jumlah</label>
+                <input type="number" id="resepJumlahObat" value="10" min="1" style="padding:8px 10px; font-size:0.85rem;" />
+              </div>
+              <div class="form-group">
+                <label style="font-size:0.75rem;">Aturan Pakai / Signa</label>
+                <input type="text" id="resepSignaObat" placeholder="Contoh: 3 x 1 tablet sesudah makan" style="padding:8px 10px; font-size:0.85rem;" />
+              </div>
+              <button type="button" class="nav-btn btn-primary" onclick="tambahItemResep()" style="padding:8px 14px; font-size:0.82rem; height:42px;">
+                <i class="fa-solid fa-plus"></i> Tambah
+              </button>
+            </div>
+
+            <!-- Tabel Rincian Obat -->
+            <div style="margin-top:10px; overflow-x:auto;">
+              <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+                <thead>
+                  <tr style="border-bottom:1.5px solid var(--glass-border); text-align:left;">
+                    <th style="padding:6px;">Nama Obat</th>
+                    <th style="padding:6px; text-align:center;">Qty</th>
+                    <th style="padding:6px;">Aturan Pakai</th>
+                    <th style="padding:6px; text-align:center;">Aksi</th>
+                  </tr>
+                </thead>
+                <tbody id="resepTableBody">
+                  <tr><td colspan="4" style="padding:8px; text-align:center; color:var(--text-muted);">Belum ada obat yang ditambahkan.</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <!-- MODUL ORDER RUJUKAN LABORATORIUM / RADIOLOGI GIGI -->
+          <div style="border-top:1.5px solid var(--glass-border); padding-top:14px; margin-bottom:16px;">
+            <h4 style="font-size:0.95rem; font-weight:800; color:#059669; margin-bottom:10px;">
+              <i class="fa-solid fa-flask-vial"></i> Order Rujukan Uji Lab & Radiologi Dental
+            </h4>
+            <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:8px; font-size:0.82rem;">
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Dental Panoramic 2D" style="width:auto;" /> Rontgen Panoramic 2D
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Rontgen Periapikal" style="width:auto;" /> Rontgen Periapikal Gigi
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Darah Lengkap (CBC)" style="width:auto;" /> Darah Lengkap (CBC)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Bleeding & Clotting Time" style="width:auto;" /> Bleeding / Clotting Time
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Gula Darah Sewaktu (GDS)" style="width:auto;" /> Gula Darah Sewaktu (GDS)
+              </label>
+              <label style="display:flex; align-items:center; gap:6px; font-weight:600; cursor:pointer;">
+                <input type="checkbox" name="labTests" value="Swab Kultur Bakteri Oral" style="width:auto;" /> Kultur Bakteri Oral
+              </label>
+            </div>
+          </div>
+
+          <div style="display:flex; gap:8px; flex-wrap:wrap; justify-content:flex-end;">
+            <button class="nav-btn btn-outline" onclick="openDocGeneratorModal()"><i class="fa-solid fa-file-pdf"></i> Terbitkan Surat Keterangan</button>
+            <button class="nav-btn btn-primary" onclick="submitCppt()"><i class="fa-solid fa-floppy-disk"></i> Simpan CPPT & Kirim Resep/Lab</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 2. KONTEN MODUL FARMASI / APOTEK                                      -->
+    <!-- ===================================================================== -->
+    <div id="staffSectionFarmasi" style="display:none;">
+      <div class="glass-card" style="padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="font-size:1.15rem; font-weight:800;"><i class="fa-solid fa-prescription-bottle-medical"></i> Antrean E-Resep Obat Pasien Masuk</h3>
+          <button class="nav-btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="loadPharmacyOrders()"><i class="fa-solid fa-rotate"></i> Reload</button>
+        </div>
+        <div id="pharmacyOrdersList" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 3. KONTEN MODUL LABORATORIUM & RADIOLOGI                              -->
+    <!-- ===================================================================== -->
+    <div id="staffSectionLab" style="display:none;">
+      <div class="glass-card" style="padding:20px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:14px;">
+          <h3 style="font-size:1.15rem; font-weight:800;"><i class="fa-solid fa-vial-circle-check"></i> Order Rujukan Uji Laboratorium & Rontgen</h3>
+          <button class="nav-btn btn-outline" style="padding:4px 8px; font-size:0.75rem;" onclick="loadLabOrders()"><i class="fa-solid fa-rotate"></i> Reload</button>
+        </div>
+        <div id="labOrdersList" style="display:flex; flex-direction:column; gap:12px;"></div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 4. KONTEN MODUL KASIR POS & REKONSILIASI SHIFT                        -->
+    <!-- ===================================================================== -->
+    <div id="staffSectionKasir" style="display:none;">
+      <div class="form-grid">
+        <div class="glass-card" style="padding:20px;">
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:10px;"><i class="fa-solid fa-cash-register"></i> Status Shift Kasir</h3>
+          <div id="posShiftStatusBox" style="padding:12px; border-radius:10px; background:var(--badge-bg); margin-bottom:14px; font-size:0.88rem;">
+            Memeriksa status shift kasir...
+          </div>
+          <div id="posShiftActionArea"></div>
+        </div>
+
+        <div class="glass-card" style="padding:20px;">
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:10px;"><i class="fa-solid fa-receipt"></i> Transaksi Kasir Medis Gigi</h3>
+          <div style="display:flex; gap:8px; margin-bottom:12px; flex-wrap:wrap;">
+            <input type="text" id="posBillingSearch" placeholder="Ketik Kode Antrean / No RM..." style="flex:1; min-width:180px;" />
+            <button class="nav-btn btn-primary" onclick="loadBillingDetails()"><i class="fa-solid fa-magnifying-glass"></i> Cari Tagihan</button>
+          </div>
+
+          <div id="billingSummaryArea" style="display:none;">
+            <div id="billingPatientInfo" style="font-weight:700; margin-bottom:8px; font-size:0.9rem;"></div>
+            <table style="width:100%; border-collapse:collapse; font-size:0.85rem; margin-bottom:12px;">
+              <thead>
+                <tr style="border-bottom:1.5px solid var(--glass-border); text-align:left;">
+                  <th style="padding:6px;">Item Tagihan</th>
+                  <th style="padding:6px; text-align:center;">Qty</th>
+                  <th style="padding:6px; text-align:right;">Subtotal</th>
+                </tr>
+              </thead>
+              <tbody id="billingTableBody"></tbody>
+            </table>
+
+            <div class="form-grid" style="margin-bottom:12px;">
+              <div class="form-group">
+                <label for="posMetodeBayar">Metode Pembayaran</label>
+                <select id="posMetodeBayar" onchange="calculateChange()">
+                  <option value="Tunai">Tunai</option>
+                  <option value="QRIS">QRIS Dinamis / Statis</option>
+                  <option value="Debit">Kartu Debit / EDC</option>
+                  <option value="Transfer">Transfer Bank</option>
+                  <option value="Asuransi">Klaim Asuransi</option>
+                  <option value="Split">Split Pay</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="posNominalBayar">Nominal Bayar (Rp)</label>
+                <input type="number" id="posNominalBayar" oninput="calculateChange()" placeholder="Jumlah uang..." />
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:space-between; font-weight:800; font-size:1.05rem; margin-bottom:14px; border-top:1px solid var(--glass-border); padding-top:8px;">
+              <div>Kembalian:</div>
+              <div id="posKembalianText" style="color:#059669;">Rp 0</div>
+            </div>
+
+            <div style="display:flex; gap:8px; justify-content:flex-end;">
+              <button class="nav-btn btn-outline" onclick="printThermalReceipt()"><i class="fa-solid fa-print"></i> Cetak Struk</button>
+              <button class="nav-btn btn-primary" onclick="submitPosPayment()"><i class="fa-solid fa-check"></i> Proses Lunas</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===================================================================== -->
+    <!-- 5. KONTEN SUPER ADMIN (GROQ AI, GEMINI, ANALITIK, AUDIT & WEB SETTING) -->
+    <!-- ===================================================================== -->
+    <div id="staffSectionAdmin" style="display:none;">
+      
+      <!-- SUB-TAB INTERNAL SUPER ADMIN -->
+      <div style="display:flex; gap:8px; margin-bottom:16px; border-bottom:1.5px solid var(--glass-border); padding-bottom:8px; flex-wrap:wrap;">
+        <button class="tab-btn active" id="subTabAdminAiBtn" onclick="switchAdminSubSection('ai')">
+          <i class="fa-solid fa-bolt"></i> Konfigurasi AI & Analitik
+        </button>
+        <button class="tab-btn" id="subTabAdminWebBtn" onclick="switchAdminSubSection('web')">
+          <i class="fa-solid fa-sliders"></i> Pengaturan Konten Website
+        </button>
+      </div>
+
+      <!-- KONTEN SUB-TAB 1: AI & ANALITIK -->
+      <div id="adminSubSectionAi">
+        <div class="form-grid">
+          <!-- KARTU KONFIGURASI GROQ AI AGENT -->
+          <div class="glass-card" style="padding:20px; border:1.5px solid #f97316;">
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:12px;">
+              <h3 style="font-size:1.1rem; font-weight:800; color:#ea580c;">
+                <i class="fa-solid fa-bolt"></i> Konfigurasi Groq AI Agent & TTS
+              </h3>
+              <span class="groq-badge">LPU Inference</span>
+            </div>
+            
+            <div class="form-group" style="margin-bottom:10px;">
+              <label for="adminGroqKeyInput">GROQ_API_KEY (Project API Key)</label>
+              <div style="display:flex; gap:6px;">
+                <input type="password" id="adminGroqKeyInput" placeholder="gsk_..." style="flex:1;" />
+                <button class="nav-btn btn-outline" type="button" onclick="togglePasswordEye('adminGroqKeyInput')"><i class="fa-solid fa-eye"></i></button>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:10px;">
+              <label for="adminGroqModelSelect">Model AI Groq (Clinical EMR & Reasoning)</label>
+              <select id="adminGroqModelSelect" onchange="syncAdminGroqModel(this.value)">
+                <option value="openai/gpt-oss-120b" selected>openai/gpt-oss-120b (Flagship Reasoning - Rekomendasi)</option>
+                <option value="qwen/qwen3.8-27b">qwen/qwen3.8-27b (High Intelligence & Multilingual)</option>
+                <option value="openai/gpt-oss-20b">openai/gpt-oss-20b (Ultra Cepat - Triage & SOAP)</option>
+                <option value="qwen/qwen3.6-27b">qwen/qwen3.6-27b (Respon Kilat & Efisien)</option>
+                <option value="groq/compound">groq/compound (Compound Reasoning Agent)</option>
+                <option value="groq/compound-mini">groq/compound-mini (Compound Mini Lightweight)</option>
+              </select>
+            </div>
+
+            <!-- DEDICATED TTS AUDIO CONFIGURATION -->
+            <div style="border-top:1px solid #fed7aa; padding-top:10px; margin-top:10px;">
+              <h4 style="font-size:0.9rem; font-weight:800; color:#ea580c; margin-bottom:8px;">
+                <i class="fa-solid fa-volume-high"></i> Pengaturan Suara Panggil Pasien (Groq Audio Speech)
+              </h4>
+              <div class="form-grid" style="grid-template-columns:1fr 1fr; gap:10px;">
+                <div class="form-group">
+                  <label for="adminTtsModelSelect">Model AI TTS</label>
+                  <select id="adminTtsModelSelect" onchange="syncTtsSettingsFromAdmin(this.value, document.getElementById('adminTtsVoicePersona').value)">
+                    <option value="canopylabs/orpheus-arabic-saudi" selected>canopylabs/orpheus-arabic-saudi (Rekomendasi)</option>
+                    <option value="canopylabs/orpheus-v1-english">canopylabs/orpheus-v1-english</option>
+                    <option value="web-speech">Native Web Speech (Bahasa Indonesia)</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="adminTtsVoicePersona">Voice Persona Orpheus</label>
+                  <select id="adminTtsVoicePersona" onchange="syncTtsSettingsFromAdmin(document.getElementById('adminTtsModelSelect').value, this.value)">
+                    <option value="abdullah" selected>abdullah (Suara Pria Jelas & Santun)</option>
+                    <option value="hannah">hannah (Female - Warm & Friendly)</option>
+                    <option value="diana">diana (Female - Professional)</option>
+                    <option value="autumn">autumn (Female - Expressive)</option>
+                    <option value="austin">austin (Male - Clear)</option>
+                    <option value="daniel">daniel (Male - Calm)</option>
+                    <option value="troy">troy (Male - Authoritative)</option>
+                  </select>
+                </div>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-top:10px; margin-bottom:14px;">
+              <label for="adminGroqTemperature">Temperatur / Presisi Medis (0.1 - 0.5)</label>
+              <input type="number" id="adminGroqTemperature" min="0" max="1" step="0.1" value="0.2" placeholder="0.2" />
+            </div>
+
+            <div style="display:flex; gap:8px; flex-wrap:wrap;">
+              <button class="nav-btn btn-groq" onclick="testGroqConnection()"><i class="fa-solid fa-bolt"></i> Test Chat Groq</button>
+              <button class="nav-btn btn-outline" onclick="testQueueVoiceAnnouncement()"><i class="fa-solid fa-bullhorn"></i> Test Suara TTS</button>
+              <button class="nav-btn btn-primary" onclick="saveGroqSettings()"><i class="fa-solid fa-floppy-disk"></i> Simpan Groq Settings</button>
+            </div>
+          </div>
+
+          <!-- KARTU CADANGAN GEMINI API & ANALITIK -->
+          <div class="glass-card" style="padding:20px;">
+            <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-chart-line"></i> Analitik Operasional Klinik</h3>
+            <div class="form-grid" id="adminAnalyticsGrid"></div>
+
+            <div style="margin-top:16px; border-top:1px solid var(--glass-border); padding-top:12px;">
+              <div class="form-group" style="margin-bottom:10px;">
+                <label for="adminGeminiKeyInput">GEMINI_API_KEY (Cadangan / Secondary)</label>
+                <div style="display:flex; gap:6px;">
+                  <input type="password" id="adminGeminiKeyInput" placeholder="AIzaSy..." style="flex:1;" />
+                  <button class="nav-btn btn-outline" type="button" onclick="togglePasswordEye('adminGeminiKeyInput')"><i class="fa-solid fa-eye"></i></button>
+                </div>
+              </div>
+              <button class="nav-btn btn-outline" onclick="saveGeminiSettings()"><i class="fa-solid fa-save"></i> Simpan Gemini Key</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="glass-card" style="padding:20px; margin-top:16px;">
+          <h3 style="font-size:1.1rem; font-weight:700; margin-bottom:12px;"><i class="fa-solid fa-book-medical"></i> Audit Trail Logbook</h3>
+          <div style="overflow-x:auto;">
+            <table style="width:100%; border-collapse:collapse; font-size:0.82rem;">
+              <thead>
+                <tr style="border-bottom:1.5px solid var(--glass-border); text-align:left;">
+                  <th style="padding:6px;">Waktu</th>
+                  <th style="padding:6px;">User</th>
+                  <th style="padding:6px;">Aksi</th>
+                  <th style="padding:6px;">Modul</th>
+                </tr>
+              </thead>
+              <tbody id="adminAuditTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- KONTEN SUB-TAB 2: PENGATURAN KONTEN WEBSITE (SUPER ADMIN) -->
+      <div id="adminSubSectionWeb" style="display:none;">
+        <div class="glass-card" style="padding:24px;">
+          <div style="margin-bottom:18px;">
+            <h3 style="font-size:1.25rem; font-weight:800; color:var(--primary);"><i class="fa-solid fa-sliders"></i> Manajemen Informasi & Tampilan Website</h3>
+            <p style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">
+              Atur identitas header, footer, tautan kontak, jam layanan, alamat, dan Google Maps secara terpusat.
+            </p>
+          </div>
+
+          <form id="formWebSettings" onsubmit="handleSaveWebSettings(event)">
+            <div class="form-grid">
+              <div class="form-group">
+                <label for="webNamaKlinik">Nama Resmi Klinik (Header & Title) *</label>
+                <input type="text" id="webNamaKlinik" required placeholder="Klinik Akshara Dental Space" />
+              </div>
+              <div class="form-group">
+                <label for="webSloganKlinik">Slogan / Subtitle Klinik *</label>
+                <input type="text" id="webSloganKlinik" required placeholder="Modern Dental Care & Aesthetic Space" />
+              </div>
+              <div class="form-group full">
+                <label for="webAlamatKlinik">Alamat Domisili & Jalan Lengkap *</label>
+                <input type="text" id="webAlamatKlinik" required placeholder="Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar..." />
+              </div>
+              <div class="form-group">
+                <label for="webTeleponWa">Hotline WhatsApp Layanan Pasien *</label>
+                <input type="text" id="webTeleponWa" required placeholder="+62 853-3892-2586" />
+              </div>
+              <div class="form-group">
+                <label for="webJamOperasional">Jam Operasional Pelayanan *</label>
+                <input type="text" id="webJamOperasional" required placeholder="Setiap Hari, 08:00 – 21:00 WITA" />
+              </div>
+              <div class="form-group">
+                <label for="webEmailKlinik">Email Resmi Pelayanan Pasien *</label>
+                <input type="email" id="webEmailKlinik" required placeholder="care@aksharadental.space" />
+              </div>
+              <div class="form-group">
+                <label for="webInstagramUrl">Link Akun Instagram Resmi</label>
+                <input type="url" id="webInstagramUrl" placeholder="https://instagram.com/aksharadental" />
+              </div>
+              <div class="form-group full">
+                <label for="webGmapsEmbedUrl">Link Source Iframe Google Maps (Embed URL) *</label>
+                <input type="text" id="webGmapsEmbedUrl" required placeholder="https://www.google.com/maps/embed?pb=..." />
+              </div>
+              <div class="form-group full">
+                <label for="webFooterNote">Catatan Akreditasi / Teks Legalitas Footer *</label>
+                <textarea id="webFooterNote" rows="2" placeholder="Terakreditasi Paripurna Kemenkes RI — No. Akreditasi: YM.02.01/VI/2024"></textarea>
+              </div>
+            </div>
+
+            <div style="margin-top:20px; text-align:right;">
+              <button type="submit" class="nav-btn btn-primary" id="btnSaveWebSettings" style="padding:10px 24px;">
+                <i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan Konten Website
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+  </main>
+
+  <!-- Document Generator Modal -->
+  <div class="modal-overlay" id="docModal">
+    <div class="glass-card modal-box">
+      <button class="modal-close" onclick="closeDocModal()" aria-label="Tutup Modal Dokumen"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:12px;"><i class="fa-solid fa-file-signature"></i> Terbitkan Surat Keterangan Medis Gigi</h3>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label for="docTypeSelect">Jenis Dokumen Medis</label>
+        <select id="docTypeSelect">
+          <option value="Sakit">Surat Keterangan Sakit (SKS Gigi)</option>
+          <option value="Sehat">Surat Keterangan Sehat Rongga Mulut</option>
+          <option value="Resume">Resume Medis Perawatan Gigi</option>
+        </select>
+      </div>
+      <div class="form-group" style="margin-bottom:10px;">
+        <label for="docDiagnosa">Diagnosa</label>
+        <input type="text" id="docDiagnosa" placeholder="K04.0 Pulpitis Ireversibel Gigi 46..." />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="docKeterangan">Keterangan / Anjuran Dokter Gigi</label>
+        <textarea id="docKeterangan" rows="2" placeholder="Diberikan istirahat selama 2 hari setelah perawatan saluran akar..."></textarea>
+      </div>
+      <button class="nav-btn btn-primary" style="width:100%; justify-content:center;" onclick="submitGenerateDoc()">
+        <i class="fa-solid fa-stamp"></i> Terbitkan PDF & Stempel QR
+      </button>
+    </div>
+  </div>
+
+  <!-- Close Shift Modal -->
+  <div class="modal-overlay" id="closeShiftModal">
+    <div class="glass-card modal-box">
+      <button class="modal-close" onclick="closeCloseShiftModal()" aria-label="Tutup Modal Shift"><i class="fa-solid fa-xmark"></i></button>
+      <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:8px;"><i class="fa-solid fa-lock"></i> Tutup Shift & Rekonsiliasi Kas</h3>
+      <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:12px;">Masukkan total uang fisik tunai yang ada di dalam laci kasir.</p>
+      <div class="form-group" style="margin-bottom:12px;">
+        <label for="closeShiftActualCash">Total Uang Fisik di Laci Kasir (Rp) *</label>
+        <input type="number" id="closeShiftActualCash" placeholder="Contoh: 1500000" required />
+      </div>
+      <div class="form-group" style="margin-bottom:16px;">
+        <label for="closeShiftNotes">Catatan Penutupan Shift</label>
+        <textarea id="closeShiftNotes" rows="2" placeholder="Catatan opsional selisih / uang modal..."></textarea>
+      </div>
+      <button class="nav-btn btn-primary" style="width:100%; justify-content:center; background:#ef4444;" onclick="submitCloseShift()">
+        <i class="fa-solid fa-lock"></i> Konfirmasi & Terbitkan Z-Report
+      </button>
+    </div>
+  </div>
+
+  <script>
+    let lastSecurityAlertTime = 0;
+
+    function triggerDevtoolsSecurityAlert(reason) {
+      const now = Date.now();
+      if (now - lastSecurityAlertTime < 2500) return;
+      lastSecurityAlertTime = now;
+
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(440, audioCtx.currentTime);
+        gain.gain.setValueAtTime(0.12, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.35);
+      } catch (e) {}
+
+      const modal = document.getElementById('devtoolsSecurityModal');
+      if (modal) modal.classList.add('show');
+    }
+
+    function closeDevtoolsSecurityModal() {
+      const modal = document.getElementById('devtoolsSecurityModal');
+      if (modal) modal.classList.remove('show');
+    }
+
+    document.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      triggerDevtoolsSecurityAlert('Context menu blocked');
+      return false;
+    });
+
+    document.addEventListener('keydown', function(e) {
+      const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0;
+      const cmdOrCtrl = isMac ? e.metaKey : e.ctrlKey;
+
+      if (
+        e.keyCode === 123 ||
+        (cmdOrCtrl && e.shiftKey && (e.keyCode === 73 || e.keyCode === 74 || e.keyCode === 67)) ||
+        (cmdOrCtrl && (e.keyCode === 85 || e.keyCode === 83))
+      ) {
+        e.preventDefault();
+        triggerDevtoolsSecurityAlert('DevTools shortcut detected');
+        return false;
+      }
+    });
+
+    setInterval(function() {
+      console.clear();
+    }, 4000);
+
+    // DUAL-MODE API CLIENT: Express Local/Redis Router -> Google Apps Script Fallback
+    const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
+
+    function runApi(actionName, payloadData) {
+      return new Promise(function(resolve, reject) {
+        fetch('/api/router', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: actionName, payload: payloadData || {} })
+        })
+        .then(function(res) {
+          if (res.ok) return res.json();
+          throw new Error('Local router HTTP ' + res.status);
+        })
+        .then(function(data) { resolve(data); })
+        .catch(function(localErr) {
+          fetch(GAS_API_URL, {
+            method: 'POST',
+            body: JSON.stringify({ action: actionName, payload: payloadData || {} })
+          })
+          .then(function(res) { return res.json(); })
+          .then(function(data) { resolve(data); })
+          .catch(function(gasErr) { reject(localErr); });
+        });
+      });
+    }
+
+    // STATE VARIABLES
+    let currentUser = null;
+    let activeDoctorPatient = null;
+    let masterObatList = [];
+    const resepItems = [];
+    const odontogramState = {};
+    let groqConversation = [];
+    let currentShift = null;
+    let activeBilling = null;
+    
+    // PERSISTENT GROQ SETTINGS
+    let systemGroqKey = localStorage.getItem('akshara_groq_key') || '';
+    let systemGroqModel = localStorage.getItem('akshara_groq_model') || 'openai/gpt-oss-120b';
+    let systemTtsModel = localStorage.getItem('akshara_tts_model') || 'canopylabs/orpheus-arabic-saudi';
+    let systemTtsVoice = localStorage.getItem('akshara_tts_voice') || 'abdullah';
+
+    window.addEventListener('DOMContentLoaded', function() {
+      initTheme();
+      initOdontogramGrid();
+      initScrollToTopListener();
+      loadMasterObatData();
+      verifyAuthSession();
+    });
+
+    function verifyAuthSession() {
+      const stored = localStorage.getItem('akshara_user');
+      if (!stored) {
+        alert('Sesi masuk tidak ditemukan. Silakan login terlebih dahulu.');
+        window.location.href = '/';
+        return;
+      }
+
+      try {
+        currentUser = JSON.parse(stored);
+        document.getElementById('portalGreeting').innerText = 'Selamat Datang, ' + currentUser.fullName;
+        document.getElementById('portalRoleBadge').innerText = 'Hak Akses: ' + currentUser.role + ' (' + (currentUser.dokterId || currentUser.poliklinikId) + ')';
+        setupPortalTabsByRole(currentUser.role);
+      } catch (e) {
+        localStorage.removeItem('akshara_user');
+        window.location.href = '/';
+      }
+    }
+
+    function showToast(msg, type) {
+      const box = document.getElementById('toastBox');
+      box.className = 'toast-box ' + (type || 'info');
+      box.innerText = msg;
+      box.style.display = 'block';
+      setTimeout(function() { box.style.display = 'none'; }, 4000);
+    }
+
+    function initScrollToTopListener() {
+      const btn = document.getElementById('scrollToTopBtn');
+      window.addEventListener('scroll', function() {
+        if (window.pageYOffset > 280) {
+          btn.classList.add('show');
+        } else {
+          btn.classList.remove('show');
+        }
+      });
+    }
+
+    function scrollToTop() {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function initTheme() {
+      const savedTheme = localStorage.getItem('akshara_theme') || 'theme-white';
+      document.body.className = savedTheme;
+      updateThemeLabel(savedTheme);
+    }
+
+    function toggleTheme() {
+      const current = document.body.className;
+      const next = current === 'theme-white' ? 'theme-blue' : 'theme-white';
+      document.body.className = next;
+      localStorage.setItem('akshara_theme', next);
+      updateThemeLabel(next);
+      showToast('Tema diubah ke: ' + (next === 'theme-white' ? 'White Higienis' : 'Blue Cyan Soft'), 'info');
+    }
+
+    function updateThemeLabel(theme) {
+      const label = document.getElementById('themeLabel');
+      if (label) {
+        label.innerText = theme === 'theme-white' ? 'Tema Putih' : 'Tema Biru';
+      }
+    }
+
+    function setupPortalTabsByRole(role) {
+      const container = document.getElementById('portalNavTabs');
+      let html = '';
+
+      if (role === 'Dokter') {
+        html += '<button class="tab-btn active" onclick="switchStaffSection(\'dokter\')"><i class="fa-solid fa-user-doctor"></i> Pelayanan Medis Gigi & CPPT</button>';
+        switchStaffSection('dokter');
+        loadDoctorQueueData();
+      } else if (role === 'Farmasi') {
+        html += '<button class="tab-btn active" onclick="switchStaffSection(\'farmasi\')"><i class="fa-solid fa-prescription"></i> E-Resep Farmasi</button>';
+        switchStaffSection('farmasi');
+        loadPharmacyOrders();
+      } else if (role === 'Laboratorium') {
+        html += '<button class="tab-btn active" onclick="switchStaffSection(\'lab\')"><i class="fa-solid fa-flask-vial"></i> Order Uji Lab & Rontgen</button>';
+        switchStaffSection('lab');
+        loadLabOrders();
+      } else if (role === 'Kasir') {
+        html += '<button class="tab-btn active" onclick="switchStaffSection(\'kasir\')"><i class="fa-solid fa-cash-register"></i> Kasir & POS</button>';
+        switchStaffSection('kasir');
+        checkPosShiftStatus();
+      } else if (role === 'Admin') {
+        html += '<button class="tab-btn active" onclick="switchStaffSection(\'admin\')"><i class="fa-solid fa-gear"></i> Super Admin</button>';
+        html += '<button class="tab-btn" onclick="switchStaffSection(\'dokter\')"><i class="fa-solid fa-tooth"></i> Preview Dokter Gigi</button>';
+        html += '<button class="tab-btn" onclick="switchStaffSection(\'farmasi\')"><i class="fa-solid fa-prescription"></i> Farmasi</button>';
+        html += '<button class="tab-btn" onclick="switchStaffSection(\'lab\')"><i class="fa-solid fa-flask-vial"></i> Lab & Rontgen</button>';
+        html += '<button class="tab-btn" onclick="switchStaffSection(\'kasir\')"><i class="fa-solid fa-cash-register"></i> Kasir POS</button>';
+        switchStaffSection('admin');
+        loadAdminSettingsAndAnalytics();
+      }
+      container.innerHTML = html;
+    }
+
+    function switchStaffSection(sec) {
+      document.getElementById('staffSectionDokter').style.display = sec === 'dokter' ? 'block' : 'none';
+      document.getElementById('staffSectionFarmasi').style.display = sec === 'farmasi' ? 'block' : 'none';
+      document.getElementById('staffSectionLab').style.display = sec === 'lab' ? 'block' : 'none';
+      document.getElementById('staffSectionKasir').style.display = sec === 'kasir' ? 'block' : 'none';
+      document.getElementById('staffSectionAdmin').style.display = sec === 'admin' ? 'block' : 'none';
+
+      if (sec === 'dokter') loadDoctorQueueData();
+      if (sec === 'farmasi') loadPharmacyOrders();
+      if (sec === 'lab') loadLabOrders();
+      if (sec === 'kasir') checkPosShiftStatus();
+      if (sec === 'admin') loadAdminSettingsAndAnalytics();
+    }
+
+    function switchAdminSubSection(sub) {
+      const btnAi = document.getElementById('subTabAdminAiBtn');
+      const btnWeb = document.getElementById('subTabAdminWebBtn');
+      const secAi = document.getElementById('adminSubSectionAi');
+      const secWeb = document.getElementById('adminSubSectionWeb');
+
+      if (sub === 'web') {
+        btnWeb.classList.add('active');
+        btnAi.classList.remove('active');
+        secWeb.style.display = 'block';
+        secAi.style.display = 'none';
+      } else {
+        btnAi.classList.add('active');
+        btnWeb.classList.remove('active');
+        secAi.style.display = 'block';
+        secWeb.style.display = 'none';
+      }
+    }
+
+    function refreshStaffView() {
+      if (!currentUser) return;
+      if (currentUser.role === 'Dokter' || currentUser.role === 'Admin') loadDoctorQueueData();
+      if (currentUser.role === 'Farmasi') loadPharmacyOrders();
+      if (currentUser.role === 'Laboratorium') loadLabOrders();
+      if (currentUser.role === 'Kasir') checkPosShiftStatus();
+      if (currentUser.role === 'Admin') loadAdminSettingsAndAnalytics();
+      showToast('Data dashboard disegarkan.', 'info');
+    }
+
+    function logoutUser() {
+      localStorage.removeItem('akshara_user');
+      window.location.href = '/';
+    }
+
+    // =========================================================================
+    // DOKTER GIGI: ANTREAN, ODONTOGRAM 52 ELEMEN, SOAP, GROQ AI & CPPT
+    // =========================================================================
+
+    function initOdontogramGrid() {
+      const adultUpper = [18,17,16,15,14,13,12,11, 21,22,23,24,25,26,27,28];
+      const childUpper = [55,54,53,52,51, 61,62,63,64,65];
+      const childLower = [85,84,83,82,81, 71,72,73,74,75];
+      const adultLower = [48,47,46,45,44,43,42,41, 31,32,33,34,35,36,37,38];
+
+      renderToothRow('teethAdultUpper', adultUpper);
+      renderToothRow('teethChildUpper', childUpper);
+      renderToothRow('teethChildLower', childLower);
+      renderToothRow('teethAdultLower', adultLower);
+    }
+
+    function renderToothRow(elemId, teethArray) {
+      const container = document.getElementById(elemId);
+      if (!container) return;
+      let html = '';
+      for (let i = 0; i < teethArray.length; i++) {
+        const t = teethArray[i];
+        html += '<div class="tooth-box" id="tooth_' + t + '" onclick="toggleToothStatus(' + t + ')">' +
+          '<span>' + t + '</span>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function toggleToothStatus(toothNum) {
+      const tool = document.getElementById('odontogramStatusTool').value;
+      const box = document.getElementById('tooth_' + toothNum);
+      if (!box) return;
+
+      box.className = 'tooth-box';
+      if (tool !== 'status-normal') {
+        box.classList.add(tool);
+        odontogramState[toothNum] = tool;
+      } else {
+        delete odontogramState[toothNum];
+      }
+    }
+
+    function loadDoctorQueueData() {
+      const container = document.getElementById('doctorQueueList');
+      if (container) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Memuat antrean pasien gigi...</div>';
+      }
+
+      const payload = {
+        dokterId: currentUser ? (currentUser.dokterId || currentUser.userId) : 'DOC-001',
+        userFullName: currentUser ? currentUser.fullName : ''
+      };
+
+      runApi('getDoctorQueue', payload)
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            renderDoctorQueueList(res.list || []);
+          } else {
+            if (container) container.innerHTML = '<div style="color:#ef4444; font-size:0.8rem;">Gagal: ' + (res.message || 'Error') + '</div>';
+          }
+        })
+        .catch(function(err) {
+          if (container) container.innerHTML = '<div style="color:#ef4444; font-size:0.8rem;">Koneksi error: ' + err.toString() + '</div>';
+        });
+    }
+
+    function renderDoctorQueueList(list) {
+      const container = document.getElementById('doctorQueueList');
+      if (!container) return;
+      if (!list || list.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:12px; text-align:center;">Tidak ada antrean pasien saat ini.</div>';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < list.length; i++) {
+        const item = list[i];
+        const itemStr = encodeURIComponent(JSON.stringify(item));
+        html += '<div class="glass-card" style="padding:12px; cursor:pointer; border-left:4px solid var(--primary);" onclick="selectPatientForExam(\'' + itemStr + '\')">' +
+          '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+            '<strong style="color:var(--primary); font-size:0.95rem;">' + item.kodeAntrean + '</strong>' +
+            '<span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:var(--badge-bg); font-weight:700;">' + item.statusAntrean + '</span>' +
+          '</div>' +
+          '<div style="font-weight:700; margin:4px 0; font-size:0.9rem;">' + item.namaPasien + ' (' + item.nomorRm + ')</div>' +
+          '<div style="font-size:0.78rem; color:var(--text-muted);">' + (item.keluhanUtama || 'Tidak ada catatan keluhan') + '</div>' +
+          '<div style="margin-top:8px; display:flex; gap:6px;">' +
+            '<button class="nav-btn btn-primary" style="padding:4px 10px; font-size:0.75rem; min-height:30px;" onclick="event.stopPropagation(); callCurrentPatient(\'' + item.kodeAntrean + '\')"><i class="fa-solid fa-volume-high"></i> Panggil</button>' +
+          '</div>' +
+        '</div>';
+      }
+      container.innerHTML = html;
+    }
+
+    function callCurrentPatient(kode) {
+      runApi('callQueue', { kodeAntrean: kode, user: currentUser ? currentUser.fullName : 'DOKTER' })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            showToast('Pasien ' + kode + ' dipanggil!', 'success');
+            loadDoctorQueueData();
+          }
+        });
+    }
+
+    function selectPatientForExam(itemJsonStr) {
+      const item = JSON.parse(decodeURIComponent(itemJsonStr));
+      activeDoctorPatient = item;
+
+      document.getElementById('selectedPatientBadge').innerHTML = 'Pasien Aktif: <strong>' + item.namaPasien + '</strong> (' + item.nomorRm + ') | No Antrean: ' + item.kodeAntrean;
+      document.getElementById('cpptSubjektif').value = item.keluhanUtama || '';
+
+      const allergyBox = document.getElementById('patientAllergyAlert');
+      if (item.alergi && item.alergi.toLowerCase() !== 'tidak ada') {
+        document.getElementById('alertAlergiText').innerText = item.alergi;
+        allergyBox.style.display = 'block';
+      } else {
+        allergyBox.style.display = 'none';
+      }
+
+      document.getElementById('odontogramModule').style.display = 'block';
+      showToast('Rekam medis ' + item.namaPasien + ' dibuka.', 'info');
+    }
+
+    function loadMasterObatData() {
+      runApi('getMasterObat', {})
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            masterObatList = res.list || [];
+            const sel = document.getElementById('resepPilihObat');
+            if (sel) {
+              let html = '';
+              for (let i = 0; i < masterObatList.length; i++) {
+                const o = masterObatList[i];
+                html += '<option value="' + o.obatId + '" data-harga="' + o.harga + '" data-nama="' + o.nama + '">' +
+                  o.nama + ' (Stok: ' + o.stok + ' ' + o.satuan + ' - Rp ' + o.harga.toLocaleString() + ')' +
+                '</option>';
+              }
+              sel.innerHTML = html;
+            }
+          }
+        });
+    }
+
+    function tambahItemResep() {
+      const sel = document.getElementById('resepPilihObat');
+      if (!sel || !sel.value) {
+        showToast('Pilih obat terlebih dahulu!', 'error');
+        return;
+      }
+
+      const selectedOpt = sel.options[sel.selectedIndex];
+      const obatId = sel.value;
+      const nama = selectedOpt.getAttribute('data-nama');
+      const harga = parseInt(selectedOpt.getAttribute('data-harga')) || 0;
+      const qty = parseInt(document.getElementById('resepJumlahObat').value) || 1;
+      const aturan = document.getElementById('resepSignaObat').value.trim() || 'Sesuai Anjuran Dokter Gigi';
+
+      if (activeDoctorPatient && activeDoctorPatient.alergi && activeDoctorPatient.alergi.toLowerCase() !== 'tidak ada') {
+        if (nama.toLowerCase().includes(activeDoctorPatient.alergi.toLowerCase())) {
+          showToast('PERINGATAN ALERGI: Pasien memiliki riwayat alergi terhadap ' + nama + '!', 'error');
+        }
+      }
+
+      resepItems.push({ obatId, nama, jumlah: qty, harga, aturan });
+      renderResepTable();
+      showToast(nama + ' ditambahkan ke resep.', 'success');
+    }
+
+    function hapusItemResep(index) {
+      resepItems.splice(index, 1);
+      renderResepTable();
+    }
+
+    function renderResepTable() {
+      const tbody = document.getElementById('resepTableBody');
+      if (resepItems.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" style="padding:8px; text-align:center; color:var(--text-muted);">Belum ada obat yang ditambahkan.</td></tr>';
+        return;
+      }
+
+      let html = '';
+      for (let i = 0; i < resepItems.length; i++) {
+        const item = resepItems[i];
+        html += '<tr style="border-bottom:1px solid var(--glass-border);">' +
+          '<td style="padding:6px; font-weight:600;">' + item.nama + '</td>' +
+          '<td style="padding:6px; text-align:center;">' + item.jumlah + '</td>' +
+          '<td style="padding:6px;">' + item.aturan + '</td>' +
+          '<td style="padding:6px; text-align:center;"><button type="button" class="nav-btn btn-outline" style="padding:2px 6px; font-size:0.7rem; color:#ef4444; border-color:#ef4444; min-height:24px;" onclick="hapusItemResep(' + i + ')"><i class="fa-solid fa-trash"></i></button></td>' +
+        '</tr>';
+      }
+      tbody.innerHTML = html;
+    }
+
+    function submitCppt() {
+      if (!activeDoctorPatient) {
+        showToast('Pilih pasien terlebih dahulu!', 'error');
+        return;
+      }
+
+      const labCheckboxes = document.querySelectorAll('input[name="labTests"]:checked');
+      const labTests = [];
+      for (let i = 0; i < labCheckboxes.length; i++) {
+        labTests.push(labCheckboxes[i].value);
+      }
+
+      const payload = {
+        kodeAntrean: activeDoctorPatient.kodeAntrean,
+        nomorRm: activeDoctorPatient.nomorRm,
+        dokterId: currentUser ? (currentUser.dokterId || currentUser.userId) : 'DOC-001',
+        tandaVital: document.getElementById('cpptVital').value,
+        subjektif: document.getElementById('cpptSubjektif').value,
+        objektif: document.getElementById('cpptObjektif').value,
+        asesmenIcd: document.getElementById('cpptAsesmen').value,
+        planTindakan: document.getElementById('cpptPlan').value,
+        odontogram: odontogramState,
+        catatanAi: lastAiDiagnosisText,
+        resep: resepItems,
+        aturanPakaiGlobal: 'Sesuai rincian e-resep dental',
+        lab: labTests
+      };
+
+      runApi('saveCppt', payload)
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            showToast('CPPT Medis Gigi, E-Resep & Order Lab berhasil disimpan!', 'success');
+            resepItems.length = 0;
+            renderResepTable();
+            loadDoctorQueueData();
+          } else {
+            showToast('Gagal: ' + (res.message || 'Error'), 'error');
+          }
+        });
+    }
+
+    let speechRecognitionInstance = null;
+    function toggleSpeechRecognition(targetFieldId) {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const icon = document.getElementById('micIcon_' + targetFieldId);
+
+      if (!SpeechRecognition) {
+        showToast('Peramban belum mendukung Speech Recognition API.', 'error');
+        return;
+      }
+
+      if (speechRecognitionInstance) {
+        speechRecognitionInstance.stop();
+        speechRecognitionInstance = null;
+        if (icon) icon.style.color = '';
+        showToast('Perekaman suara berhenti.', 'info');
+        return;
+      }
+
+      speechRecognitionInstance = new SpeechRecognition();
+      speechRecognitionInstance.lang = 'id-ID';
+      speechRecognitionInstance.continuous = false;
+      speechRecognitionInstance.interimResults = false;
+
+      if (icon) icon.style.color = '#ef4444';
+      showToast('Mendengarkan suara dokter...', 'info');
+
+      speechRecognitionInstance.onresult = function(event) {
+        const transcript = event.results[0][0].transcript;
+        const target = document.getElementById(targetFieldId);
+        if (target) {
+          target.value = (target.value ? (target.value + ' ') : '') + transcript;
+        }
+        showToast('Suara berhasil dicatat!', 'success');
+      };
+
+      speechRecognitionInstance.onerror = function() {
+        if (icon) icon.style.color = '';
+        speechRecognitionInstance = null;
+      };
+
+      speechRecognitionInstance.onend = function() {
+        if (icon) icon.style.color = '';
+        speechRecognitionInstance = null;
+      };
+
+      speechRecognitionInstance.start();
+    }
+
+    let lastAiDiagnosisText = '';
+    let lastAiPlanText = '';
+
+    function callGroqAiAgent() {
+      const s = document.getElementById('cpptSubjektif').value.trim();
+      const o = document.getElementById('cpptObjektif').value.trim();
+      const vital = document.getElementById('cpptVital').value.trim();
+      
+      if (!s && !o) {
+        showToast('Isi anamnesa Subjektif atau hasil Objektif terlebih dahulu!', 'error');
+        return;
+      }
+
+      const box = document.getElementById('groqAiAgentBox');
+      const chatContainer = document.getElementById('groqChatContainer');
+      box.style.display = 'block';
+
+      const odontoSummary = Object.keys(odontogramState).map(k => 'Gigi ' + k + ' (' + odontogramState[k].replace('status-', '') + ')').join(', ') || 'Belum ada data';
+      const patientInfo = activeDoctorPatient ? (activeDoctorPatient.namaPasien + ', Alergi: ' + activeDoctorPatient.alergi) : 'Pasien Umum';
+
+      const clinicalPrompt = 'DATA KLINIS PASIEN DENTAL:\n' +
+        '- Identitas: ' + patientInfo + '\n' +
+        '- Tanda Vital: ' + (vital || 'Normal') + '\n' +
+        '- Subjektif: ' + (s || '-') + '\n' +
+        '- Objektif: ' + (o || '-') + '\n' +
+        '- Odontogram: ' + odontoSummary + '\n\n' +
+        'Bantu tegakkan diferensial diagnosa ICD-10 gigi, rancang rencana terapi komprehensif (konservasi/endodontik/estetika), dan peringatan kontraindikasi obat.';
+
+      let chatModel = systemGroqModel || 'openai/gpt-oss-120b';
+
+      chatContainer.innerHTML = '<div class="groq-msg-bubble groq-msg-agent" id="groqPrimaryResult">' +
+        '<i class="fa-solid fa-bolt fa-spin" style="color:#ea580c;"></i> Menganalisis data klinis gigi via Groq LPU...' +
+      '</div>';
+
+      groqConversation = [
+        {
+          role: 'system',
+          content: 'Anda adalah Asisten Medis AI & Odontolog Cerdas Klinik Akshara Dental Space Makassar.'
+        },
+        { role: 'user', content: clinicalPrompt }
+      ];
+
+      executeGroqRequest(groqConversation, function(err, responseText) {
+        if (err) {
+          chatContainer.innerHTML = '<div class="groq-msg-bubble groq-msg-agent" style="color:#dc2626;">Error: ' + err + '</div>';
+          return;
+        }
+
+        extractAiFields(responseText);
+        chatContainer.innerHTML = '<div class="groq-msg-bubble groq-msg-agent">' +
+          '<div style="font-weight:800; color:#ea580c; margin-bottom:6px;"><i class="fa-solid fa-clipboard-check"></i> Rekomendasi Terapi (' + chatModel + '):</div>' +
+          '<div style="white-space:pre-wrap;">' + escapeHtml(responseText) + '</div>' +
+        '</div>';
+        showToast('Analisis Groq LPU selesai!', 'groq');
+      });
+    }
+
+    function sendGroqFollowUp() {
+      const input = document.getElementById('groqFollowUpInput');
+      const q = input.value.trim();
+      if (!q) return;
+
+      const chatContainer = document.getElementById('groqChatContainer');
+      chatContainer.innerHTML += '<div class="groq-msg-bubble groq-msg-user">' + escapeHtml(q) + '</div>';
+      input.value = '';
+
+      const loadingId = 'loading_' + Date.now();
+      chatContainer.innerHTML += '<div class="groq-msg-bubble groq-msg-agent" id="' + loadingId + '"><i class="fa-solid fa-spinner fa-spin"></i> Merespon...</div>';
+      chatContainer.scrollTop = chatContainer.scrollHeight;
+
+      groqConversation.push({ role: 'user', content: q });
+
+      executeGroqRequest(groqConversation, function(err, responseText) {
+        const loadingElem = document.getElementById(loadingId);
+        if (loadingElem) loadingElem.remove();
+
+        if (err) {
+          chatContainer.innerHTML += '<div class="groq-msg-bubble groq-msg-agent" style="color:#dc2626;">Error: ' + err + '</div>';
+        } else {
+          groqConversation.push({ role: 'assistant', content: responseText });
+          chatContainer.innerHTML += '<div class="groq-msg-bubble groq-msg-agent"><div style="white-space:pre-wrap;">' + escapeHtml(responseText) + '</div></div>';
+        }
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+      });
+    }
+
+    function executeGroqRequest(messages, callback) {
+      let chatModel = systemGroqModel || 'openai/gpt-oss-120b';
+      const key = systemGroqKey || localStorage.getItem('akshara_groq_key') || '';
+
+      if (key) {
+        fetch('https://api.groq.com/openai/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': 'Bearer ' + key
+          },
+          body: JSON.stringify({
+            model: chatModel,
+            messages: messages,
+            temperature: 0.2,
+            max_tokens: 1024
+          })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data && data.choices && data.choices[0] && data.choices[0].message) {
+            callback(null, data.choices[0].message.content);
+          } else {
+            callback(data.error ? data.error.message : 'Struktur response Groq tidak valid.');
+          }
+        })
+        .catch(e => callback(e.toString()));
+      } else {
+        runApi('askGroq', { messages: messages, model: chatModel })
+          .then(res => {
+            if (res && res.status === 'success' && res.text) callback(null, res.text);
+            else callback(res.message || 'Server error.');
+          })
+          .catch(err => callback(err.toString()));
+      }
+    }
+
+    function extractAiFields(text) {
+      lastAiDiagnosisText = '';
+      lastAiPlanText = '';
+
+      const lines = text.split('\n');
+      let isPlan = false;
+      let diagLines = [];
+      let planLines = [];
+
+      for (let i = 0; i < lines.length; i++) {
+        const l = lines[i];
+        if (l.toLowerCase().includes('diagnos') || l.toLowerCase().includes('icd')) {
+          diagLines.push(l);
+        } else if (l.toLowerCase().includes('plan') || l.toLowerCase().includes('terapi') || l.toLowerCase().includes('tindakan')) {
+          isPlan = true;
+          planLines.push(l);
+        } else if (isPlan) {
+          planLines.push(l);
+        }
+      }
+
+      lastAiDiagnosisText = diagLines.join('\n') || text.substring(0, 150);
+      lastAiPlanText = planLines.slice(0, 5).join('\n') || 'Sesuai anjuran klinis dokter gigi';
+    }
+
+    function applyAiDiagnosis() {
+      if (lastAiDiagnosisText) {
+        document.getElementById('cpptAsesmen').value = lastAiDiagnosisText.replace(/[*#]/g, '').trim();
+        showToast('Diagnosa AI disalin ke asesmen!', 'success');
+      }
+    }
+
+    function applyAiPlan() {
+      if (lastAiPlanText) {
+        document.getElementById('cpptPlan').value = lastAiPlanText.replace(/[*#]/g, '').trim();
+        showToast('Rencana terapi AI disalin ke plan!', 'success');
+      }
+    }
+
+    function switchDoctorGroqModel(m) {
+      systemGroqModel = m;
+      localStorage.setItem('akshara_groq_model', m);
+      showToast('Model AI diubah ke: ' + m, 'info');
+    }
+
+    function escapeHtml(text) {
+      if (!text) return '';
+      return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+
+    // =========================================================================
+    // FARMASI, LABORATORIUM & DOKUMEN MEDIS
+    // =========================================================================
+
+    function loadPharmacyOrders() {
+      const container = document.getElementById('pharmacyOrdersList');
+      if (!container) return;
+      container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Memuat antrean e-resep...</div>';
+
+      runApi('getPharmacyOrders', {})
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            const list = res.list || [];
+            if (list.length === 0) {
+              container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:12px;">Belum ada resep masuk.</div>';
+              return;
+            }
+
+            let html = '';
+            for (let i = 0; i < list.length; i++) {
+              const o = list[i];
+              html += '<div class="glass-card" style="padding:14px; border-left:4px solid #059669;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                  '<strong>' + o.resepId + ' (' + o.kodeAntrean + ')</strong>' +
+                  '<span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:' + (o.status === 'Selesai' ? '#dcfce7' : '#fed7aa') + '; font-weight:700;">' + o.status + '</span>' +
+                '</div>' +
+                '<div style="font-size:0.9rem; font-weight:700; margin:4px 0;">' + o.namaPasien + ' (' + o.nomorRm + ')</div>' +
+                '<div style="font-size:0.82rem; margin-bottom:8px;">Dokter: ' + o.dokterNama + '</div>' +
+                '<div style="background:rgba(255,255,255,0.7); padding:8px; border-radius:8px; font-size:0.8rem; margin-bottom:10px;">';
+
+              for (let j = 0; j < (o.detailObat || []).length; j++) {
+                const d = o.detailObat[j];
+                html += '<div>• ' + (d.nama || d) + ' — ' + (d.jumlah || 1) + ' (' + (d.aturan || '-') + ')</div>';
+              }
+
+              html += '</div>';
+              if (o.status !== 'Selesai') {
+                html += '<button class="nav-btn btn-primary" style="font-size:0.8rem; padding:6px 14px;" onclick="dispensePharmacyOrder(\'' + o.resepId + '\', \'' + encodeURIComponent(JSON.stringify(o.detailObat)) + '\')"><i class="fa-solid fa-check"></i> Verifikasi & Serahkan Obat (Potong Stok)</button>';
+              }
+              html += '</div>';
+            }
+            container.innerHTML = html;
+          }
+        });
+    }
+
+    function dispensePharmacyOrder(resepId, encodedItems) {
+      const items = JSON.parse(decodeURIComponent(encodedItems));
+      runApi('dispenseMedicine', { resepId: resepId, items: items, user: currentUser ? currentUser.fullName : 'APOTEKER' })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            showToast('Resep ' + resepId + ' selesai diproses & stok terpotong.', 'success');
+            loadPharmacyOrders();
+          }
+        });
+    }
+
+    function loadLabOrders() {
+      const container = document.getElementById('labOrdersList');
+      if (!container) return;
+      container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem;">Memuat rujukan lab & rontgen...</div>';
+
+      runApi('getLabOrders', {})
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            const list = res.list || [];
+            if (list.length === 0) {
+              container.innerHTML = '<div style="color:var(--text-muted); font-size:0.85rem; padding:12px;">Belum ada order lab.</div>';
+              return;
+            }
+
+            let html = '';
+            for (let i = 0; i < list.length; i++) {
+              const l = list[i];
+              html += '<div class="glass-card" style="padding:14px; border-left:4px solid #0284c7;">' +
+                '<div style="display:flex; justify-content:space-between; align-items:center;">' +
+                  '<strong>' + l.labId + ' (' + l.kodeAntrean + ')</strong>' +
+                  '<span style="font-size:0.75rem; padding:2px 8px; border-radius:6px; background:' + (l.status === 'Selesai' ? '#dcfce7' : '#fed7aa') + '; font-weight:700;">' + l.status + '</span>' +
+                '</div>' +
+                '<div style="font-size:0.9rem; font-weight:700; margin:4px 0;">' + l.namaPasien + ' (' + l.nomorRm + ')</div>' +
+                '<div style="font-size:0.82rem; margin-bottom:8px;">Pemeriksaan: <strong>' + l.jenisPemeriksaan + '</strong></div>';
+
+              if (l.status !== 'Selesai') {
+                html += '<div style="display:flex; gap:6px; margin-top:8px;">' +
+                  '<input type="text" id="labHasil_' + l.labId + '" placeholder="Input Hasil Pemeriksaan..." style="padding:6px 10px; font-size:0.82rem;" />' +
+                  '<button class="nav-btn btn-primary" style="padding:6px 12px; font-size:0.8rem;" onclick="submitLabResult(\'' + l.labId + '\')"><i class="fa-solid fa-save"></i> Simpan</button>' +
+                '</div>';
+              } else {
+                html += '<div style="font-size:0.82rem; color:#059669; font-weight:600;">Hasil: ' + l.hasil + '</div>';
+              }
+              html += '</div>';
+            }
+            container.innerHTML = html;
+          }
+        });
+    }
+
+    function submitLabResult(labId) {
+      const val = document.getElementById('labHasil_' + labId).value.trim();
+      if (!val) {
+        showToast('Ketik hasil pemeriksaan lab!', 'error');
+        return;
+      }
+
+      runApi('saveLabResult', { labId: labId, hasil: val, user: currentUser ? currentUser.fullName : 'LABORAN' })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            showToast('Hasil lab disimpan!', 'success');
+            loadLabOrders();
+          }
+        });
+    }
+
+    function openDocGeneratorModal() {
+      if (!activeDoctorPatient) {
+        showToast('Pilih pasien terlebih dahulu!', 'error');
+        return;
+      }
+      document.getElementById('docModal').classList.add('show');
+    }
+    function closeDocModal() {
+      document.getElementById('docModal').classList.remove('show');
+    }
+
+    function submitGenerateDoc() {
+      const payload = {
+        jenisDokumen: document.getElementById('docTypeSelect').value,
+        nomorRm: activeDoctorPatient.nomorRm,
+        namaPasien: activeDoctorPatient.namaPasien,
+        kodeAntrean: activeDoctorPatient.kodeAntrean,
+        dokterId: currentUser ? (currentUser.dokterId || currentUser.userId) : 'DOC-001',
+        namaDokter: currentUser ? currentUser.fullName : 'drg. Hj. Kurniawaty, Sp.KG',
+        diagnosa: document.getElementById('docDiagnosa').value,
+        keterangan: document.getElementById('docKeterangan').value,
+        user: currentUser ? currentUser.username : 'DOKTER'
+      };
+
+      runApi('generateMedicalDoc', payload)
+        .then(function(res) {
+          closeDocModal();
+          if (res && res.status === 'success') {
+            showToast('Dokumen ' + res.nomorSurat + ' terbit!', 'success');
+            if (res.fileUrl) window.open(res.fileUrl, '_blank');
+          }
+        });
+    }
+
+    // =========================================================================
+    // KASIR POS & REKONSILIASI SHIFT
+    // =========================================================================
+
+    function checkPosShiftStatus() {
+      const box = document.getElementById('posShiftStatusBox');
+      const action = document.getElementById('posShiftActionArea');
+      const kasirId = currentUser ? currentUser.fullName : 'Kasir Utama';
+
+      runApi('checkActiveShift', { kasirId: kasirId })
+        .then(function(res) {
+          if (res && res.hasActiveShift) {
+            currentShift = res.shift;
+            box.innerHTML = '<strong>Shift Aktif:</strong> ' + currentShift.shiftId + ' | Modal Awal: Rp ' + currentShift.modalAwal.toLocaleString();
+            action.innerHTML = '<button class="nav-btn btn-outline" style="color:#ef4444; border-color:#ef4444; width:100%; justify-content:center;" onclick="openCloseShiftModal()"><i class="fa-solid fa-lock"></i> Tutup Shift (Z-Report)</button>';
+          } else {
+            currentShift = null;
+            box.innerHTML = 'Tidak ada shift aktif. Silakan buka shift baru.';
+            action.innerHTML = '<div style="display:flex; flex-direction:column; gap:8px;">' +
+              '<input type="number" id="newShiftFloat" placeholder="Modal Awal Laci Kasir Rp..." />' +
+              '<button class="nav-btn btn-primary" style="justify-content:center;" onclick="openNewShift()"><i class="fa-solid fa-door-open"></i> Buka Shift Baru</button>' +
+            '</div>';
+          }
+        });
+    }
+
+    function openNewShift() {
+      const modalAwal = document.getElementById('newShiftFloat').value;
+      if (!modalAwal) {
+        showToast('Masukkan modal awal kasir!', 'error');
+        return;
+      }
+      runApi('openCashierShift', {
+        kasirId: currentUser ? currentUser.userId : 'USR-007',
+        namaKasir: currentUser ? currentUser.fullName : 'Kasir',
+        shiftKerja: 'Pagi',
+        modalAwal: modalAwal
+      }).then(function(res) {
+        if (res && res.status === 'success') {
+          showToast('Shift berhasil dibuka!', 'success');
+          checkPosShiftStatus();
+        }
+      });
+    }
+
+    function openCloseShiftModal() {
+      document.getElementById('closeShiftModal').classList.add('show');
+    }
+    function closeCloseShiftModal() {
+      document.getElementById('closeShiftModal').classList.remove('show');
+    }
+
+    function submitCloseShift() {
+      const actualCash = document.getElementById('closeShiftActualCash').value;
+      const notes = document.getElementById('closeShiftNotes').value;
+      if (!actualCash) {
+        showToast('Masukkan total uang tunai fisik di laci!', 'error');
+        return;
+      }
+
+      runApi('closeCashierShift', {
+        shiftId: currentShift.shiftId,
+        actualCash: actualCash,
+        catatan: notes || 'Tutup shift reguler',
+        user: currentUser ? currentUser.username : 'KASIR'
+      }).then(function(res) {
+        closeCloseShiftModal();
+        if (res && res.status === 'success') {
+          const z = res.zReport;
+          showToast('Shift ditutup: ' + z.statusSelisih + ' (Selisih: Rp ' + z.selisih.toLocaleString() + ')', 'success');
+          checkPosShiftStatus();
+        }
+      });
+    }
+
+    function loadBillingDetails() {
+      const q = document.getElementById('posBillingSearch').value.trim();
+      if (!q) return;
+
+      runApi('getBillingDetails', { kodeAntrean: q, nomorRm: q })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            activeBilling = res;
+            document.getElementById('billingSummaryArea').style.display = 'block';
+            document.getElementById('billingPatientInfo').innerText = 'Pasien: ' + res.namaPasien + ' (' + res.nomorRm + ') | No Antrean: ' + res.kodeAntrean;
+
+            let html = '';
+            for (let i = 0; i < res.items.length; i++) {
+              const item = res.items[i];
+              html += '<tr style="border-bottom:1px solid var(--glass-border);">' +
+                '<td style="padding:6px;">' + item.nama + '</td>' +
+                '<td style="padding:6px; text-align:center;">' + item.jumlah + '</td>' +
+                '<td style="padding:6px; text-align:right;">Rp ' + item.subtotal.toLocaleString() + '</td>' +
+              '</tr>';
+            }
+            html += '<tr style="font-weight:800; border-top:1.5px solid var(--glass-border);">' +
+              '<td colspan="2" style="padding:8px;">TOTAL AKHIR</td>' +
+              '<td style="padding:8px; text-align:right;">Rp ' + res.subtotal.toLocaleString() + '</td>' +
+            '</tr>';
+            document.getElementById('billingTableBody').innerHTML = html;
+            document.getElementById('posNominalBayar').value = res.subtotal;
+            calculateChange();
+          }
+        });
+    }
+
+    function calculateChange() {
+      if (!activeBilling) return;
+      const bayar = parseInt(document.getElementById('posNominalBayar').value) || 0;
+      const kembali = Math.max(0, bayar - activeBilling.subtotal);
+      document.getElementById('posKembalianText').innerText = 'Rp ' + kembali.toLocaleString();
+    }
+
+    function submitPosPayment() {
+      if (!activeBilling) return;
+      const payload = {
+        shiftId: currentShift ? currentShift.shiftId : '',
+        kodeAntrean: activeBilling.kodeAntrean,
+        nomorRm: activeBilling.nomorRm,
+        items: activeBilling.items,
+        subtotal: activeBilling.subtotal,
+        diskon: 0,
+        totalAkhir: activeBilling.subtotal,
+        metodeBayar: document.getElementById('posMetodeBayar').value,
+        nominalBayar: parseInt(document.getElementById('posNominalBayar').value) || activeBilling.subtotal,
+        nominalKembali: Math.max(0, (parseInt(document.getElementById('posNominalBayar').value) || activeBilling.subtotal) - activeBilling.subtotal),
+        kasirId: currentUser ? currentUser.userId : 'KASIR'
+      };
+
+      runApi('processPayment', payload)
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            showToast('Pembayaran Berhasil! No: ' + res.transaksiId, 'success');
+            document.getElementById('billingSummaryArea').style.display = 'none';
+          }
+        });
+    }
+
+    function printThermalReceipt() {
+      window.print();
+    }
+
+    // =========================================================================
+    // SUPER ADMIN: GROQ, GEMINI, ANALYTICS & WEB CONTENT SETTINGS
+    // =========================================================================
+
+    function loadAdminSettingsAndAnalytics() {
+      runApi('getSystemSettings', { adminUserId: currentUser ? currentUser.userId : 'ADMIN' })
+        .then(function(res) {
+          if (res && res.status === 'success' && res.settings) {
+            const s = res.settings;
+
+            if (s.GROQ_API_KEY && !s.GROQ_API_KEY.includes('***')) {
+              systemGroqKey = s.GROQ_API_KEY;
+              localStorage.setItem('akshara_groq_key', systemGroqKey);
+            }
+            const groqInput = document.getElementById('adminGroqKeyInput');
+            if (groqInput) groqInput.value = systemGroqKey || s.GROQ_API_KEY || '';
+
+            if (s.GROQ_MODEL && !s.GROQ_MODEL.includes('orpheus')) {
+              systemGroqModel = s.GROQ_MODEL;
+              document.getElementById('adminGroqModelSelect').value = systemGroqModel;
+            }
+            if (s.GROQ_TTS_MODEL) systemTtsModel = s.GROQ_TTS_MODEL;
+            if (s.GROQ_TTS_VOICE) systemTtsVoice = s.GROQ_TTS_VOICE;
+
+            const ttsModelSel = document.getElementById('adminTtsModelSelect');
+            if (ttsModelSel) ttsModelSel.value = systemTtsModel;
+            const ttsVoiceSel = document.getElementById('adminTtsVoicePersona');
+            if (ttsVoiceSel) ttsVoiceSel.value = systemTtsVoice;
+
+            if (s.GEMINI_API_KEY) {
+              document.getElementById('adminGeminiKeyInput').value = s.GEMINI_API_KEY;
+            }
+
+            if (s.KLINIK_NAMA) document.getElementById('webNamaKlinik').value = s.KLINIK_NAMA;
+            if (s.KLINIK_SLOGAN) document.getElementById('webSloganKlinik').value = s.KLINIK_SLOGAN;
+            if (s.KLINIK_ALAMAT) document.getElementById('webAlamatKlinik').value = s.KLINIK_ALAMAT;
+            if (s.KLINIK_TELEPON) document.getElementById('webTeleponWa').value = s.KLINIK_TELEPON;
+            if (s.KLINIK_JAM_OPERASIONAL) document.getElementById('webJamOperasional').value = s.KLINIK_JAM_OPERASIONAL;
+            if (s.KLINIK_EMAIL) document.getElementById('webEmailKlinik').value = s.KLINIK_EMAIL;
+            if (s.KLINIK_INSTAGRAM) document.getElementById('webInstagramUrl').value = s.KLINIK_INSTAGRAM;
+            if (s.KLINIK_GMAPS_EMBED) document.getElementById('webGmapsEmbedUrl').value = s.KLINIK_GMAPS_EMBED;
+            if (s.KLINIK_FOOTER_NOTE) document.getElementById('webFooterNote').value = s.KLINIK_FOOTER_NOTE;
+          }
+        });
+
+      runApi('getAnalytics', {})
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            const grid = document.getElementById('adminAnalyticsGrid');
+            grid.innerHTML = '<div style="padding:12px; border-radius:10px; background:var(--badge-bg); text-align:center;">' +
+              '<div style="font-size:1.6rem; font-weight:800; color:var(--primary);">' + res.totalPasien + '</div>' +
+              '<div style="font-size:0.75rem; color:var(--text-muted);">Pasien Hari Ini</div>' +
+            '</div>' +
+            '<div style="padding:12px; border-radius:10px; background:var(--badge-bg); text-align:center;">' +
+              '<div style="font-size:1.6rem; font-weight:800; color:#059669;">Rp ' + res.totalOmset.toLocaleString() + '</div>' +
+              '<div style="font-size:0.75rem; color:var(--text-muted);">Omset Kasir</div>' +
+            '</div>';
+          }
+        });
+
+      runApi('getAuditLogs', { page: 1, limit: 10 })
+        .then(function(res) {
+          if (res && res.status === 'success') {
+            const tbody = document.getElementById('adminAuditTableBody');
+            let html = '';
+            for (let i = 0; i < res.logs.length; i++) {
+              const l = res.logs[i];
+              html += '<tr style="border-bottom:1px solid var(--glass-border);">' +
+                '<td style="padding:6px; font-size:0.75rem;">' + l.timestamp + '</td>' +
+                '<td style="padding:6px; font-weight:700;">' + l.user + '</td>' +
+                '<td style="padding:6px; color:var(--primary);">' + l.aksi + '</td>' +
+                '<td style="padding:6px;">' + l.modul + '</td>' +
+              '</tr>';
+            }
+            tbody.innerHTML = html;
+          }
+        });
+    }
+
+    function togglePasswordEye(inputId) {
+      const el = document.getElementById(inputId);
+      el.type = el.type === 'password' ? 'text' : 'password';
+    }
+
+    function syncAdminGroqModel(m) {
+      systemGroqModel = m;
+      localStorage.setItem('akshara_groq_model', m);
+    }
+
+    function syncTtsSettingsFromAdmin(modelName, voiceName) {
+      systemTtsModel = modelName;
+      systemTtsVoice = voiceName;
+      localStorage.setItem('akshara_tts_model', modelName);
+      localStorage.setItem('akshara_tts_voice', voiceName);
+    }
+
+    function testGroqConnection() {
+      const rawInput = document.getElementById('adminGroqKeyInput').value.trim();
+      let k = rawInput || systemGroqKey;
+      let m = document.getElementById('adminGroqModelSelect').value;
+
+      if (!k) {
+        showToast('Ketik GROQ_API_KEY terlebih dahulu!', 'error');
+        return;
+      }
+
+      showToast('Menguji koneksi chat ke Groq LPU...', 'groq');
+
+      fetch('https://api.groq.com/openai/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + k
+        },
+        body: JSON.stringify({
+          model: m,
+          messages: [{ role: 'user', content: 'Ping test' }],
+          max_tokens: 10
+        })
+      })
+      .then(res => res.json())
+      .then(data => {
+        if (data && data.choices && data.choices[0]) {
+          showToast('Koneksi Chat Groq Aktif & Sukses (' + m + ')!', 'success');
+          systemGroqKey = k;
+          localStorage.setItem('akshara_groq_key', k);
+        } else {
+          showToast('Groq Error: ' + (data.error ? data.error.message : 'Koneksi gagal'), 'error');
+        }
+      })
+      .catch(err => showToast('Gagal terhubung: ' + err.toString(), 'error'));
+    }
+
+    function testQueueVoiceAnnouncement() {
+      showToast('Menguji audio speech Groq Orpheus...', 'groq');
+      const model = document.getElementById('adminTtsModelSelect').value;
+      const voice = document.getElementById('adminTtsVoicePersona').value;
+
+      fetch('/api/groq/tts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: model,
+          voice: voice,
+          input: 'Panggilan nomor antrean A N T 1. Silakan masuk ke ruang periksa poli gigi spesialis.'
+        })
+      })
+      .then(res => {
+        if (!res.ok) throw new Error('HTTP ' + res.status);
+        return res.blob();
+      })
+      .then(blob => {
+        const audio = new Audio(URL.createObjectURL(blob));
+        audio.play();
+        showToast('Suara AI Orpheus (' + voice + ') berhasil diputar.', 'success');
+      })
+      .catch(e => {
+        const key = systemGroqKey || document.getElementById('adminGroqKeyInput').value.trim();
+        if (key) {
+          fetch('https://api.groq.com/openai/v1/audio/speech', {
+            method: 'POST',
+            headers: {
+              'Authorization': 'Bearer ' + key,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+              model: model,
+              voice: voice,
+              response_format: 'wav',
+              input: 'Panggilan nomor antrean A N T 1. Silakan masuk ke ruang periksa.'
+            })
+          })
+          .then(r => r.blob())
+          .then(b => {
+            const a = new Audio(URL.createObjectURL(b));
+            a.play();
+            showToast('Suara AI Orpheus (' + voice + ') diputar via direct Groq.', 'success');
+          })
+          .catch(err => showToast('Gagal memutar audio TTS: ' + err.message, 'error'));
+        } else {
+          showToast('Gagal memutar TTS: ' + e.message, 'error');
+        }
+      });
+    }
+
+    function saveGroqSettings() {
+      const k = document.getElementById('adminGroqKeyInput').value.trim() || systemGroqKey;
+      const m = document.getElementById('adminGroqModelSelect').value;
+      const ttsM = document.getElementById('adminTtsModelSelect').value;
+      const ttsV = document.getElementById('adminTtsVoicePersona').value;
+
+      if (k) {
+        systemGroqKey = k;
+        localStorage.setItem('akshara_groq_key', k);
+      }
+      systemGroqModel = m;
+      systemTtsModel = ttsM;
+      systemTtsVoice = ttsV;
+      localStorage.setItem('akshara_groq_model', m);
+      localStorage.setItem('akshara_tts_model', ttsM);
+      localStorage.setItem('akshara_tts_voice', ttsV);
+
+      runApi('updateSystemSettings', { adminUserId: currentUser ? currentUser.userId : 'ADMIN', configKey: 'GROQ_API_KEY', configValue: k })
+        .then(() => runApi('updateSystemSettings', { adminUserId: currentUser ? currentUser.userId : 'ADMIN', configKey: 'GROQ_MODEL', configValue: m }))
+        .then(() => runApi('updateSystemSettings', { adminUserId: currentUser ? currentUser.userId : 'ADMIN', configKey: 'GROQ_TTS_MODEL', configValue: ttsM }))
+        .then(() => runApi('updateSystemSettings', { adminUserId: currentUser ? currentUser.userId : 'ADMIN', configKey: 'GROQ_TTS_VOICE', configValue: ttsV }))
+        .then(() => showToast('Konfigurasi Groq AI & TTS berhasil disimpan!', 'success'));
+    }
+
+    function saveGeminiSettings() {
+      const k = document.getElementById('adminGeminiKeyInput').value.trim();
+      runApi('updateSystemSettings', {
+        adminUserId: currentUser ? currentUser.userId : 'ADMIN',
+        configKey: 'GEMINI_API_KEY',
+        configValue: k
+      }).then(res => {
+        if (res && res.status === 'success') showToast('GEMINI_API_KEY berhasil disimpan!', 'success');
+      });
+    }
+
+    // =========================================================================
+    // HANDLER SIMPAN PENGATURAN KONTEN WEBSITE (SUPER ADMIN)
+    // =========================================================================
+
+    function handleSaveWebSettings(e) {
+      e.preventDefault();
+      const btn = document.getElementById('btnSaveWebSettings');
+      btn.disabled = true;
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
+
+      const configs = [
+        { key: 'KLINIK_NAMA', val: document.getElementById('webNamaKlinik').value.trim() },
+        { key: 'KLINIK_SLOGAN', val: document.getElementById('webSloganKlinik').value.trim() },
+        { key: 'KLINIK_ALAMAT', val: document.getElementById('webAlamatKlinik').value.trim() },
+        { key: 'KLINIK_TELEPON', val: document.getElementById('webTeleponWa').value.trim() },
+        { key: 'KLINIK_JAM_OPERASIONAL', val: document.getElementById('webJamOperasional').value.trim() },
+        { key: 'KLINIK_EMAIL', val: document.getElementById('webEmailKlinik').value.trim() },
+        { key: 'KLINIK_INSTAGRAM', val: document.getElementById('webInstagramUrl').value.trim() },
+        { key: 'KLINIK_GMAPS_EMBED', val: document.getElementById('webGmapsEmbedUrl').value.trim() },
+        { key: 'KLINIK_FOOTER_NOTE', val: document.getElementById('webFooterNote').value.trim() }
+      ];
+
+      const adminId = currentUser ? currentUser.userId : 'SUPER_ADMIN';
+
+      Promise.all(configs.map(item => runApi('updateSystemSettings', { adminUserId: adminId, configKey: item.key, configValue: item.val })))
+        .then(function() {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan Konten Website';
+          showToast('Seluruh data konten website berhasil diperbarui ke database!', 'success');
+        })
+        .catch(function(err) {
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan Pengaturan Konten Website';
+          showToast('Gagal menyimpan: ' + err.toString(), 'error');
+        });
+    }
+  </script>
+</body>
+</html>

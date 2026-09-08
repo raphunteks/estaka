@@ -1,0 +1,70 @@
+{
+  "version": 2,
+  "builds": [
+    {
+      "src": "server.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "views/**",
+          "public/**"
+        ]
+      }
+    },
+    {
+      "src": "serverv2.js",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": [
+          "views/**",
+          "public/**"
+        ]
+      }
+    }
+  ],
+  "routes": [
+    {
+      "src": "/css/(.*)",
+      "dest": "/server.js",
+      "headers": {
+        "Content-Type": "text/css; charset=utf-8",
+        "Cache-Control": "public, max-age=86400"
+      }
+    },
+    {
+      "src": "/img/(.*)",
+      "dest": "/server.js",
+      "headers": {
+        "Cache-Control": "public, max-age=31536000, immutable"
+      }
+    },
+    {
+      "src": "/(admin-dashboardv2|portalv2|api/railway.*|v2.*)",
+      "dest": "/serverv2.js",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "ALLOWALL",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
+      }
+    },
+    {
+      "src": "/(.*)",
+      "dest": "/server.js",
+      "headers": {
+        "X-Content-Type-Options": "nosniff",
+        "X-Frame-Options": "ALLOWALL",
+        "X-XSS-Protection": "1; mode=block",
+        "Referrer-Policy": "strict-origin-when-cross-origin",
+        "Permissions-Policy": "camera=(), microphone=(), geolocation=(self)",
+        "Access-Control-Allow-Origin": "*",
+        "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+        "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Requested-With"
+      }
+    }
+  ]
+}
