@@ -657,7 +657,7 @@
       <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px; margin-bottom: 16px;">
         <div style="display: flex; gap: 10px; flex-wrap: wrap; flex: 1;">
           <input type="text" id="filterChatSearch" class="cyber-input" style="max-width: 280px;" placeholder="Cari nomor / isi pesan..." oninput="debounceChatSearch()">
-          <select id="filterChatStatus" class="cyber-input" style="max-width: 170px;" onchange="loadChatLogsBackend(1)">
+          <select id="filterChatStatus" class="cyber-input" style="max-width: 170px;" onchange="loadChatLogsBackend(1, true)">
             <option value="">Semua Status</option>
             <option value="DELIVERED">DELIVERED</option>
             <option value="SENT">SENT</option>
@@ -669,7 +669,7 @@
             <iconify-icon icon="solar:file-download-bold"></iconify-icon>
             Ekspor CSV
           </button>
-          <button class="cyber-btn" onclick="loadChatLogsBackend(1)">
+          <button class="cyber-btn" onclick="loadChatLogsBackend(1, true)">
             <iconify-icon icon="solar:refresh-bold"></iconify-icon>
             Segarkan
           </button>
@@ -725,7 +725,7 @@
 
       <div style="display: flex; gap: 10px; margin-bottom: 16px; flex-wrap: wrap;">
         <input type="text" id="filterQueueSearch" class="cyber-input" style="max-width: 280px;" placeholder="Cari nomor / isi pesan..." oninput="debounceQueueSearch()">
-        <select id="filterQueueStatus" class="cyber-input" style="max-width: 170px;" onchange="loadBroadcastQueueBackend(1)">
+        <select id="filterQueueStatus" class="cyber-input" style="max-width: 170px;" onchange="loadBroadcastQueueBackend(1, true)">
           <option value="">Semua Status</option>
           <option value="PENDING">PENDING</option>
           <option value="SENT">SENT</option>
@@ -767,10 +767,16 @@
           <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Daftar Node Client Bot WhatsApp</h3>
           <p style="font-size: 0.84rem; color: var(--text-muted);">Kelola instance Baileys terpasang di platform Railway (btwwa-akshra-production).</p>
         </div>
-        <button id="btnAddClientTrigger" class="cyber-btn" onclick="openAddClientModal()">
-          <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
-          Tambah Client
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="cyber-btn-secondary" onclick="loadClientsBackend(true)">
+            <iconify-icon icon="solar:refresh-bold"></iconify-icon>
+            Sinkron Cloud
+          </button>
+          <button id="btnAddClientTrigger" class="cyber-btn" onclick="openAddClientModal()">
+            <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            Tambah Client
+          </button>
+        </div>
       </div>
 
       <div class="table-responsive">
@@ -799,15 +805,25 @@
           <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Template Pesan Standar Medis Gigi</h3>
           <p style="font-size: 0.84rem; color: var(--text-muted);">Salin cepat template klinis terverifikasi untuk konfirmasi jadwal, kontrol saluran akar, dan billing kasir.</p>
         </div>
+        <button class="cyber-btn-secondary" onclick="loadTemplatesBackend(true)">
+          <iconify-icon icon="solar:refresh-bold"></iconify-icon>
+          Segarkan
+        </button>
       </div>
       <div id="templatesListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;"></div>
     </div>
 
     <!-- TAB 5: ANTREAN & RESERVASI PASIEN -->
     <div id="tabContentBookings" class="glass-panel" style="display: none; padding: 22px;">
-      <div style="margin-bottom: 20px;">
-        <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Antrean Reservasi Pasien Masuk</h3>
-        <p style="font-size: 0.84rem; color: var(--text-muted);">Permintaan registrasi online dari pasien klinik gigi.</p>
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Antrean Reservasi Pasien Masuk</h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted);">Permintaan registrasi online dari pasien klinik gigi.</p>
+        </div>
+        <button class="cyber-btn-secondary" onclick="loadBookingsBackend(true)">
+          <iconify-icon icon="solar:refresh-bold"></iconify-icon>
+          Segarkan Antrean
+        </button>
       </div>
       <div class="table-responsive">
         <table class="cyber-table">
@@ -1146,7 +1162,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU (DUAL-CHANNEL AUTO-FALLBACK) -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1164,6 +1180,10 @@
       availableModels: []
     };
 
+    /**
+     * DUAL-CHANNEL AUTO-FALLBACK CLIENT:
+     * Mengirim ke Express V2 -> jika gagal atau offline, langsung fallback ke Google Apps Script Web App
+     */
     function runBackend(functionName, args, onSuccess, onError) {
       args = args || [];
       let primaryPayload = {};
@@ -1211,6 +1231,20 @@
           });
         });
       });
+    }
+
+    /**
+     * Langsung meminta data ke Google Apps Script (Bypass Cache jika lokal kosong)
+     */
+    function fetchDirectFromGAS(functionName, payload, callback) {
+      fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+        body: JSON.stringify({ action: functionName, payload: payload, args: [payload] })
+      })
+      .then(r => r.json())
+      .then(data => callback(data))
+      .catch(() => callback(null));
     }
 
     window.addEventListener('DOMContentLoaded', function() {
@@ -1321,24 +1355,41 @@
       if (tabId === 'aiConfig') loadAiConfigBackend();
     }
 
-    // TAB 1: LOGS (Upgraded with Fault-Tolerant Array Parsing)
-    function loadChatLogsBackend(page) {
+    // =========================================================================
+    // TAB 1: MONITORING LOG CHAT (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // =========================================================================
+    function loadChatLogsBackend(page, forceCloud) {
       page = page || 1;
       const search = document.getElementById('filterChatSearch').value;
       const status = document.getElementById('filterChatStatus').value;
 
-      runBackend('getChatLogsPaginated', [{ page, pageSize: 10, search, status }], function(res) {
-        if (res && (res.success || res.status === 'success' || res.logs || res.data)) {
-          const logsData = res.logs || res.data || [];
-          appState.chatPage = res.page || 1;
-          appState.chatTotalPages = res.totalPages || 1;
-          renderChatTable(logsData);
-          document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${res.totalCount || logsData.length} total log)`;
-          document.getElementById('btnPrevPage').disabled = (appState.chatPage <= 1);
-          document.getElementById('btnNextPage').disabled = (appState.chatPage >= appState.chatTotalPages);
-        } else {
-          renderChatTable([]);
+      runBackend('getChatLogsPaginated', [{ page, pageSize: 10, search, status, refresh: Boolean(forceCloud) }], function(res) {
+        let logsData = (res && (res.logs || res.data)) ? (res.logs || res.data) : [];
+
+        // Jika data dari Express bernilai 0 baris, tarik data cadangan langsung ke Google Apps Script
+        if (logsData.length === 0 && (!search && !status)) {
+          fetchDirectFromGAS('getChatLogsPaginated', { page, pageSize: 10, search, status }, function(gasRes) {
+            if (gasRes && (gasRes.logs || gasRes.data) && (gasRes.logs || gasRes.data).length > 0) {
+              logsData = gasRes.logs || gasRes.data;
+              appState.chatPage = gasRes.page || 1;
+              appState.chatTotalPages = gasRes.totalPages || 1;
+              renderChatTable(logsData);
+              document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${gasRes.totalCount || logsData.length} total log)`;
+              document.getElementById('btnPrevPage').disabled = (appState.chatPage <= 1);
+              document.getElementById('btnNextPage').disabled = (appState.chatPage >= appState.chatTotalPages);
+              return;
+            }
+            renderChatTable([]);
+          });
+          return;
         }
+
+        appState.chatPage = (res && res.page) || 1;
+        appState.chatTotalPages = (res && res.totalPages) || 1;
+        renderChatTable(logsData);
+        document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${(res && res.totalCount) || logsData.length} total log)`;
+        document.getElementById('btnPrevPage').disabled = (appState.chatPage <= 1);
+        document.getElementById('btnNextPage').disabled = (appState.chatPage >= appState.chatTotalPages);
       });
     }
 
@@ -1376,28 +1427,47 @@
 
     function debounceChatSearch() {
       clearTimeout(appState.chatDebounceTimer);
-      appState.chatDebounceTimer = setTimeout(() => loadChatLogsBackend(1), 400);
+      appState.chatDebounceTimer = setTimeout(() => loadChatLogsBackend(1, false), 400);
     }
     function changeChatPage(dir) {
       const target = appState.chatPage + dir;
-      if (target >= 1 && target <= appState.chatTotalPages) loadChatLogsBackend(target);
+      if (target >= 1 && target <= appState.chatTotalPages) loadChatLogsBackend(target, false);
     }
 
-    // TAB 2: BROADCAST
-    function loadBroadcastQueueBackend(page) {
+    // =========================================================================
+    // TAB 2: BROADCAST QUEUE MANAGER (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // =========================================================================
+    function loadBroadcastQueueBackend(page, forceCloud) {
       page = page || 1;
       const search = document.getElementById('filterQueueSearch').value;
       const status = document.getElementById('filterQueueStatus').value;
 
-      runBackend('getBroadcastQueuePaginated', [{ page, pageSize: 10, search, status }], function(res) {
-        if (res && (res.success || res.status === 'success')) {
-          appState.queuePage = res.page;
-          appState.queueTotalPages = res.totalPages;
-          renderBroadcastQueueTable(res.queue || res.data || []);
-          document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${res.page} dari ${res.totalPages} (${res.totalCount || 0} antrean)`;
-          document.getElementById('btnQueuePrevPage').disabled = (res.page <= 1);
-          document.getElementById('btnQueueNextPage').disabled = (res.page >= res.totalPages);
+      runBackend('getBroadcastQueuePaginated', [{ page, pageSize: 10, search, status, refresh: Boolean(forceCloud) }], function(res) {
+        let queueData = (res && (res.queue || res.data)) ? (res.queue || res.data) : [];
+
+        if (queueData.length === 0 && (!search && !status)) {
+          fetchDirectFromGAS('getBroadcastQueuePaginated', { page, pageSize: 10, search, status }, function(gasRes) {
+            if (gasRes && (gasRes.queue || gasRes.data) && (gasRes.queue || gasRes.data).length > 0) {
+              queueData = gasRes.queue || gasRes.data;
+              appState.queuePage = gasRes.page || 1;
+              appState.queueTotalPages = gasRes.totalPages || 1;
+              renderBroadcastQueueTable(queueData);
+              document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${gasRes.totalCount || queueData.length} antrean)`;
+              document.getElementById('btnQueuePrevPage').disabled = (appState.queuePage <= 1);
+              document.getElementById('btnQueueNextPage').disabled = (appState.queuePage >= appState.queueTotalPages);
+              return;
+            }
+            renderBroadcastQueueTable([]);
+          });
+          return;
         }
+
+        appState.queuePage = (res && res.page) || 1;
+        appState.queueTotalPages = (res && res.totalPages) || 1;
+        renderBroadcastQueueTable(queueData);
+        document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${(res && res.totalCount) || queueData.length} antrean)`;
+        document.getElementById('btnQueuePrevPage').disabled = (appState.queuePage <= 1);
+        document.getElementById('btnQueueNextPage').disabled = (appState.queuePage >= appState.queueTotalPages);
       });
     }
 
@@ -1431,11 +1501,11 @@
 
     function debounceQueueSearch() {
       clearTimeout(appState.queueDebounceTimer);
-      appState.queueDebounceTimer = setTimeout(() => loadBroadcastQueueBackend(1), 400);
+      appState.queueDebounceTimer = setTimeout(() => loadBroadcastQueueBackend(1, false), 400);
     }
     function changeQueuePage(dir) {
       const target = appState.queuePage + dir;
-      if (target >= 1 && target <= appState.queueTotalPages) loadBroadcastQueueBackend(target);
+      if (target >= 1 && target <= appState.queueTotalPages) loadBroadcastQueueBackend(target, false);
     }
     function openAddBroadcastModal() {
       document.getElementById('bcTargetPhone').value = '';
@@ -1452,7 +1522,7 @@
         if (res && (res.success || res.status === 'success')) {
           showToast(res.message || 'Pesan berhasil dijadwalkan!', 'success');
           closeModal('broadcastModal');
-          loadBroadcastQueueBackend(1);
+          loadBroadcastQueueBackend(1, true);
         }
       });
     }
@@ -1461,8 +1531,8 @@
       runBackend('sendBroadcastNow', [queueId], function(res) {
         if (res && (res.success || res.status === 'success')) {
           showToast(res.message || 'Pesan terkirim!', 'success');
-          loadBroadcastQueueBackend(appState.queuePage);
-          loadChatLogsBackend(1);
+          loadBroadcastQueueBackend(appState.queuePage, true);
+          loadChatLogsBackend(1, true);
         }
       });
     }
@@ -1470,43 +1540,62 @@
       runBackend('deleteBroadcastQueueItem', [queueId], function(res) {
         if (res && (res.success || res.status === 'success')) {
           showToast(res.message || 'Antrean dibatalkan.', 'warning');
-          loadBroadcastQueueBackend(appState.queuePage);
+          loadBroadcastQueueBackend(appState.queuePage, true);
         }
       });
     }
 
-    // TAB 3: CLIENTS
-    function loadClientsBackend() {
-      runBackend('getClientsList', [], function(res) {
-        if (res && (res.success || res.status === 'success')) {
-          const tbody = document.getElementById('clientsTableBody');
-          tbody.innerHTML = '';
-          (res.clients || []).forEach(c => {
-            const tr = document.createElement('tr');
-            const dot = c.status === 'CONNECTED' ? 'status-connected' : (c.status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
-            tr.innerHTML = `
-              <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${c.clientId}</span></td>
-              <td><strong>${escapeHtml(c.name)}</strong></td>
-              <td>${c.phone}</td>
-              <td><a href="${c.railwayUrl}" target="_blank" style="color:var(--cyan-deep); font-size:0.8rem;">${c.railwayUrl}</a></td>
-              <td><span class="status-dot ${dot}"></span>${c.status}</td>
-              <td style="font-size:0.8rem;">${c.expiredDate}</td>
-              <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem;" onclick="pingClientAction('${c.railwayUrl}', this)">Ping</button></td>
-              <td>
-                <button class="cyber-btn" style="padding:4px 8px; font-size:0.76rem;" onclick="openQrModal('${c.clientId}', '${c.railwayUrl}')">Scan QR</button>
-                <button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem; color:var(--danger);" onclick="deleteClientAction('${c.clientId}')">Hapus</button>
-              </td>
-            `;
-            tbody.appendChild(tr);
+    // =========================================================================
+    // TAB 3: CLIENT RAILWAY BOT (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // =========================================================================
+    function loadClientsBackend(forceCloud) {
+      runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
+        let clientsList = (res && res.clients) ? res.clients : [];
+
+        if (clientsList.length === 0) {
+          fetchDirectFromGAS('getClientsList', {}, function(gasRes) {
+            if (gasRes && gasRes.clients && gasRes.clients.length > 0) {
+              renderClientsTable(gasRes.clients, gasRes.stats);
+              return;
+            }
+            renderClientsTable(clientsList, res && res.stats);
           });
-          if (res.stats) {
-            document.getElementById('statTotalClients').innerText = res.stats.total;
-            document.getElementById('statConnectedClients').innerText = res.stats.connected;
-            document.getElementById('statScanningClients').innerText = res.stats.scanning;
-            document.getElementById('statDisconnectedClients').innerText = res.stats.disconnected;
-          }
+          return;
         }
+
+        renderClientsTable(clientsList, res && res.stats);
       });
+    }
+
+    function renderClientsTable(clients, stats) {
+      const tbody = document.getElementById('clientsTableBody');
+      tbody.innerHTML = '';
+
+      (clients || []).forEach(c => {
+        const tr = document.createElement('tr');
+        const dot = c.status === 'CONNECTED' ? 'status-connected' : (c.status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
+        tr.innerHTML = `
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${c.clientId}</span></td>
+          <td><strong>${escapeHtml(c.name)}</strong></td>
+          <td>${c.phone}</td>
+          <td><a href="${c.railwayUrl}" target="_blank" style="color:var(--cyan-deep); font-size:0.8rem;">${c.railwayUrl}</a></td>
+          <td><span class="status-dot ${dot}"></span>${c.status}</td>
+          <td style="font-size:0.8rem;">${c.expiredDate}</td>
+          <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem;" onclick="pingClientAction('${c.railwayUrl}', this)">Ping</button></td>
+          <td>
+            <button class="cyber-btn" style="padding:4px 8px; font-size:0.76rem;" onclick="openQrModal('${c.clientId}', '${c.railwayUrl}')">Scan QR</button>
+            <button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem; color:var(--danger);" onclick="deleteClientAction('${c.clientId}')">Hapus</button>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+
+      if (stats) {
+        document.getElementById('statTotalClients').innerText = stats.total || clients.length;
+        document.getElementById('statConnectedClients').innerText = stats.connected || 0;
+        document.getElementById('statScanningClients').innerText = stats.scanning || 0;
+        document.getElementById('statDisconnectedClients').innerText = stats.disconnected || 0;
+      }
     }
 
     function pingClientAction(url, btn) {
@@ -1537,7 +1626,7 @@
         if (res && (res.success || res.status === 'success')) {
           showToast(res.message || 'Client disimpan.', 'success');
           closeModal('clientModal');
-          loadClientsBackend();
+          loadClientsBackend(true);
         }
       });
     }
@@ -1545,7 +1634,7 @@
       runBackend('deleteClient', [clientId], function(res) {
         if (res && (res.success || res.status === 'success')) {
           showToast(res.message || 'Client dihapus.', 'warning');
-          loadClientsBackend();
+          loadClientsBackend(true);
         }
       });
     }
@@ -1590,59 +1679,101 @@
         .catch(() => showToast('Reset sesi terkirim.', 'warning'));
     }
 
-    // TAB 4: TEMPLATES
-    function loadTemplatesBackend() {
-      runBackend('getTemplatesList', [], function(res) {
-        if (res && (res.success || res.status === 'success')) {
-          const container = document.getElementById('templatesListContainer');
-          container.innerHTML = '';
-          (res.templates || []).forEach(t => {
-            const div = document.createElement('div');
-            div.className = 'glass-panel';
-            div.style.padding = '16px';
-            div.innerHTML = `
-              <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
-                <div>
-                  <span style="font-size:0.7rem; font-weight:700; color:var(--cyan-deep); text-transform:uppercase;">${t.category}</span>
-                  <h4 style="font-size:0.95rem; color:var(--text-main);">${escapeHtml(t.name)}</h4>
-                </div>
-                <button class="cyber-btn-secondary" style="padding:4px 8px;" onclick="copyText('${encodeURIComponent(t.content)}')"><iconify-icon icon="solar:copy-bold"></iconify-icon></button>
-              </div>
-              <p style="font-size:0.82rem; color:var(--text-muted); background:rgba(0,180,216,0.05); padding:8px; border-radius:8px; font-family:monospace; border:1px solid rgba(0,180,216,0.2);">${escapeHtml(t.content)}</p>
-            `;
-            container.appendChild(div);
+    // =========================================================================
+    // TAB 4: TEMPLATES (AUTO-FALLBACK)
+    // =========================================================================
+    function loadTemplatesBackend(forceCloud) {
+      runBackend('getTemplatesList', [{ refresh: Boolean(forceCloud) }], function(res) {
+        let templates = (res && res.templates) ? res.templates : [];
+
+        if (templates.length === 0) {
+          fetchDirectFromGAS('getTemplatesList', {}, function(gasRes) {
+            if (gasRes && gasRes.templates) {
+              renderTemplatesList(gasRes.templates);
+              return;
+            }
+            renderTemplatesList([]);
           });
+          return;
         }
+        renderTemplatesList(templates);
+      });
+    }
+
+    function renderTemplatesList(templates) {
+      const container = document.getElementById('templatesListContainer');
+      container.innerHTML = '';
+      if (!templates || templates.length === 0) {
+        container.innerHTML = '<div style="color:var(--text-muted); padding:16px;">Belum ada template terdaftar.</div>';
+        return;
+      }
+      templates.forEach(t => {
+        const div = document.createElement('div');
+        div.className = 'glass-panel';
+        div.style.padding = '16px';
+        div.innerHTML = `
+          <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
+            <div>
+              <span style="font-size:0.7rem; font-weight:700; color:var(--cyan-deep); text-transform:uppercase;">${t.category}</span>
+              <h4 style="font-size:0.95rem; color:var(--text-main);">${escapeHtml(t.name)}</h4>
+            </div>
+            <button class="cyber-btn-secondary" style="padding:4px 8px;" onclick="copyText('${encodeURIComponent(t.content)}')"><iconify-icon icon="solar:copy-bold"></iconify-icon></button>
+          </div>
+          <p style="font-size:0.82rem; color:var(--text-muted); background:rgba(0,180,216,0.05); padding:8px; border-radius:8px; font-family:monospace; border:1px solid rgba(0,180,216,0.2);">${escapeHtml(t.content)}</p>
+        `;
+        container.appendChild(div);
       });
     }
     function copyText(enc) {
       navigator.clipboard.writeText(decodeURIComponent(enc)).then(() => showToast('Template disalin!', 'success'));
     }
 
-    // TAB 5: BOOKINGS
-    function loadBookingsBackend() {
-      runBackend('getBookingsList', [], function(res) {
-        if (res && (res.success || res.status === 'success')) {
-          const tbody = document.getElementById('bookingsTableBody');
-          tbody.innerHTML = '';
-          (res.bookings || []).forEach(b => {
-            const tr = document.createElement('tr');
-            tr.innerHTML = `
-              <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${b.bookingId}</span></td>
-              <td><strong>${escapeHtml(b.patientName)}</strong></td>
-              <td>${b.phoneNumber}</td>
-              <td>${b.serviceType}</td>
-              <td>${b.bookingDate}</td>
-              <td><span style="padding:2px 8px; border-radius:4px; font-size:0.74rem; background:rgba(16,185,129,0.15); color:var(--success); font-weight:700;">${b.status}</span></td>
-              <td style="font-size:0.8rem;">${b.createdAt}</td>
-            `;
-            tbody.appendChild(tr);
+    // =========================================================================
+    // TAB 5: BOOKINGS & ANTREAN PASIEN (AUTO-FALLBACK)
+    // =========================================================================
+    function loadBookingsBackend(forceCloud) {
+      runBackend('getBookingsList', [{ refresh: Boolean(forceCloud) }], function(res) {
+        let bookings = (res && res.bookings) ? res.bookings : [];
+
+        if (bookings.length === 0) {
+          fetchDirectFromGAS('getBookingsList', {}, function(gasRes) {
+            if (gasRes && (gasRes.bookings || gasRes.data)) {
+              renderBookingsTable(gasRes.bookings || gasRes.data);
+              return;
+            }
+            renderBookingsTable([]);
           });
+          return;
         }
+        renderBookingsTable(bookings);
       });
     }
 
+    function renderBookingsTable(bookings) {
+      const tbody = document.getElementById('bookingsTableBody');
+      tbody.innerHTML = '';
+      if (!bookings || bookings.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:30px;">Belum ada pendaftaran pasien masuk.</td></tr>';
+        return;
+      }
+      bookings.forEach(b => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${b.bookingId || b.kodeAntrean || '-'}</span></td>
+          <td><strong>${escapeHtml(b.patientName || b.namaPasien || '-')}</strong></td>
+          <td>${b.phoneNumber || b.noHp || '-'}</td>
+          <td>${b.serviceType || b.ruanganPoli || 'Pemeriksaan Gigi'}</td>
+          <td>${b.bookingDate || b.waktuDaftar || '-'}</td>
+          <td><span style="padding:2px 8px; border-radius:4px; font-size:0.74rem; background:rgba(16,185,129,0.15); color:var(--success); font-weight:700;">${b.status || b.statusAntrean || 'Menunggu'}</span></td>
+          <td style="font-size:0.8rem;">${b.createdAt || b.waktuDaftar || '-'}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    // =========================================================================
     // TAB 6: AI CONFIGURATION
+    // =========================================================================
     function loadAiModelCatalog() {
       runBackend('getAvailableAiModels', [], function(res) {
         if (res && (res.success || res.status === 'success') && res.models) {
