@@ -9,14 +9,14 @@
   <meta name="description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat kendali bot WhatsApp multi-client Railway Baileys, monitoring antrean pesan, dan generative AI medis terpadu.' %>">
   <meta name="robots" content="noindex, nofollow">
 
-  <!-- Favicon & Touch Icons Berbasis PNG etakalogo.png -->
-  <link rel="icon" type="image/png" href="/img/etakalogo.png">
-  <link rel="shortcut icon" href="/img/etakalogo.png">
-  <link rel="apple-touch-icon" href="/img/etakalogo.png">
+  <!-- Favicon & Touch Icons Berbasis PNG estakalogo.png -->
+  <link rel="icon" type="image/png" href="/img/estakalogo.png">
+  <link rel="shortcut icon" href="/img/estakalogo.png">
+  <link rel="apple-touch-icon" href="/img/estakalogo.png">
   <meta name="theme-color" content="#f0f7fa">
 
   <!-- Inline Dynamic PWA Manifest via Data URI -->
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%20Portal%22%2C%22short_name%22%3A%22EstakaPortal%22%2C%22start_url%22%3A%22%2Fadmin-dashboardv2%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f7fa%22%2C%22theme_color%22%3A%22%2300b4d8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Fetakalogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%20Portal%22%2C%22short_name%22%3A%22EstakaPortal%22%2C%22start_url%22%3A%22%2Fadmin-dashboardv2%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f7fa%22%2C%22theme_color%22%3A%22%2300b4d8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Festakalogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
   <!-- External Typography & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -517,7 +517,7 @@
     </a>
 
     <div class="header-actions">
-      <a href="https://estakadental.com" target="_blank" class="cyber-btn-secondary" style="padding: 7px 12px; font-size: 0.82rem;" title="Buka Website Utama">
+      <a href="https://estakadentalclinic.vercel.app/" target="_blank" class="cyber-btn-secondary" style="padding: 7px 12px; font-size: 0.82rem;" title="Buka Website Utama">
         <iconify-icon icon="solar:global-bold"></iconify-icon>
         <span>Web Utama</span>
       </a>
@@ -592,7 +592,7 @@
       </div>
     </div>
 
-    <!-- Statistics Grid -->
+    <!-- Statistics Grid Terhubung Status Bot Live -->
     <div class="stats-grid">
       <div class="glass-panel stat-card">
         <div class="stat-icon-wrap"><iconify-icon icon="solar:server-bold"></iconify-icon></div>
@@ -764,7 +764,7 @@
       </div>
     </div>
 
-    <!-- TAB 3: CLIENT RAILWAY BOT -->
+    <!-- TAB 3: CLIENT RAILWAY BOT (DENGAN REFRESH TELEMETRI LIVE) -->
     <div id="tabContentClients" class="glass-panel" style="display: none; padding: 22px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div>
@@ -1154,7 +1154,7 @@
     </div>
   </div>
 
-  <!-- Modal Tambah/Edit Custom AI Prompt (Baru) -->
+  <!-- Modal Tambah/Edit Custom AI Prompt -->
   <div id="customPromptModal" class="modal-overlay">
     <div class="modal-content">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
@@ -1207,24 +1207,24 @@
         </button>
       </div>
 
-      <div class="live-stream-badge">
-        <span class="live-pulse-dot"></span>
-        <span id="qrSocketStreamStatus">Menghubungkan WebSocket...</span>
+      <div class="live-stream-badge" style="display:inline-flex; align-items:center; gap:6px; background:rgba(0,180,216,0.12); padding:4px 10px; border-radius:12px; margin-bottom:12px;">
+        <span class="status-dot status-scanning"></span>
+        <span id="qrSocketStreamStatus" style="font-size:0.75rem; font-weight:700; color:var(--cyan-deep);">Menghubungkan WebSocket...</span>
       </div>
 
       <p style="font-size: 0.82rem; color: var(--text-muted); margin-bottom: 14px;">
         Buka WhatsApp di ponsel &gt; <strong>Perangkat Tertaut</strong> &gt; <strong>Tautkan Perangkat</strong>.
       </p>
 
-      <div id="qrLiveCardWrapper" class="qr-live-wrapper qr-live-pulse" style="margin: 0 auto 16px;">
+      <div id="qrLiveCardWrapper" style="margin: 0 auto 16px; min-height: 230px; display: flex; align-items: center; justify-content: center; position: relative;">
         <div id="qrLoaderBox" style="display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%;">
-          <div class="qr-spinner"></div>
+          <iconify-icon icon="solar:refresh-circle-bold" class="fa-spin" style="font-size: 42px; color: var(--cyan-deep);"></iconify-icon>
           <div id="qrLoaderMainText" style="font-size: 0.85rem; font-weight: 700; color: var(--cyan-deep); margin-top: 14px;">
             Menghubungkan ke Baileys di Railway...
           </div>
         </div>
 
-        <img id="qrImageElement" src="" alt="QR Baileys" style="display: none; width: 224px; height: 224px; border-radius: 12px;">
+        <img id="qrImageElement" src="" alt="QR Baileys" style="display: none; width: 224px; height: 224px; border-radius: 12px; margin: 0 auto;">
 
         <div id="qrSuccessOverlay" style="display: none; position: absolute; inset: 0; background: rgba(255,255,255,0.96); border-radius: 18px; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
           <iconify-icon icon="solar:check-circle-bold" style="font-size: 64px; color: var(--success); margin-bottom: 8px;"></iconify-icon>
@@ -1257,7 +1257,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN UNIVERSAL DATA PARSER & CLOUD AUTO-SYNC -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1276,9 +1276,6 @@
       customPrompts: []
     };
 
-    /**
-     * Sanitasi Nomor Telepon Otomatis ke Format Internasional WhatsApp (62...)
-     */
     function sanitizePhoneNumberToE164(raw) {
       let cleaned = String(raw || '').replace(/\D/g, '');
       if (cleaned.startsWith('0')) {
@@ -1291,9 +1288,6 @@
       return cleaned;
     }
 
-    /**
-     * UNIVERSAL MULTI-COMPATIBLE RUNBACKEND (Express V2 -> V1 -> GAS Web App)
-     */
     function runBackend(functionName, args, onSuccess, onError) {
       args = args || [];
       let primaryPayload = {};
@@ -1360,12 +1354,13 @@
     });
 
     function checkSavedSession() {
-      const saved = sessionStorage.getItem('akshara_v2_user');
+      const saved = sessionStorage.getItem('estaka_v2_user') || sessionStorage.getItem('akshara_v2_user');
       if (saved) {
         try {
           appState.user = JSON.parse(saved);
           showDashboardView();
         } catch (e) {
+          sessionStorage.removeItem('estaka_v2_user');
           sessionStorage.removeItem('akshara_v2_user');
           showLoginGateView();
         }
@@ -1421,7 +1416,7 @@
 
         if (res && (res.success === true || res.status === 'success') && res.user) {
           appState.user = res.user;
-          sessionStorage.setItem('akshara_v2_user', JSON.stringify(res.user));
+          sessionStorage.setItem('estaka_v2_user', JSON.stringify(res.user));
           document.getElementById('directPassword').value = '';
           showToast('Selamat datang, ' + (res.user.fullName || res.user.username), 'success');
           showDashboardView();
@@ -1437,6 +1432,7 @@
 
     function logoutAdmin() {
       appState.user = null;
+      sessionStorage.removeItem('estaka_v2_user');
       sessionStorage.removeItem('akshara_v2_user');
       showLoginGateView();
       showToast('Sesi portal telah diakhiri.', 'warning');
@@ -1484,12 +1480,7 @@
 
         if (rawLogs.length === 0 && (!search && !status)) {
           fetchDirectFromGAS('getChatLogsPaginated', { page, pageSize: 10, search, status }, function(gasRes) {
-            let gasLogs = [];
-            if (gasRes) {
-              if (Array.isArray(gasRes)) gasLogs = gasRes;
-              else if (Array.isArray(gasRes.logs)) gasLogs = gasRes.logs;
-              else if (Array.isArray(gasRes.data)) gasLogs = gasRes.data;
-            }
+            let gasLogs = (gasRes && (gasRes.logs || gasRes.data)) ? (gasRes.logs || gasRes.data) : (Array.isArray(gasRes) ? gasRes : []);
 
             if (gasLogs.length > 0) {
               appState.chatPage = (gasRes && gasRes.page) || 1;
@@ -1580,17 +1571,11 @@
           if (Array.isArray(res)) rawQueue = res;
           else if (Array.isArray(res.queue)) rawQueue = res.queue;
           else if (Array.isArray(res.data)) rawQueue = res.data;
-          else if (Array.isArray(res.list)) rawQueue = res.list;
         }
 
         if (rawQueue.length === 0 && (!search && !status)) {
           fetchDirectFromGAS('getBroadcastQueuePaginated', { page, pageSize: 10, search, status }, function(gasRes) {
-            let gasQueue = [];
-            if (gasRes) {
-              if (Array.isArray(gasRes)) gasQueue = gasRes;
-              else if (Array.isArray(gasRes.queue)) gasQueue = gasRes.queue;
-              else if (Array.isArray(gasRes.data)) gasQueue = gasRes.data;
-            }
+            let gasQueue = (gasRes && (gasRes.queue || gasRes.data)) ? (gasRes.queue || gasRes.data) : (Array.isArray(gasRes) ? gasRes : []);
 
             if (gasQueue.length > 0) {
               appState.queuePage = (gasRes && gasRes.page) || 1;
@@ -1701,7 +1686,7 @@
     }
 
     // =========================================================================
-    // TAB 3: CLIENT RAILWAY BOT
+    // TAB 3: CLIENT RAILWAY BOT (DENGAN SINKRONISASI TELEMETRI STATUS LIVE)
     // =========================================================================
     function loadClientsBackend(forceCloud) {
       runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1714,11 +1699,7 @@
 
         if (rawClients.length === 0) {
           fetchDirectFromGAS('getClientsList', {}, function(gasRes) {
-            let gasClients = [];
-            if (gasRes) {
-              if (Array.isArray(gasRes)) gasClients = gasRes;
-              else if (Array.isArray(gasRes.clients)) gasClients = gasRes.clients;
-            }
+            let gasClients = (gasRes && (gasRes.clients || gasRes.data)) ? (gasRes.clients || gasRes.data) : (Array.isArray(gasRes) ? gasRes : []);
 
             if (gasClients.length > 0) {
               renderClientsTable(gasClients, gasRes.stats);
@@ -1737,6 +1718,10 @@
       const tbody = document.getElementById('clientsTableBody');
       tbody.innerHTML = '';
 
+      let connectedCount = 0;
+      let scanningCount = 0;
+      let disconnectedCount = 0;
+
       (clients || []).forEach(c => {
         const isArr = Array.isArray(c);
         const clientId = c.clientId || c.Client_ID || (isArr ? c[0] : 'CLI-0001');
@@ -1746,14 +1731,24 @@
         const status = (c.status || c.Bot_Status || (isArr ? c[4] : 'CONNECTED')).toUpperCase();
         const expiredDate = c.expiredDate || c.Expired_Date || (isArr ? c[5] : '-');
 
-        const dot = status === 'CONNECTED' ? 'status-connected' : (status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
+        let dotClass = 'status-disconnected';
+        if (status === 'CONNECTED') {
+          dotClass = 'status-connected';
+          connectedCount++;
+        } else if (status === 'SCANNING' || status === 'SCAN_QR') {
+          dotClass = 'status-scanning';
+          scanningCount++;
+        } else {
+          disconnectedCount++;
+        }
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
           <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${clientId}</span></td>
           <td><strong>${escapeHtml(name)}</strong></td>
           <td>${phone}</td>
           <td><a href="${railwayUrl}" target="_blank" style="color:var(--cyan-deep); font-size:0.8rem;">${railwayUrl}</a></td>
-          <td><span class="status-dot ${dot}"></span>${status}</td>
+          <td><span class="status-dot ${dotClass}"></span><span style="font-weight:700;">${status}</span></td>
           <td style="font-size:0.8rem;">${expiredDate}</td>
           <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem;" onclick="pingClientAction('${railwayUrl}', this)">Ping</button></td>
           <td>
@@ -1764,12 +1759,11 @@
         tbody.appendChild(tr);
       });
 
-      if (stats) {
-        document.getElementById('statTotalClients').innerText = stats.total || clients.length;
-        document.getElementById('statConnectedClients').innerText = stats.connected || 0;
-        document.getElementById('statScanningClients').innerText = stats.scanning || 0;
-        document.getElementById('statDisconnectedClients').innerText = stats.disconnected || 0;
-      }
+      // Update statistik kartu dashboard secara dinamis
+      document.getElementById('statTotalClients').innerText = clients.length;
+      document.getElementById('statConnectedClients').innerText = stats?.connected !== undefined ? stats.connected : connectedCount;
+      document.getElementById('statScanningClients').innerText = stats?.scanning !== undefined ? stats.scanning : scanningCount;
+      document.getElementById('statDisconnectedClients').innerText = stats?.disconnected !== undefined ? stats.disconnected : disconnectedCount;
     }
 
     function pingClientAction(url, btn) {
@@ -1777,6 +1771,7 @@
       runBackend('pingRailwayClient', [{ railwayUrl: url }], function(res) {
         btn.innerText = 'Ping';
         showToast(res.message || 'Ping selesai', res.success ? 'success' : 'danger');
+        loadClientsBackend(false);
       });
     }
     function openAddClientModal() {
@@ -1841,7 +1836,10 @@
             loader.style.display = 'none';
             qrImg.style.display = 'none';
             overlay.style.display = 'flex';
-            setTimeout(() => closeModal('qrModal'), 2000);
+            setTimeout(() => {
+              closeModal('qrModal');
+              loadClientsBackend(true);
+            }, 2000);
           });
         } catch (e) {}
       }
@@ -2098,7 +2096,7 @@
     }
 
     // =========================================================================
-    // TAB 7 (FITUR BARU): CRUD CUSTOM AI SYSTEM PROMPTS (GEMINI & CHATGPT)
+    // TAB 7: CRUD CUSTOM AI SYSTEM PROMPTS (GEMINI & CHATGPT)
     // =========================================================================
     function loadCustomPromptsBackend(forceCloud) {
       runBackend('getCustomAiPrompts', [{ refresh: Boolean(forceCloud) }], function(res) {
