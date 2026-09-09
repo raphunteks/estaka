@@ -234,7 +234,7 @@
       flex-shrink: 0;
     }
 
-    /* Tabs Navigation with Horizontal Smooth Scroll on Mobile */
+    /* Tabs Navigation with Horizontal Scroll for Mobile */
     .tabs-nav {
       display: flex;
       gap: 8px;
@@ -540,7 +540,7 @@
   </header>
 
   <!-- ===================================================================== -->
-  <!-- 1. STANDALONE LOGIN GATE VIEW (JIKA BELUM TERAUTENTIKASI)             -->
+  <!-- 1. STANDALONE LOGIN GATE VIEW                                         -->
   <!-- ===================================================================== -->
   <main id="portalLoginView" style="max-width: 440px; margin: 60px auto; padding: 0 20px;">
     <div class="glass-panel" style="padding: 32px 28px; text-align: center;">
@@ -570,7 +570,7 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- 2. PORTAL DASHBOARD V2 (TAMPIL SETELAH LOGIN)                        -->
+  <!-- 2. PORTAL DASHBOARD V2                                                -->
   <!-- ===================================================================== -->
   <main id="portalDashboardView" class="portal-view" style="display: none;">
     <div class="glass-panel portal-header">
@@ -1162,7 +1162,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT TERPADU (DUAL-CHANNEL AUTO-FALLBACK) -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN UNIVERSAL DATA PARSER -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1181,8 +1181,7 @@
     };
 
     /**
-     * DUAL-CHANNEL AUTO-FALLBACK CLIENT:
-     * Mengirim ke Express V2 -> jika gagal atau offline, langsung fallback ke Google Apps Script Web App
+     * UNIVERSAL MULTI-COMPATIBLE RUNBACKEND
      */
     function runBackend(functionName, args, onSuccess, onError) {
       args = args || [];
@@ -1356,7 +1355,7 @@
     }
 
     // =========================================================================
-    // TAB 1: MONITORING LOG CHAT (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // TAB 1: MONITORING LOG CHAT (UNIVERSAL PARSER + DUAL CHANNEL)
     // =========================================================================
     function loadChatLogsBackend(page, forceCloud) {
       page = page || 1;
@@ -1364,17 +1363,30 @@
       const status = document.getElementById('filterChatStatus').value;
 
       runBackend('getChatLogsPaginated', [{ page, pageSize: 10, search, status, refresh: Boolean(forceCloud) }], function(res) {
-        let logsData = (res && (res.logs || res.data)) ? (res.logs || res.data) : [];
+        let rawLogs = [];
+        if (res) {
+          if (Array.isArray(res)) rawLogs = res;
+          else if (Array.isArray(res.logs)) rawLogs = res.logs;
+          else if (Array.isArray(res.data)) rawLogs = res.data;
+          else if (Array.isArray(res.list)) rawLogs = res.list;
+        }
 
-        // Jika data dari Express bernilai 0 baris, tarik data cadangan langsung ke Google Apps Script
-        if (logsData.length === 0 && (!search && !status)) {
+        // Jika data dari Express lokal kosong, tarik data langsung ke Google Apps Script
+        if (rawLogs.length === 0 && (!search && !status)) {
           fetchDirectFromGAS('getChatLogsPaginated', { page, pageSize: 10, search, status }, function(gasRes) {
-            if (gasRes && (gasRes.logs || gasRes.data) && (gasRes.logs || gasRes.data).length > 0) {
-              logsData = gasRes.logs || gasRes.data;
-              appState.chatPage = gasRes.page || 1;
-              appState.chatTotalPages = gasRes.totalPages || 1;
-              renderChatTable(logsData);
-              document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${gasRes.totalCount || logsData.length} total log)`;
+            let gasLogs = [];
+            if (gasRes) {
+              if (Array.isArray(gasRes)) gasLogs = gasRes;
+              else if (Array.isArray(gasRes.logs)) gasLogs = gasRes.logs;
+              else if (Array.isArray(gasRes.data)) gasLogs = gasRes.data;
+              else if (Array.isArray(gasRes.list)) gasLogs = gasRes.list;
+            }
+
+            if (gasLogs.length > 0) {
+              appState.chatPage = (gasRes && gasRes.page) || 1;
+              appState.chatTotalPages = (gasRes && gasRes.totalPages) || 1;
+              renderChatTable(gasLogs);
+              document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${(gasRes && gasRes.totalCount) || gasLogs.length} total log)`;
               document.getElementById('btnPrevPage').disabled = (appState.chatPage <= 1);
               document.getElementById('btnNextPage').disabled = (appState.chatPage >= appState.chatTotalPages);
               return;
@@ -1386,8 +1398,8 @@
 
         appState.chatPage = (res && res.page) || 1;
         appState.chatTotalPages = (res && res.totalPages) || 1;
-        renderChatTable(logsData);
-        document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${(res && res.totalCount) || logsData.length} total log)`;
+        renderChatTable(rawLogs);
+        document.getElementById('txtPaginationInfo').innerText = `Halaman ${appState.chatPage} dari ${appState.chatTotalPages} (${(res && res.totalCount) || rawLogs.length} total log)`;
         document.getElementById('btnPrevPage').disabled = (appState.chatPage <= 1);
         document.getElementById('btnNextPage').disabled = (appState.chatPage >= appState.chatTotalPages);
       });
@@ -1397,24 +1409,36 @@
       const tbody = document.getElementById('chatLogsTableBody');
       tbody.innerHTML = '';
       if (!logs || logs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:24px;">Tidak ada log percakapan.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align:center; color:var(--text-muted); padding:28px;">Tidak ada log percakapan.</td></tr>';
         return;
       }
+
       logs.forEach(l => {
+        // Universal Field Extractor (Mendukung Objek Redis, Objek GAS, maupun Row Array 2D)
+        const isArr = Array.isArray(l);
+        const logId = l.logId || l.Log_ID || (isArr ? l[0] : '-');
+        const timestamp = l.timestamp || l.Timestamp || (isArr ? l[1] : '-');
+        const clientId = l.clientId || l.Client_ID || (isArr ? l[2] : 'CLI-0001');
+        const sender = l.sender || l.senderNumber || l.Sender_Number || (isArr ? l[3] : '-');
+        const receiver = l.receiver || l.receiverNumber || l.Receiver_Number || (isArr ? l[4] : '-');
+        const type = l.type || l.messageType || l.Message_Type || (isArr ? l[5] : 'INCOMING');
+        const content = l.content || l.messageContent || l.Message_Content || (isArr ? l[6] : '');
+        const status = (l.status || l.Status || (isArr ? l[7] : 'DELIVERED')).toUpperCase();
+
+        const preview = content.length > 40 ? content.substring(0, 40) + '...' : content;
+        const dotClass = (status === 'DELIVERED' || status === 'SENT') ? 'status-connected' : 'status-disconnected';
+
         const tr = document.createElement('tr');
-        const preview = (l.content || '').length > 40 ? (l.content || '').substring(0, 40) + '...' : (l.content || '');
-        const st = (l.status || 'DELIVERED').toUpperCase();
-        const dotClass = (st === 'DELIVERED' || st === 'SENT') ? 'status-connected' : 'status-disconnected';
         tr.innerHTML = `
-          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${l.logId || '-'}</span></td>
-          <td style="white-space:nowrap; font-size:0.8rem;">${l.timestamp || '-'}</td>
-          <td>${l.clientId || 'CLI-0001'}</td>
-          <td>${l.sender || '-'}</td>
-          <td>${l.receiver || '-'}</td>
-          <td><span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background:rgba(0,180,216,0.1); color:var(--cyan-deep); font-weight:600;">${l.type || 'INCOMING'}</span></td>
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${logId}</span></td>
+          <td style="white-space:nowrap; font-size:0.8rem;">${timestamp}</td>
+          <td>${clientId}</td>
+          <td>${sender}</td>
+          <td>${receiver}</td>
+          <td><span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background:rgba(0,180,216,0.1); color:var(--cyan-deep); font-weight:600;">${type}</span></td>
           <td>${escapeHtml(preview)}</td>
-          <td><span class="status-dot ${dotClass}"></span>${st}</td>
-          <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.78rem;" onclick="viewMessageDetail('${l.logId || ''}', '${encodeURIComponent(l.content || '')}', '${l.timestamp || ''}')">Detail</button></td>
+          <td><span class="status-dot ${dotClass}"></span>${status}</td>
+          <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.78rem;" onclick="viewMessageDetail('${logId}', '${encodeURIComponent(content)}', '${timestamp}')">Detail</button></td>
         `;
         tbody.appendChild(tr);
       });
@@ -1435,7 +1459,7 @@
     }
 
     // =========================================================================
-    // TAB 2: BROADCAST QUEUE MANAGER (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // TAB 2: BROADCAST QUEUE MANAGER (UNIVERSAL PARSER + DUAL CHANNEL)
     // =========================================================================
     function loadBroadcastQueueBackend(page, forceCloud) {
       page = page || 1;
@@ -1443,16 +1467,29 @@
       const status = document.getElementById('filterQueueStatus').value;
 
       runBackend('getBroadcastQueuePaginated', [{ page, pageSize: 10, search, status, refresh: Boolean(forceCloud) }], function(res) {
-        let queueData = (res && (res.queue || res.data)) ? (res.queue || res.data) : [];
+        let rawQueue = [];
+        if (res) {
+          if (Array.isArray(res)) rawQueue = res;
+          else if (Array.isArray(res.queue)) rawQueue = res.queue;
+          else if (Array.isArray(res.data)) rawQueue = res.data;
+          else if (Array.isArray(res.list)) rawQueue = res.list;
+        }
 
-        if (queueData.length === 0 && (!search && !status)) {
+        if (rawQueue.length === 0 && (!search && !status)) {
           fetchDirectFromGAS('getBroadcastQueuePaginated', { page, pageSize: 10, search, status }, function(gasRes) {
-            if (gasRes && (gasRes.queue || gasRes.data) && (gasRes.queue || gasRes.data).length > 0) {
-              queueData = gasRes.queue || gasRes.data;
-              appState.queuePage = gasRes.page || 1;
-              appState.queueTotalPages = gasRes.totalPages || 1;
-              renderBroadcastQueueTable(queueData);
-              document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${gasRes.totalCount || queueData.length} antrean)`;
+            let gasQueue = [];
+            if (gasRes) {
+              if (Array.isArray(gasRes)) gasQueue = gasRes;
+              else if (Array.isArray(gasRes.queue)) gasQueue = gasRes.queue;
+              else if (Array.isArray(gasRes.data)) gasQueue = gasRes.data;
+              else if (Array.isArray(gasRes.list)) gasQueue = gasRes.list;
+            }
+
+            if (gasQueue.length > 0) {
+              appState.queuePage = (gasRes && gasRes.page) || 1;
+              appState.queueTotalPages = (gasRes && gasRes.totalPages) || 1;
+              renderBroadcastQueueTable(gasQueue);
+              document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${(gasRes && gasRes.totalCount) || gasQueue.length} antrean)`;
               document.getElementById('btnQueuePrevPage').disabled = (appState.queuePage <= 1);
               document.getElementById('btnQueueNextPage').disabled = (appState.queuePage >= appState.queueTotalPages);
               return;
@@ -1464,8 +1501,8 @@
 
         appState.queuePage = (res && res.page) || 1;
         appState.queueTotalPages = (res && res.totalPages) || 1;
-        renderBroadcastQueueTable(queueData);
-        document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${(res && res.totalCount) || queueData.length} antrean)`;
+        renderBroadcastQueueTable(rawQueue);
+        document.getElementById('txtQueuePaginationInfo').innerText = `Halaman ${appState.queuePage} dari ${appState.queueTotalPages} (${(res && res.totalCount) || rawQueue.length} antrean)`;
         document.getElementById('btnQueuePrevPage').disabled = (appState.queuePage <= 1);
         document.getElementById('btnQueueNextPage').disabled = (appState.queuePage >= appState.queueTotalPages);
       });
@@ -1475,24 +1512,35 @@
       const tbody = document.getElementById('broadcastQueueTableBody');
       tbody.innerHTML = '';
       if (!queue || queue.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:24px;">Tidak ada antrean broadcast.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted); padding:28px;">Tidak ada antrean broadcast.</td></tr>';
         return;
       }
+
       queue.forEach(q => {
-        const tr = document.createElement('tr');
-        const dot = q.status === 'SENT' ? 'status-connected' : (q.status === 'PENDING' ? 'status-scanning' : 'status-disconnected');
-        const act = q.status === 'SENT' ? '<span style="font-size:0.78rem; color:var(--success); font-weight:700;">Terkirim</span>' : `
-          <button class="cyber-btn" style="padding:3px 8px; font-size:0.75rem;" onclick="dispatchBroadcastAction('${q.queueId}')">Kirim</button>
-          <button class="cyber-btn-secondary" style="padding:3px 8px; font-size:0.75rem; color:var(--danger);" onclick="deleteBroadcastAction('${q.queueId}')">Batal</button>
+        const isArr = Array.isArray(q);
+        const queueId = q.queueId || q.Queue_ID || (isArr ? q[0] : '-');
+        const clientId = q.clientId || q.Client_ID || (isArr ? q[1] : 'CLI-0001');
+        const targetNumber = q.targetNumber || q.Target_Number || (isArr ? q[2] : '-');
+        const messageContent = q.messageContent || q.Message_Content || (isArr ? q[3] : '');
+        const scheduledTime = q.scheduledTime || q.Scheduled_Time || (isArr ? q[4] : '-');
+        const status = (q.status || q.Status || (isArr ? q[5] : 'PENDING')).toUpperCase();
+        const sentAt = q.sentAt || q.Sent_At || (isArr ? q[6] : '-');
+
+        const dot = status === 'SENT' ? 'status-connected' : (status === 'PENDING' ? 'status-scanning' : 'status-disconnected');
+        const act = status === 'SENT' ? '<span style="font-size:0.78rem; color:var(--success); font-weight:700;">Terkirim</span>' : `
+          <button class="cyber-btn" style="padding:3px 8px; font-size:0.75rem;" onclick="dispatchBroadcastAction('${queueId}')">Kirim</button>
+          <button class="cyber-btn-secondary" style="padding:3px 8px; font-size:0.75rem; color:var(--danger);" onclick="deleteBroadcastAction('${queueId}')">Batal</button>
         `;
+
+        const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${q.queueId}</span></td>
-          <td>${q.clientId}</td>
-          <td>${q.targetNumber}</td>
-          <td>${escapeHtml((q.messageContent || '').length > 35 ? (q.messageContent || '').substring(0, 35) + '...' : (q.messageContent || ''))}</td>
-          <td style="white-space:nowrap; font-size:0.8rem;">${q.scheduledTime}</td>
-          <td><span class="status-dot ${dot}"></span>${q.status}</td>
-          <td style="font-size:0.8rem;">${q.sentAt}</td>
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${queueId}</span></td>
+          <td>${clientId}</td>
+          <td>${targetNumber}</td>
+          <td>${escapeHtml(messageContent.length > 35 ? messageContent.substring(0, 35) + '...' : messageContent)}</td>
+          <td style="white-space:nowrap; font-size:0.8rem;">${scheduledTime}</td>
+          <td><span class="status-dot ${dot}"></span>${status}</td>
+          <td style="font-size:0.8rem;">${sentAt}</td>
           <td><div style="display:flex; gap:6px;">${act}</div></td>
         `;
         tbody.appendChild(tr);
@@ -1546,24 +1594,37 @@
     }
 
     // =========================================================================
-    // TAB 3: CLIENT RAILWAY BOT (AUTO-FALLBACK KE GOOGLE SHEETS)
+    // TAB 3: CLIENT RAILWAY BOT (UNIVERSAL PARSER + DUAL CHANNEL)
     // =========================================================================
     function loadClientsBackend(forceCloud) {
       runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
-        let clientsList = (res && res.clients) ? res.clients : [];
+        let rawClients = [];
+        if (res) {
+          if (Array.isArray(res)) rawClients = res;
+          else if (Array.isArray(res.clients)) rawClients = res.clients;
+          else if (Array.isArray(res.data)) rawClients = res.data;
+          else if (Array.isArray(res.list)) rawClients = res.list;
+        }
 
-        if (clientsList.length === 0) {
+        if (rawClients.length === 0) {
           fetchDirectFromGAS('getClientsList', {}, function(gasRes) {
-            if (gasRes && gasRes.clients && gasRes.clients.length > 0) {
-              renderClientsTable(gasRes.clients, gasRes.stats);
+            let gasClients = [];
+            if (gasRes) {
+              if (Array.isArray(gasRes)) gasClients = gasRes;
+              else if (Array.isArray(gasRes.clients)) gasClients = gasRes.clients;
+              else if (Array.isArray(gasRes.data)) gasClients = gasRes.data;
+            }
+
+            if (gasClients.length > 0) {
+              renderClientsTable(gasClients, gasRes.stats);
               return;
             }
-            renderClientsTable(clientsList, res && res.stats);
+            renderClientsTable(rawClients, res && res.stats);
           });
           return;
         }
 
-        renderClientsTable(clientsList, res && res.stats);
+        renderClientsTable(rawClients, res && res.stats);
       });
     }
 
@@ -1572,19 +1633,28 @@
       tbody.innerHTML = '';
 
       (clients || []).forEach(c => {
+        const isArr = Array.isArray(c);
+        const clientId = c.clientId || c.Client_ID || (isArr ? c[0] : 'CLI-0001');
+        const name = c.name || c.Client_Name || (isArr ? c[1] : '-');
+        const phone = c.phone || c.Phone_Number || (isArr ? c[2] : '-');
+        const railwayUrl = c.railwayUrl || c.Railway_Base_URL || (isArr ? c[3] : DEFAULT_RAILWAY_URL);
+        const status = (c.status || c.Bot_Status || (isArr ? c[4] : 'CONNECTED')).toUpperCase();
+        const expiredDate = c.expiredDate || c.Expired_Date || (isArr ? c[5] : '-');
+        const notes = c.notes || c.Notes || (isArr ? c[6] : '');
+
+        const dot = status === 'CONNECTED' ? 'status-connected' : (status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
         const tr = document.createElement('tr');
-        const dot = c.status === 'CONNECTED' ? 'status-connected' : (c.status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
         tr.innerHTML = `
-          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${c.clientId}</span></td>
-          <td><strong>${escapeHtml(c.name)}</strong></td>
-          <td>${c.phone}</td>
-          <td><a href="${c.railwayUrl}" target="_blank" style="color:var(--cyan-deep); font-size:0.8rem;">${c.railwayUrl}</a></td>
-          <td><span class="status-dot ${dot}"></span>${c.status}</td>
-          <td style="font-size:0.8rem;">${c.expiredDate}</td>
-          <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem;" onclick="pingClientAction('${c.railwayUrl}', this)">Ping</button></td>
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${clientId}</span></td>
+          <td><strong>${escapeHtml(name)}</strong></td>
+          <td>${phone}</td>
+          <td><a href="${railwayUrl}" target="_blank" style="color:var(--cyan-deep); font-size:0.8rem;">${railwayUrl}</a></td>
+          <td><span class="status-dot ${dot}"></span>${status}</td>
+          <td style="font-size:0.8rem;">${expiredDate}</td>
+          <td><button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem;" onclick="pingClientAction('${railwayUrl}', this)">Ping</button></td>
           <td>
-            <button class="cyber-btn" style="padding:4px 8px; font-size:0.76rem;" onclick="openQrModal('${c.clientId}', '${c.railwayUrl}')">Scan QR</button>
-            <button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem; color:var(--danger);" onclick="deleteClientAction('${c.clientId}')">Hapus</button>
+            <button class="cyber-btn" style="padding:4px 8px; font-size:0.76rem;" onclick="openQrModal('${clientId}', '${railwayUrl}')">Scan QR</button>
+            <button class="cyber-btn-secondary" style="padding:4px 8px; font-size:0.76rem; color:var(--danger);" onclick="deleteClientAction('${clientId}')">Hapus</button>
           </td>
         `;
         tbody.appendChild(tr);
@@ -1680,23 +1750,36 @@
     }
 
     // =========================================================================
-    // TAB 4: TEMPLATES (AUTO-FALLBACK)
+    // TAB 4: TEMPLATES (UNIVERSAL PARSER + DUAL CHANNEL)
     // =========================================================================
     function loadTemplatesBackend(forceCloud) {
       runBackend('getTemplatesList', [{ refresh: Boolean(forceCloud) }], function(res) {
-        let templates = (res && res.templates) ? res.templates : [];
+        let rawTemplates = [];
+        if (res) {
+          if (Array.isArray(res)) rawTemplates = res;
+          else if (Array.isArray(res.templates)) rawTemplates = res.templates;
+          else if (Array.isArray(res.data)) rawTemplates = res.data;
+          else if (Array.isArray(res.list)) rawTemplates = res.list;
+        }
 
-        if (templates.length === 0) {
+        if (rawTemplates.length === 0) {
           fetchDirectFromGAS('getTemplatesList', {}, function(gasRes) {
-            if (gasRes && gasRes.templates) {
-              renderTemplatesList(gasRes.templates);
+            let gasTemplates = [];
+            if (gasRes) {
+              if (Array.isArray(gasRes)) gasTemplates = gasRes;
+              else if (Array.isArray(gasRes.templates)) gasTemplates = gasRes.templates;
+              else if (Array.isArray(gasRes.data)) gasTemplates = gasRes.data;
+            }
+
+            if (gasTemplates.length > 0) {
+              renderTemplatesList(gasTemplates);
               return;
             }
             renderTemplatesList([]);
           });
           return;
         }
-        renderTemplatesList(templates);
+        renderTemplatesList(rawTemplates);
       });
     }
 
@@ -1708,18 +1791,23 @@
         return;
       }
       templates.forEach(t => {
+        const isArr = Array.isArray(t);
+        const name = t.name || t.Template_Name || (isArr ? t[1] : '-');
+        const category = t.category || t.Category || (isArr ? t[2] : 'UMUM');
+        const content = t.content || t.Content || (isArr ? t[3] : '');
+
         const div = document.createElement('div');
         div.className = 'glass-panel';
         div.style.padding = '16px';
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px;">
             <div>
-              <span style="font-size:0.7rem; font-weight:700; color:var(--cyan-deep); text-transform:uppercase;">${t.category}</span>
-              <h4 style="font-size:0.95rem; color:var(--text-main);">${escapeHtml(t.name)}</h4>
+              <span style="font-size:0.7rem; font-weight:700; color:var(--cyan-deep); text-transform:uppercase;">${category}</span>
+              <h4 style="font-size:0.95rem; color:var(--text-main);">${escapeHtml(name)}</h4>
             </div>
-            <button class="cyber-btn-secondary" style="padding:4px 8px;" onclick="copyText('${encodeURIComponent(t.content)}')"><iconify-icon icon="solar:copy-bold"></iconify-icon></button>
+            <button class="cyber-btn-secondary" style="padding:4px 8px;" onclick="copyText('${encodeURIComponent(content)}')"><iconify-icon icon="solar:copy-bold"></iconify-icon></button>
           </div>
-          <p style="font-size:0.82rem; color:var(--text-muted); background:rgba(0,180,216,0.05); padding:8px; border-radius:8px; font-family:monospace; border:1px solid rgba(0,180,216,0.2);">${escapeHtml(t.content)}</p>
+          <p style="font-size:0.82rem; color:var(--text-muted); background:rgba(0,180,216,0.05); padding:8px; border-radius:8px; font-family:monospace; border:1px solid rgba(0,180,216,0.2);">${escapeHtml(content)}</p>
         `;
         container.appendChild(div);
       });
@@ -1729,23 +1817,36 @@
     }
 
     // =========================================================================
-    // TAB 5: BOOKINGS & ANTREAN PASIEN (AUTO-FALLBACK)
+    // TAB 5: ANTREAN & RESERVASI PASIEN (UNIVERSAL PARSER + DUAL CHANNEL)
     // =========================================================================
     function loadBookingsBackend(forceCloud) {
       runBackend('getBookingsList', [{ refresh: Boolean(forceCloud) }], function(res) {
-        let bookings = (res && res.bookings) ? res.bookings : [];
+        let rawBookings = [];
+        if (res) {
+          if (Array.isArray(res)) rawBookings = res;
+          else if (Array.isArray(res.bookings)) rawBookings = res.bookings;
+          else if (Array.isArray(res.data)) rawBookings = res.data;
+          else if (Array.isArray(res.list)) rawBookings = res.list;
+        }
 
-        if (bookings.length === 0) {
+        if (rawBookings.length === 0) {
           fetchDirectFromGAS('getBookingsList', {}, function(gasRes) {
-            if (gasRes && (gasRes.bookings || gasRes.data)) {
-              renderBookingsTable(gasRes.bookings || gasRes.data);
+            let gasBookings = [];
+            if (gasRes) {
+              if (Array.isArray(gasRes)) gasBookings = gasRes;
+              else if (Array.isArray(gasRes.bookings)) gasBookings = gasRes.bookings;
+              else if (Array.isArray(gasRes.data)) gasBookings = gasRes.data;
+            }
+
+            if (gasBookings.length > 0) {
+              renderBookingsTable(gasBookings);
               return;
             }
             renderBookingsTable([]);
           });
           return;
         }
-        renderBookingsTable(bookings);
+        renderBookingsTable(rawBookings);
       });
     }
 
@@ -1757,15 +1858,24 @@
         return;
       }
       bookings.forEach(b => {
+        const isArr = Array.isArray(b);
+        const bookingId = b.bookingId || b.kodeAntrean || b.Booking_ID || (isArr ? b[0] : '-');
+        const patientName = b.patientName || b.namaPasien || b.Nama_Pasien || (isArr ? b[1] : '-');
+        const phoneNumber = b.phoneNumber || b.noHp || b.Phone_Number || (isArr ? b[2] : '-');
+        const serviceType = b.serviceType || b.ruanganPoli || b.Service_Type || (isArr ? b[3] : 'Pemeriksaan Gigi');
+        const bookingDate = b.bookingDate || b.waktuDaftar || b.Booking_Date || (isArr ? b[4] : '-');
+        const status = b.status || b.statusAntrean || b.Status || (isArr ? b[5] : 'Menunggu');
+        const createdAt = b.createdAt || b.waktuDaftar || b.Created_At || (isArr ? b[6] : '-');
+
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${b.bookingId || b.kodeAntrean || '-'}</span></td>
-          <td><strong>${escapeHtml(b.patientName || b.namaPasien || '-')}</strong></td>
-          <td>${b.phoneNumber || b.noHp || '-'}</td>
-          <td>${b.serviceType || b.ruanganPoli || 'Pemeriksaan Gigi'}</td>
-          <td>${b.bookingDate || b.waktuDaftar || '-'}</td>
-          <td><span style="padding:2px 8px; border-radius:4px; font-size:0.74rem; background:rgba(16,185,129,0.15); color:var(--success); font-weight:700;">${b.status || b.statusAntrean || 'Menunggu'}</span></td>
-          <td style="font-size:0.8rem;">${b.createdAt || b.waktuDaftar || '-'}</td>
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${bookingId}</span></td>
+          <td><strong>${escapeHtml(patientName)}</strong></td>
+          <td>${phoneNumber}</td>
+          <td>${serviceType}</td>
+          <td>${bookingDate}</td>
+          <td><span style="padding:2px 8px; border-radius:4px; font-size:0.74rem; background:rgba(16,185,129,0.15); color:var(--success); font-weight:700;">${status}</span></td>
+          <td style="font-size:0.8rem;">${createdAt}</td>
         `;
         tbody.appendChild(tr);
       });
@@ -1906,6 +2016,7 @@
       }
     }
 
+    // FLOATING AI CHATBOX
     function toggleAIChat(force) {
       const box = document.getElementById('aiChatBox');
       box.style.display = (typeof force === 'boolean') ? (force ? 'flex' : 'none') : (box.style.display === 'flex' ? 'none' : 'flex');
