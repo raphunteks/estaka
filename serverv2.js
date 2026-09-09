@@ -1,17 +1,3 @@
-/**
- * ============================================================================
- * SISTEM OPERASIONAL ENTERPRISE KLINIK AKSHARA DENTAL SPACE & WA BOT GATEWAY
- * File: serverv2.js (Super Big Upgrade Logics - 100% Full Uncut)
- * Fitur: Express Server V2 Engine, Upstash Redis & In-Memory Fallback Storage,
- *        Penyedia Data 6 Tab (Log Chat, Broadcast Queue, Clients, Templates,
- *        Bookings Pasien, & AI Configuration Engine),
- *        Multi-Model AI (Gemini 3.5 Flash Default, Gemini 3.8/3.7/3.6/3.1, 2.5,
- *        OpenAI ChatGPT, & Groq LPU),
- *        Dukungan Penuh Format API Key AQ... & AIzaSy...,
- *        Railway Baileys Bot Proxy & Bi-Directional Webhook Sync,
- *        Dual-Mode GAS Fallback Router & Reliable Static Assets Delivery.
- * ============================================================================
- */
 
 const express = require('express');
 const path = require('path');
