@@ -793,8 +793,19 @@
       console.clear();
     }, 4000);
 
-    // DUAL-MODE API CLIENT: Express Local/Redis Router -> Google Apps Script Fallback
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
+
+    function sanitizePhoneNumberToE164(raw) {
+      let cleaned = String(raw || '').replace(/\D/g, '');
+      if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.substring(1);
+      } else if (cleaned.startsWith('8')) {
+        cleaned = '62' + cleaned;
+      } else if (!cleaned.startsWith('62') && cleaned.length >= 8) {
+        cleaned = '62' + cleaned;
+      }
+      return cleaned;
+    }
 
     function runApi(actionName, payloadData) {
       return new Promise(function(resolve, reject) {
@@ -1454,7 +1465,7 @@
     }
 
     // =========================================================================
-    // MODUL BARU: MANAJEMEN DOKTER LENGKAP (CRUD)
+    // MODUL BARU: MANAJEMEN DOKTER LENGKAP (CRUD DOKTER)
     // =========================================================================
 
     function loadDoctorsManagement() {
@@ -1557,6 +1568,15 @@
     function handleSaveDoctor(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSaveDoctor');
+      const rawWa = document.getElementById('docModalNomorWa').value.trim();
+      const cleanWa = sanitizePhoneNumberToE164(rawWa);
+
+      if (!cleanWa || cleanWa.length < 8) {
+        showToast('Nomor WhatsApp dokter wajib diisi dengan benar!', 'error');
+        document.getElementById('docModalNomorWa').focus();
+        return;
+      }
+
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
@@ -1575,7 +1595,7 @@
         jamSelesai: document.getElementById('docModalJamSelesai').value.trim(),
         kuota: document.getElementById('docModalKuota').value.trim(),
         kuotaSlot: document.getElementById('docModalKuota').value.trim(),
-        nomorWa: document.getElementById('docModalNomorWa').value.trim()
+        nomorWa: cleanWa
       };
 
       runApi('saveOrUpdateDoctor', payload)
