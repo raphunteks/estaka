@@ -1257,7 +1257,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT TERPADU -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN LIVE POLLING STATUS -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1266,6 +1266,7 @@
       user: null,
       activeQrSocket: null,
       qrPollingTimer: null,
+      clientsPollingTimer: null,
       chatPage: 1,
       chatTotalPages: 1,
       queuePage: 1,
@@ -1380,9 +1381,20 @@
       loadBroadcastQueueBackend(1, true);
       loadClientsBackend(true);
       loadBookingsBackend(true);
+
+      // Mulai auto-polling live status client bot setiap 6 detik
+      if (!appState.clientsPollingTimer) {
+        appState.clientsPollingTimer = setInterval(() => {
+          loadClientsBackend(false);
+        }, 6000);
+      }
     }
 
     function showLoginGateView() {
+      if (appState.clientsPollingTimer) {
+        clearInterval(appState.clientsPollingTimer);
+        appState.clientsPollingTimer = null;
+      }
       document.getElementById('portalDashboardView').style.display = 'none';
       document.getElementById('portalLoginView').style.display = 'block';
       document.getElementById('txtPortalAction').innerText = 'Login Petugas';
@@ -1673,6 +1685,8 @@
           showToast(res.message || 'Pesan terkirim!', 'success');
           loadBroadcastQueueBackend(appState.queuePage, true);
           loadChatLogsBackend(1, true);
+        } else {
+          showToast(res.message || 'Gagal mengirim pesan.', 'danger');
         }
       });
     }
