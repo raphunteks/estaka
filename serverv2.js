@@ -1,7 +1,7 @@
 /**
  * ============================================================================
  * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC & WA BOT GATEWAY
- * File: serverv2.js (Dedicated WA Bot Gateway & Portal V2 Engine)
+ * File: serverv2.js (Tahap 6: Dedicated WA Bot Gateway & Portal V2 Engine)
  * ============================================================================
  */
 
@@ -18,6 +18,10 @@ const BASE_URL = process.env.BASE_URL || 'https://estakadentalclinic.vercel.app'
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
 const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN || 'ESTAKA_CLINIC_SECRET_2026';
+
+// Cache Deduplikasi Notifikasi WhatsApp di Memory V2 (Cooldown Anti-Spam)
+const recentV2Dispatches = new Map();
+const V2_DEDUPE_TTL_MS = 30000; // 30 detik cooldown deduplikasi
 
 // Mapping Baku Nomor WhatsApp Dokter Resmi Estaka Dental Clinic
 const OFFICIAL_DOCTOR_PHONES = {
@@ -52,7 +56,7 @@ const SUPPORTED_AI_MODELS_V2 = [
   { id: 'gemini-2.5-flash-tts', name: 'Gemini 2.5 Flash TTS', category: 'Gemini 2.5 Series', description: 'Multi-modal Audio Speech' },
   { id: 'gemini-2.5-pro-tts', name: 'Gemini 2.5 Pro TTS', category: 'Gemini 2.5 Series', description: 'High-Fidelity Audio Synthesis' },
   { id: 'gemini-2-flash', name: 'Gemini 2 Flash', category: 'Gemini 2 Series', description: 'High Performance Text Engine' },
-  { id: 'gemini-2-flash-lite', name: 'Gemini 2 Flash Lite', category: 'Gemini 2 Series', description: 'Ultra-Fast Lightweight' },
+  { id: 'gemini-2.0-flash-lite', name: 'Gemini 2 Flash Lite', category: 'Gemini 2 Series', description: 'Ultra-Fast Lightweight' },
 
   // Specialized Agents & Open Models
   { id: 'deep-research-pro-preview', name: 'Deep Research Pro Preview', category: 'Specialist Agents', description: 'Agentic Deep Clinical Synthesizer' },
@@ -64,7 +68,7 @@ const SUPPORTED_AI_MODELS_V2 = [
   // OpenAI ChatGPT Series
   { id: 'gpt-4o', name: 'GPT-4o (Omni)', category: 'OpenAI ChatGPT', description: 'Flagship Multimodal Cerdas & Cepat' },
   { id: 'gpt-4o-mini', name: 'GPT-4o Mini', category: 'OpenAI ChatGPT', description: 'Ringan, Cepat & Hemat Token' },
-  { id: 'o3-mini', name: 'OpenAI o3-mini', category: 'OpenAI ChatGPT', description: 'Penalaran Logika & STEM Medis Mendalam' },
+  { id: 'o3-mini', name: 'OpenAI o3-mini', category: 'OpenAI Reasoning', description: 'Penalaran Logika & STEM Medis Mendalam' },
   { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', category: 'OpenAI ChatGPT', description: 'Kapasitas Konteks Panjang' },
 
   // Groq LPU Ultra-Speed Series
@@ -363,7 +367,7 @@ async function executeDualLogin(username, password) {
 // 6. LOGIKA 7 TAB DENGAN CLOUD DATA BRIDGE, TELEMETRI & PROMPTS
 // ============================================================================
 
-// TAB 1: LOG PERCAKAPAN WHATSAPP (ChatLogs Bridge & Normalizer)
+// TAB 1: LOG PERCAKAPAN WHATSAPP
 async function getChatLogsPaginated(filters = {}) {
   let logs = await getTableData('ChatLogs');
 
@@ -642,7 +646,7 @@ async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
   return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dibatalkan.` };
 }
 
-// TAB 3: CLIENT RAILWAY BOT (Live Telemetry, Status Monitoring & Bridge)
+// TAB 3: CLIENT RAILWAY BOT (Live Telemetry & Status Monitoring)
 async function getClientsList() {
   let clients = await getTableData('Clients');
 
@@ -677,7 +681,6 @@ async function getClientsList() {
     }
   }
 
-  // Jika tetap kosong, inisialisasi instance resmi Estaka
   if (!clients || clients.length === 0) {
     clients = [{
       clientId: 'CLI-0001',
@@ -766,9 +769,6 @@ async function saveOrUpdateClient(payload = {}, adminId = 'SUPERADMIN') {
   return { success: true, status: 'success', message: 'Data client tersimpan.', clientId: finalId };
 }
 
-/**
- * Handler pembaruan status bot real-time langsung dari webhook Baileys Railway
- */
 async function updateClientBotStatus(payload = {}) {
   const clientId = payload.clientId || 'CLI-0001';
   const newStatus = String(payload.status || payload.botStatus || 'CONNECTED').toUpperCase().trim();
@@ -882,7 +882,7 @@ async function getTemplatesList() {
   return { success: true, status: 'success', templates };
 }
 
-// TAB 5: ANTREAN & RESERVASI PASIEN (DUAL-DISPATCH DENGAN VALIDASI PENGIRIMAN)
+// TAB 5: ANTREAN & RESERVASI PASIEN (DENGAN IDEMPOTENSI & ANTI-SPAM GUARD)
 async function savePatientBooking(payload = {}) {
   const patientName = payload.patientName || payload.nama;
   const rawPhone = payload.phoneNumber || payload.noHp;
@@ -893,14 +893,31 @@ async function savePatientBooking(payload = {}) {
 
   const formattedPhone = sanitizePhoneNumberE164(rawPhone);
   const bookings = await getTableData('Bookings');
-  const bookingId = payload.bookingId || await generateNextId('Bookings', 'BKG', 4);
   const nowStr = getNowTimestamp();
   const rencanaWaktu = payload.rencanaWaktuKunjungan || payload.bookingDate || nowStr;
+  const cleanNik = String(payload.nik || '').trim();
+
+  // =========================================================================
+  // 1. IDEMPOTENSI TABEL BOOKINGS (Mencegah Baris Dobel RM-0004 & RM-0005)
+  // =========================================================================
+  const existingBookingIndex = bookings.findIndex(b =>
+    (payload.bookingId && b.bookingId === payload.bookingId) ||
+    (payload.nomorRm && b.nomorRm === payload.nomorRm && b.rencanaWaktuKunjungan === rencanaWaktu) ||
+    (cleanNik && b.nik === cleanNik && b.rencanaWaktuKunjungan === rencanaWaktu) ||
+    (b.phoneNumber === formattedPhone && b.rencanaWaktuKunjungan === rencanaWaktu)
+  );
+
+  let bookingId;
+  if (existingBookingIndex !== -1) {
+    bookingId = bookings[existingBookingIndex].bookingId;
+  } else {
+    bookingId = payload.bookingId || await generateNextId('Bookings', 'BKG', 4);
+  }
 
   const item = {
     bookingId,
     nomorRm: payload.nomorRm || bookingId,
-    nik: payload.nik || '',
+    nik: cleanNik,
     patientName: String(patientName),
     nama: String(patientName),
     tanggalLahir: payload.tanggalLahir || '',
@@ -920,105 +937,122 @@ async function savePatientBooking(payload = {}) {
     createdAt: nowStr
   };
 
-  bookings.push(item);
+  if (existingBookingIndex !== -1) {
+    bookings[existingBookingIndex] = { ...bookings[existingBookingIndex], ...item };
+  } else {
+    bookings.push(item);
+  }
   await setTableData('Bookings', bookings);
 
-  // Dual-Dispatch WhatsApp dengan Validasi HTTP & Auto-Queue Fallback
-  try {
-    const railwayUrl = await getSettingValue('RAILWAY_DEFAULT_URL') || DEFAULT_RAILWAY_URL;
+  // =========================================================================
+  // 2. KONTROL NOTIFIKASI: HANYA KIRIM JIKA BUKAN DARI FORWARD (skipNotification)
+  // =========================================================================
+  const isSilent = payload.skipNotification === true || payload.skipNotification === 'true';
 
-    // 1. Pesan untuk Pasien
-    const patientMsg = 
-      '🦷 *ESTAKA DENTAL CLINIC — BUKTI PENDAFTARAN PASIEN*\n\n' +
-      'Halo Bapak/Ibu *' + patientName + '*,\n' +
-      'Pendaftaran janji temu pemeriksaan gigi Anda telah berhasil tercatat dalam sistem:\n\n' +
-      '• *Nomor RM / Tiket*: ' + item.nomorRm + '\n' +
-      '• *NIK KTP*: ' + (item.nik || '-') + '\n' +
-      '• *Nama Lengkap*: ' + patientName + '\n' +
-      '• *Tanggal Lahir*: ' + (item.tanggalLahir || '-') + '\n' +
-      '• *Jenis Kelamin*: ' + (item.jenisKelamin || '-') + '\n' +
-      '• *Dokter Pemeriksa*: ' + item.dokterNama + '\n' +
-      '• *Layanan / Poli*: ' + item.serviceType + '\n' +
-      '• *Rencana Waktu Kunjungan*: ' + rencanaWaktu + '\n' +
-      '• *Nomor WhatsApp*: ' + formattedPhone + '\n' +
-      '• *Alamat Domisili*: ' + (item.alamat || '-') + '\n' +
-      '• *Riwayat Alergi*: ' + item.alergiObat + '\n' +
-      '• *Keluhan Utama*: ' + (item.keluhanUtama || '-') + '\n\n' +
-      '_Mohon hadir 15 menit sebelum slot waktu konsultasi. Tunjukkan bukti pendaftaran ini kepada staf registrasi kami._\n\n' +
-      '📍 *Alamat Klinik*: Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar\n' +
-      '📞 *Hotline WhatsApp*: +62 853-3892-2586\n' +
-      '📧 *Email*: estakadentalclinic@gmail.com\n' +
-      '🌐 *Website*: https://estakadentalclinic.vercel.app/\n' +
-      'Salam Senyum Sehat, *Estaka Dental Clinic* ✨';
+  if (!isSilent && existingBookingIndex === -1) {
+    const now = Date.now();
+    const dedupeKey = `${formattedPhone}:${item.nomorRm}:${rencanaWaktu}`;
 
-    const patientDispatch = await postToRailwaySendMessage(railwayUrl, formattedPhone, patientMsg);
-
-    if (patientDispatch.success) {
-      await syncChatLog({
-        clientId: 'CLI-0001',
-        senderNumber: 'SYSTEM_BOT',
-        receiverNumber: formattedPhone,
-        messageType: 'OUTGOING',
-        content: patientMsg,
-        status: 'SENT'
-      });
-      await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_PATIENT', 'WHATSAPP', `Pesan berhasil dikirim ke pasien: ${formattedPhone}`);
+    if (recentV2Dispatches.has(dedupeKey) && (now - recentV2Dispatches.get(dedupeKey) < V2_DEDUPE_TTL_MS)) {
+      console.log(`[Anti-Spam serverv2.js]: Notifikasi ${dedupeKey} dilewati.`);
     } else {
-      // Jika bot belum terhubung / error, cadangkan otomatis ke BroadcastQueue
-      await addBroadcastQueueItem({
-        clientId: 'CLI-0001',
-        targetNumber: formattedPhone,
-        messageContent: patientMsg,
-        scheduledTime: nowStr
-      }, 'AUTO_RECOVERY');
-      await writeAuditLog('SYSTEM_BOT', 'QUEUE_WA_PATIENT', 'WHATSAPP', `Bot belum siap (HTTP ${patientDispatch.code || 'ERR'}). Dicadangkan ke BroadcastQueue`);
-    }
+      recentV2Dispatches.set(dedupeKey, now);
 
-    // 2. Pesan untuk Dokter Pemeriksa Terkait
-    const doctorPhone = resolveDoctorPhoneLocal(item.dokterId, item.dokterNama);
-    if (doctorPhone) {
-      const doctorMsg = 
-        '🦷 *ESTAKA DENTAL CLINIC — NOTIFIKASI JADWAL PASIEN BARU*\n\n' +
-        'Yth. Dokter *' + item.dokterNama + '*,\n' +
-        'Terdapat pendaftaran pasien baru untuk jadwal pemeriksaan Anda:\n\n' +
-        '• *Nomor RM / Tiket*: ' + item.nomorRm + '\n' +
-        '• *Nama Pasien*: ' + patientName + '\n' +
-        '• *Rencana Waktu Kunjungan*: ' + rencanaWaktu + '\n' +
-        '• *Nomor WA Pasien*: ' + formattedPhone + '\n' +
-        '• *Riwayat Alergi*: ' + item.alergiObat + '\n' +
-        '• *Keluhan Utama*: ' + (item.keluhanUtama || '-') + '\n\n' +
-        '_Data rekam medis telah diperbarui pada sistem EMR Estaka Dental Clinic._';
+      try {
+        const railwayUrl = await getSettingValue('RAILWAY_DEFAULT_URL') || DEFAULT_RAILWAY_URL;
 
-      const doctorDispatch = await postToRailwaySendMessage(railwayUrl, doctorPhone, doctorMsg);
+        // 1. Pesan untuk Pasien
+        const patientMsg = 
+          '🦷 *ESTAKA DENTAL CLINIC — BUKTI PENDAFTARAN PASIEN*\n\n' +
+          'Halo Bapak/Ibu *' + patientName + '*,\n' +
+          'Pendaftaran janji temu pemeriksaan gigi Anda telah berhasil tercatat dalam sistem:\n\n' +
+          '• *Nomor RM / Tiket*: ' + item.nomorRm + '\n' +
+          '• *NIK KTP*: ' + (item.nik || '-') + '\n' +
+          '• *Nama Lengkap*: ' + patientName + '\n' +
+          '• *Tanggal Lahir*: ' + (item.tanggalLahir || '-') + '\n' +
+          '• *Jenis Kelamin*: ' + (item.jenisKelamin || '-') + '\n' +
+          '• *Dokter Pemeriksa*: ' + item.dokterNama + '\n' +
+          '• *Layanan / Poli*: ' + item.serviceType + '\n' +
+          '• *Rencana Waktu Kunjungan*: ' + rencanaWaktu + '\n' +
+          '• *Nomor WhatsApp*: ' + formattedPhone + '\n' +
+          '• *Alamat Domisili*: ' + (item.alamat || '-') + '\n' +
+          '• *Riwayat Alergi*: ' + item.alergiObat + '\n' +
+          '• *Keluhan Utama*: ' + (item.keluhanUtama || '-') + '\n\n' +
+          '_Mohon hadir 15 menit sebelum slot waktu konsultasi. Tunjukkan bukti pendaftaran ini kepada staf registrasi kami._\n\n' +
+          '📍 *Alamat Klinik*: Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar\n' +
+          '📞 *Hotline WhatsApp*: +62 853-3892-2586\n' +
+          '📧 *Email*: estakadentalclinic@gmail.com\n' +
+          '🌐 *Website*: https://estakadentalclinic.vercel.app/\n' +
+          'Salam Senyum Sehat, *Estaka Dental Clinic* ✨';
 
-      if (doctorDispatch.success) {
-        await syncChatLog({
-          clientId: 'CLI-0001',
-          senderNumber: 'SYSTEM_BOT',
-          receiverNumber: doctorPhone,
-          messageType: 'OUTGOING',
-          content: doctorMsg,
-          status: 'SENT'
-        });
-        await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_DOCTOR', 'WHATSAPP', `Notifikasi berhasil dikirim ke dokter: ${doctorPhone}`);
-      } else {
-        await addBroadcastQueueItem({
-          clientId: 'CLI-0001',
-          targetNumber: doctorPhone,
-          messageContent: doctorMsg,
-          scheduledTime: nowStr
-        }, 'AUTO_RECOVERY');
-        await writeAuditLog('SYSTEM_BOT', 'QUEUE_WA_DOCTOR', 'WHATSAPP', `Bot belum siap (HTTP ${doctorDispatch.code || 'ERR'}). Notifikasi dokter dicadangkan ke BroadcastQueue`);
+        const patientDispatch = await postToRailwaySendMessage(railwayUrl, formattedPhone, patientMsg);
+
+        if (patientDispatch.success) {
+          await syncChatLog({
+            clientId: 'CLI-0001',
+            senderNumber: 'SYSTEM_BOT',
+            receiverNumber: formattedPhone,
+            messageType: 'OUTGOING',
+            content: patientMsg,
+            status: 'SENT'
+          });
+          await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_PATIENT', 'WHATSAPP', `Pesan terkirim ke pasien: ${formattedPhone}`);
+        } else {
+          await addBroadcastQueueItem({
+            clientId: 'CLI-0001',
+            targetNumber: formattedPhone,
+            messageContent: patientMsg,
+            scheduledTime: nowStr
+          }, 'AUTO_RECOVERY');
+        }
+
+        // 2. Pesan untuk Dokter Pemeriksa Terkait
+        const doctorPhone = resolveDoctorPhoneLocal(item.dokterId, item.dokterNama);
+        if (doctorPhone) {
+          const doctorMsg = 
+            '🦷 *ESTAKA DENTAL CLINIC — NOTIFIKASI JADWAL PASIEN BARU*\n\n' +
+            'Yth. Dokter *' + item.dokterNama + '*,\n' +
+            'Terdapat pendaftaran pasien baru untuk jadwal pemeriksaan Anda:\n\n' +
+            '• *Nomor RM / Tiket*: ' + item.nomorRm + '\n' +
+            '• *Nama Pasien*: ' + patientName + '\n' +
+            '• *Rencana Waktu Kunjungan*: ' + rencanaWaktu + '\n' +
+            '• *Nomor WA Pasien*: ' + formattedPhone + '\n' +
+            '• *Riwayat Alergi*: ' + item.alergiObat + '\n' +
+            '• *Keluhan Utama*: ' + (item.keluhanUtama || '-') + '\n\n' +
+            '_Data rekam medis telah diperbarui pada sistem EMR Estaka Dental Clinic._';
+
+          const doctorDispatch = await postToRailwaySendMessage(railwayUrl, doctorPhone, doctorMsg);
+
+          if (doctorDispatch.success) {
+            await syncChatLog({
+              clientId: 'CLI-0001',
+              senderNumber: 'SYSTEM_BOT',
+              receiverNumber: doctorPhone,
+              messageType: 'OUTGOING',
+              content: doctorMsg,
+              status: 'SENT'
+            });
+            await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_DOCTOR', 'WHATSAPP', `Notifikasi terkirim ke dokter: ${doctorPhone}`);
+          } else {
+            await addBroadcastQueueItem({
+              clientId: 'CLI-0001',
+              targetNumber: doctorPhone,
+              messageContent: doctorMsg,
+              scheduledTime: nowStr
+            }, 'AUTO_RECOVERY');
+          }
+        }
+      } catch (err) {
+        console.warn('[V2 WA Dispatch Warning]:', err.message);
       }
     }
-  } catch (err) {
-    console.warn('[WA Dispatch Error]:', err.message);
   }
 
-  fetchFromGAS('registerAppointment', item).catch(() => {});
+  // Sinkronkan ke GAS dengan menyematkan skipNotification agar GAS tidak spam ulang
+  fetchFromGAS('registerAppointment', { ...item, skipNotification: true }).catch(() => {});
   await writeAuditLog('PUBLIC', 'PATIENT_BOOKING', 'BOOKINGS', `Booking ${bookingId}`);
 
-  return { success: true, status: 'success', message: `Reservasi berhasil dibuat! No: ${bookingId}`, bookingId, item };
+  return { success: true, status: 'success', message: `Reservasi berhasil disimpan! No: ${bookingId}`, bookingId, item };
 }
 
 async function getBookingsList() {
@@ -1383,7 +1417,7 @@ async function handleActionDispatcher(action, payload) {
     // Tab 4: Templates
     case 'getTemplatesList': return await getTemplatesList();
 
-    // Tab 5: Bookings Pasien (Dual-Dispatch WhatsApp)
+    // Tab 5: Bookings Pasien (Idempotent & Anti-Spam Control)
     case 'savePatientBooking': return await savePatientBooking(p1);
     case 'getBookingsList': return await getBookingsList();
 
