@@ -1,20 +1,7 @@
 /**
  * ============================================================================
  * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC
- * File: server.js (Tahap 5: Enterprise Clinical Core Engine Vercel / Express V1)
- * Fitur: Primary Upstash Redis / Vercel KV Database (13 Tabel Medis Murni),
- *        Bebas Duplikasi DB Bot WA (Tabel Bot Didelegasikan Penuh ke serverv2.js),
- *        Dual-Dispatch Notifikasi WA: Kirim Bukti Pasien & Notifikasi Dokter,
- *        Multi-Token Auto-Recovery & Validated Real-Time Dispatch Engine,
- *        Automatic BroadcastQueue Fallback saat Bot Scanning / Offline,
- *        Proteksi Privasi: Nomor WA Dokter Tersembunyi 100% dari Publik Web,
- *        Manajemen Dokter Lengkap (CRUD Dokter & Auto-ID Generator),
- *        Harmonisasi Data Pasien & Bookings (Rencana Waktu Kunjungan),
- *        Auto-Sanitize Nomor WhatsApp Standar Internasional (62...),
- *        Full Clinical Logic (EMR, Odontogram 52 Gigi, E-Resep, Lab, Kasir POS),
- *        Dual-Mode V1 Router & V2 Reverse Delegation Handler,
- *        Multi-Model AI (Gemini 3.5 Flash Default, OpenAI ChatGPT, Groq LPU),
- *        Orpheus Audio TTS Proxy, Dynamic SEO (GSC), & Asset Delivery Anti-404.
+ * File: server.js (Enterprise Clinical Core Engine Vercel / Express V1)
  * ============================================================================
  */
 
