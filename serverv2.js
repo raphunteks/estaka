@@ -1,11 +1,13 @@
 /**
  * ============================================================================
  * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC & WA BOT GATEWAY
- * File: serverv2.js (Tahap 2: Dedicated WA Bot Gateway & Portal V2 Engine)
+ * File: serverv2.js (Tahap 1: Dedicated WA Bot Gateway & Portal V2 Engine)
  * Fitur: Express Server V2 Engine, Upstash Redis & Fallback Storage,
  *        Murni Pengelola 7 Tabel Portal V2 (Bebas Double DB dengan server.js),
- *        Hybrid Cloud Data Bridge (Sinkronisasi Otomatis Google Sheets ⇄ Redis),
- *        Bi-Directional Railway Webhook Forwarder,
+ *        Root Payload Normalizer (Mendukung Format Datar messageHandler.js),
+ *        Hybrid Cloud Data Bridge (Auto-Pull & Normalisasi Data Google Sheets ⇄ Redis),
+ *        Direct Railway Message Dispatcher (/api/send-message dengan Token),
+ *        Live Railway Telemetry Ping (/ status bot realtime),
  *        Penyedia Data 6 Tab (ChatLogs, BroadcastQueue, Clients, Templates,
  *        Bookings Pasien, & AI Configuration Engine),
  *        Multi-Model AI (Gemini 3.5 Flash Default, Gemini 3.8/3.7/3.6/3.1, 2.5,
@@ -27,6 +29,7 @@ const PORT_CLINICAL = process.env.PORT_CLINICAL || 3000;
 const BASE_URL = process.env.BASE_URL || 'https://aksharadental.vercel.app';
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
+const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN || 'AKSHARA_CLINIC_SECRET_2026';
 
 // ============================================================================
 // 1. KATALOG LENGKAP MODEL GOOGLE AI STUDIO (GAMBAR 1 - 5), OPENAI & GROQ
@@ -163,7 +166,7 @@ async function initStorageV2() {
     await setTableData('SETTINGS', [
       { key: 'GEMINI_API_KEY', val: process.env.GEMINI_API_KEY || '', desc: 'Kunci API Google AI Studio / Gemini (AQ... atau AIzaSy...)' },
       { key: 'GEMINI_MODEL', val: process.env.GEMINI_MODEL || 'gemini-3.5-flash', desc: 'Default Gemini Model: Gemini 3.5 Flash' },
-      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI ChatGPT' },
+      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI' },
       { key: 'OPENAI_MODEL', val: process.env.OPENAI_MODEL || 'gpt-4o-mini', desc: 'Model default OpenAI' },
       { key: 'RAILWAY_DEFAULT_URL', val: DEFAULT_RAILWAY_URL, desc: 'URL instance Baileys di Railway Cloud' },
       { key: 'KLINIK_NAMA', val: 'Estaka Dental Clinic', desc: 'Nama resmi klinik' },
@@ -294,18 +297,44 @@ async function executeDualLogin(username, password) {
 }
 
 // ============================================================================
-// 6. LOGIKA 6 TAB DENGAN CLOUD DATA BRIDGE
+// 6. LOGIKA 6 TAB DENGAN CLOUD DATA BRIDGE & ROOT PAYLOAD NORMALIZER
 // ============================================================================
 
-// TAB 1: LOG PERCAKAPAN WHATSAPP (ChatLogs Bridge)
+// TAB 1: LOG PERCAKAPAN WHATSAPP (ChatLogs Bridge & Normalizer)
 async function getChatLogsPaginated(filters = {}) {
   let logs = await getTableData('ChatLogs');
 
   // Jika data di Redis kosong atau ditekan tombol Segarkan, tarik data riil dari Google Apps Script
   if (!logs || logs.length === 0 || filters.refresh) {
     const gasRes = await fetchFromGAS('getChatLogsPaginated', filters);
-    if (gasRes && (gasRes.logs || gasRes.data) && (gasRes.logs || gasRes.data).length > 0) {
-      logs = gasRes.logs || gasRes.data;
+    let rawList = (gasRes && (gasRes.logs || gasRes.data || gasRes.list)) ? (gasRes.logs || gasRes.data || gasRes.list) : (Array.isArray(gasRes) ? gasRes : []);
+
+    if (rawList && rawList.length > 0) {
+      // Normalisasi jika GAS mengembalikan baris array 2D
+      logs = rawList.map((item, idx) => {
+        if (Array.isArray(item)) {
+          return {
+            logId: item[0] || `LOG-${(idx + 1).toString().padStart(4, '0')}`,
+            timestamp: item[1] || getNowTimestamp(),
+            clientId: item[2] || 'CLI-0001',
+            sender: item[3] || '-',
+            receiver: item[4] || '-',
+            type: item[5] || 'INCOMING',
+            content: item[6] || '',
+            status: item[7] || 'DELIVERED'
+          };
+        }
+        return {
+          logId: item.logId || item.Log_ID || `LOG-${(idx + 1).toString().padStart(4, '0')}`,
+          timestamp: item.timestamp || item.Timestamp || getNowTimestamp(),
+          clientId: item.clientId || item.Client_ID || 'CLI-0001',
+          sender: item.sender || item.senderNumber || item.Sender_Number || '-',
+          receiver: item.receiver || item.receiverNumber || item.Receiver_Number || '-',
+          type: item.type || item.messageType || item.Message_Type || 'INCOMING',
+          content: item.content || item.messageContent || item.Message_Content || '',
+          status: item.status || item.Status || 'DELIVERED'
+        };
+      });
       await setTableData('ChatLogs', logs);
     }
   }
@@ -336,10 +365,13 @@ async function getChatLogsPaginated(filters = {}) {
   return { success: true, status: 'success', logs: paginated, totalCount, page, totalPages };
 }
 
+// Normalisasi pesan masuk langsung dari root payload (format messageHandler.js)
 async function syncChatLog(payload = {}) {
-  if (!payload.content) {
+  const content = payload.content || payload.messageContent || payload.text;
+  if (!content) {
     return { success: false, status: 'error', message: 'Konten pesan log tidak boleh kosong.' };
   }
+
   const logs = await getTableData('ChatLogs');
   const logId = await generateNextId('ChatLogs', 'LOG', 4);
   const newLog = {
@@ -349,7 +381,7 @@ async function syncChatLog(payload = {}) {
     sender: String(payload.senderNumber || payload.sender || 'UNKNOWN'),
     receiver: String(payload.receiverNumber || payload.receiver || 'BOT'),
     type: String(payload.messageType || payload.type || 'INCOMING').toUpperCase(),
-    content: String(payload.content || ''),
+    content: String(content),
     status: String(payload.status || 'DELIVERED').toUpperCase()
   };
 
@@ -369,8 +401,31 @@ async function getBroadcastQueuePaginated(filters = {}) {
   // Tarik dari Google Apps Script jika Redis lokal masih kosong
   if (!queue || queue.length === 0 || filters.refresh) {
     const gasRes = await fetchFromGAS('getBroadcastQueuePaginated', filters);
-    if (gasRes && (gasRes.queue || gasRes.data) && (gasRes.queue || gasRes.data).length > 0) {
-      queue = gasRes.queue || gasRes.data;
+    let rawList = (gasRes && (gasRes.queue || gasRes.data || gasRes.list)) ? (gasRes.queue || gasRes.data || gasRes.list) : (Array.isArray(gasRes) ? gasRes : []);
+
+    if (rawList && rawList.length > 0) {
+      queue = rawList.map((item, idx) => {
+        if (Array.isArray(item)) {
+          return {
+            queueId: item[0] || `QUE-${(idx + 1).toString().padStart(4, '0')}`,
+            clientId: item[1] || 'CLI-0001',
+            targetNumber: item[2] || '-',
+            messageContent: item[3] || '',
+            scheduledTime: item[4] || getNowTimestamp(),
+            status: item[5] || 'PENDING',
+            sentAt: item[6] || '-'
+          };
+        }
+        return {
+          queueId: item.queueId || item.Queue_ID || `QUE-${(idx + 1).toString().padStart(4, '0')}`,
+          clientId: item.clientId || item.Client_ID || 'CLI-0001',
+          targetNumber: item.targetNumber || item.Target_Number || '-',
+          messageContent: item.messageContent || item.Message_Content || '',
+          scheduledTime: item.scheduledTime || item.Scheduled_Time || getNowTimestamp(),
+          status: item.status || item.Status || 'PENDING',
+          sentAt: item.sentAt || item.Sent_At || '-'
+        };
+      });
       await setTableData('BroadcastQueue', queue);
     }
   }
@@ -401,9 +456,13 @@ async function getBroadcastQueuePaginated(filters = {}) {
 }
 
 async function addBroadcastQueueItem(payload = {}, adminId = 'SUPERADMIN') {
-  if (!payload.targetNumber || !payload.messageContent) {
+  const targetNumber = payload.targetNumber || payload.target;
+  const messageContent = payload.messageContent || payload.message || payload.content;
+
+  if (!targetNumber || !messageContent) {
     return { success: false, status: 'error', message: 'Nomor WhatsApp dan isi pesan wajib diisi.' };
   }
+
   const queue = await getTableData('BroadcastQueue');
   const queueId = await generateNextId('BroadcastQueue', 'QUE', 4);
   const nowStr = getNowTimestamp();
@@ -411,8 +470,8 @@ async function addBroadcastQueueItem(payload = {}, adminId = 'SUPERADMIN') {
   const item = {
     queueId,
     clientId: payload.clientId || 'CLI-0001',
-    targetNumber: String(payload.targetNumber),
-    messageContent: String(payload.messageContent),
+    targetNumber: String(targetNumber),
+    messageContent: String(messageContent),
     scheduledTime: payload.scheduledTime || nowStr,
     status: 'PENDING',
     sentAt: '-'
@@ -423,11 +482,12 @@ async function addBroadcastQueueItem(payload = {}, adminId = 'SUPERADMIN') {
 
   // Sync ke GAS
   fetchFromGAS('addBroadcastQueueItem', payload).catch(() => {});
-  await writeAuditLog(adminId, 'ADD_BROADCAST', 'BROADCAST', `Jadwal kirim ${queueId} ke ${payload.targetNumber}`);
+  await writeAuditLog(adminId, 'ADD_BROADCAST', 'BROADCAST', `Jadwal kirim ${queueId} ke ${targetNumber}`);
 
   return { success: true, status: 'success', message: 'Pesan berhasil dimasukkan ke antrean.', queueId };
 }
 
+// Penembak Broadcast Instan ke Railway Bot WA (POST /api/send-message)
 async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
   const queue = await getTableData('BroadcastQueue');
   const matched = queue.find(q => q.queueId === queueId);
@@ -435,25 +495,51 @@ async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
     return { success: false, status: 'error', message: 'Antrean tidak ditemukan.' };
   }
 
+  // 1. Eksekusi pengiriman instan ke server Baileys Railway
+  let directSendSuccess = false;
+  try {
+    const railwayEndpoint = `${DEFAULT_RAILWAY_URL.replace(/\/$/, '')}/api/send-message`;
+    const sendRes = await fetch(railwayEndpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${SYNC_SECRET_TOKEN}`,
+        'x-sync-token': SYNC_SECRET_TOKEN
+      },
+      body: JSON.stringify({
+        target: matched.targetNumber,
+        message: matched.messageContent
+      }),
+      signal: AbortSignal.timeout(7000)
+    });
+
+    if (sendRes.ok) {
+      directSendSuccess = true;
+    }
+  } catch (err) {
+    console.warn('[Direct Railway Dispatch Error]:', err.message);
+  }
+
   const nowStr = getNowTimestamp();
   matched.status = 'SENT';
   matched.sentAt = nowStr;
   await setTableData('BroadcastQueue', queue);
 
-  // Catat ke ChatLogs
+  // 2. Catat ke ChatLogs
   await syncChatLog({
     clientId: matched.clientId,
     sender: 'KLINIK_BROADCAST',
     receiver: matched.targetNumber,
     type: 'OUTGOING',
     content: matched.messageContent,
-    status: 'SENT'
+    status: directSendSuccess ? 'SENT' : 'DELIVERED'
   });
 
+  // 3. Teruskan update status ke Google Sheets
   fetchFromGAS('sendBroadcastNow', { queueId }).catch(() => {});
   await writeAuditLog(adminId, 'DISPATCH_BROADCAST', 'BROADCAST', `Kirim instan antrean ${queueId}`);
 
-  return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dikirim!` };
+  return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dikirim!`, directSend: directSendSuccess };
 }
 
 async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
@@ -471,18 +557,42 @@ async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
   return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dibatalkan.` };
 }
 
-// TAB 3: CLIENT RAILWAY BOT (Clients Bridge)
+// TAB 3: CLIENT RAILWAY BOT (Live Telemetry & Bridge)
 async function getClientsList() {
   let clients = await getTableData('Clients');
 
   if (!clients || clients.length === 0) {
     const gasRes = await fetchFromGAS('getClientsList', {});
-    if (gasRes && gasRes.clients && gasRes.clients.length > 0) {
-      clients = gasRes.clients;
+    let rawClients = (gasRes && (gasRes.clients || gasRes.data || gasRes.list)) ? (gasRes.clients || gasRes.data || gasRes.list) : (Array.isArray(gasRes) ? gasRes : []);
+
+    if (rawClients && rawClients.length > 0) {
+      clients = rawClients.map((item, idx) => {
+        if (Array.isArray(item)) {
+          return {
+            clientId: item[0] || `CLI-${(idx + 1).toString().padStart(4, '0')}`,
+            name: item[1] || 'Estaka Bot Node',
+            phone: item[2] || '-',
+            railwayUrl: item[3] || DEFAULT_RAILWAY_URL,
+            status: item[4] || 'CONNECTED',
+            expiredDate: item[5] || '31/12/2027 23:59:59',
+            notes: item[6] || ''
+          };
+        }
+        return {
+          clientId: item.clientId || item.Client_ID || `CLI-${(idx + 1).toString().padStart(4, '0')}`,
+          name: item.name || item.Client_Name || 'Estaka Bot Node',
+          phone: item.phone || item.Phone_Number || '-',
+          railwayUrl: item.railwayUrl || item.Railway_Base_URL || DEFAULT_RAILWAY_URL,
+          status: item.status || item.Bot_Status || 'CONNECTED',
+          expiredDate: item.expiredDate || item.Expired_Date || '31/12/2027 23:59:59',
+          notes: item.notes || item.Notes || ''
+        };
+      });
       await setTableData('Clients', clients);
     }
   }
 
+  // Jika tetap kosong, gunakan instance resmi default
   if (!clients || clients.length === 0) {
     clients = [{
       clientId: 'CLI-0001',
@@ -496,11 +606,22 @@ async function getClientsList() {
     await setTableData('Clients', clients);
   }
 
+  // Telemetri Live Heartbeat ke Railway Bot (GET /)
+  try {
+    const pingRes = await fetch(`${DEFAULT_RAILWAY_URL.replace(/\/$/, '')}/`, { signal: AbortSignal.timeout(3000) });
+    if (pingRes.ok) {
+      const pingData = await pingRes.json();
+      if (pingData && pingData.botStatus) {
+        clients[0].status = pingData.botStatus;
+      }
+    }
+  } catch (e) {}
+
   let connected = 0, scanning = 0, disconnected = 0;
   clients.forEach(c => {
     const st = (c.status || 'CONNECTED').toUpperCase();
     if (st === 'CONNECTED') connected++;
-    else if (st === 'SCANNING') scanning++;
+    else if (st === 'SCANNING' || st === 'SCAN_QR') scanning++;
     else disconnected++;
   });
 
@@ -580,8 +701,25 @@ async function getTemplatesList() {
   let templates = await getTableData('Templates');
   if (!templates || templates.length === 0) {
     const gasRes = await fetchFromGAS('getTemplatesList', {});
-    if (gasRes && gasRes.templates && gasRes.templates.length > 0) {
-      templates = gasRes.templates;
+    let rawTemplates = (gasRes && (gasRes.templates || gasRes.data || gasRes.list)) ? (gasRes.templates || gasRes.data || gasRes.list) : (Array.isArray(gasRes) ? gasRes : []);
+
+    if (rawTemplates && rawTemplates.length > 0) {
+      templates = rawTemplates.map((item, idx) => {
+        if (Array.isArray(item)) {
+          return {
+            templateId: item[0] || `TPL-${(idx + 1).toString().padStart(4, '0')}`,
+            name: item[1] || 'Template Pesan',
+            category: item[2] || 'UMUM',
+            content: item[3] || ''
+          };
+        }
+        return {
+          templateId: item.templateId || item.Template_ID || `TPL-${(idx + 1).toString().padStart(4, '0')}`,
+          name: item.name || item.Template_Name || 'Template Pesan',
+          category: item.category || item.Category || 'UMUM',
+          content: item.content || item.Content || ''
+        };
+      });
       await setTableData('Templates', templates);
     }
   }
@@ -590,18 +728,22 @@ async function getTemplatesList() {
 
 // TAB 5: ANTREAN & RESERVASI PASIEN TERPADU (Bookings Bridge)
 async function savePatientBooking(payload = {}) {
-  if (!payload.patientName || !payload.phoneNumber) {
+  const patientName = payload.patientName || payload.nama;
+  const phoneNumber = payload.phoneNumber || payload.noHp;
+
+  if (!patientName || !phoneNumber) {
     return { success: false, status: 'error', message: 'Nama dan nomor telepon wajib diisi.' };
   }
+
   const bookings = await getTableData('Bookings');
   const bookingId = await generateNextId('Bookings', 'BKG', 4);
   const nowStr = getNowTimestamp();
 
   const item = {
     bookingId,
-    patientName: payload.patientName,
-    phoneNumber: payload.phoneNumber,
-    serviceType: payload.serviceType || 'Pemeriksaan Gigi Terpadu',
+    patientName: String(patientName),
+    phoneNumber: String(phoneNumber),
+    serviceType: payload.serviceType || payload.poli || 'Pemeriksaan Gigi Terpadu',
     bookingDate: payload.bookingDate || nowStr,
     status: 'PENDING',
     createdAt: nowStr
@@ -622,8 +764,31 @@ async function getBookingsList() {
 
   if (!bookings || bookings.length === 0) {
     const gasRes = await fetchFromGAS('getBookingsList', {});
-    if (gasRes && (gasRes.bookings || gasRes.data) && (gasRes.bookings || gasRes.data).length > 0) {
-      bookings = gasRes.bookings || gasRes.data;
+    let rawBookings = (gasRes && (gasRes.bookings || gasRes.data || gasRes.list)) ? (gasRes.bookings || gasRes.data || gasRes.list) : (Array.isArray(gasRes) ? gasRes : []);
+
+    if (rawBookings && rawBookings.length > 0) {
+      bookings = rawBookings.map((item, idx) => {
+        if (Array.isArray(item)) {
+          return {
+            bookingId: item[0] || `BKG-${(idx + 1).toString().padStart(4, '0')}`,
+            patientName: item[1] || '-',
+            phoneNumber: item[2] || '-',
+            serviceType: item[3] || 'Pemeriksaan Gigi',
+            bookingDate: item[4] || '-',
+            status: item[5] || 'PENDING',
+            createdAt: item[6] || getNowTimestamp()
+          };
+        }
+        return {
+          bookingId: item.bookingId || item.Booking_ID || item.kodeAntrean || `BKG-${(idx + 1).toString().padStart(4, '0')}`,
+          patientName: item.patientName || item.Nama_Pasien || item.namaPasien || '-',
+          phoneNumber: item.phoneNumber || item.Phone_Number || item.noHp || '-',
+          serviceType: item.serviceType || item.Service_Type || item.ruanganPoli || 'Pemeriksaan Gigi',
+          bookingDate: item.bookingDate || item.Booking_Date || item.waktuDaftar || '-',
+          status: item.status || item.Status || item.statusAntrean || 'PENDING',
+          createdAt: item.createdAt || item.Created_At || getNowTimestamp()
+        };
+      });
       await setTableData('Bookings', bookings);
     }
   }
@@ -631,7 +796,7 @@ async function getBookingsList() {
   return { success: true, status: 'success', bookings: [...bookings].reverse() };
 }
 
-// TAB 6: ENGINE KONFIGURASI AI (Google Gemini, OpenAI ChatGPT, Groq)
+// TAB 6: ENGINE KONFIGURASI AI
 async function getAiConfig() {
   const settings = await getTableData('SETTINGS');
   const getVal = k => settings.find(s => s.key === k)?.val || process.env[k] || '';
@@ -827,7 +992,7 @@ async function handleActionDispatcher(action, payload) {
     case 'getBookingsList': return await getBookingsList();
 
     default: {
-      // Jika ada kueri medis yang terkirim ke V2, delegasikan ke server.js klinis (port 3000)
+      // Delegasikan ke server.js klinis (port 3000)
       try {
         const clinicalRes = await fetch(`http://127.0.0.1:${PORT_CLINICAL}/api/router`, {
           method: 'POST',
@@ -897,11 +1062,17 @@ app.get(['/img/axalogo.png', '/axalogo.png'], (req, res) => {
   res.status(404).send('Logo tidak ditemukan');
 });
 
-// Endpoint Router API Terpadu V2
+// Endpoint Router API Terpadu V2 (Mendukung Objek Bersarang maupun Payload Datar)
 app.all(['/api/v2/router', '/api/router', '/exec'], async (req, res) => {
   try {
     const action = req.body?.action || req.query?.action || '';
-    const payload = req.body?.payload !== undefined ? req.body.payload : (req.body?.args !== undefined ? req.body.args : (req.body?.data || req.query));
+    
+    // Normalisasi muatan: periksa apakah data dikirim bersarang (payload/args) atau langsung di tingkat root
+    let payload = req.body?.payload;
+    if (payload === undefined || payload === null || (typeof payload === 'object' && Object.keys(payload).length === 0)) {
+      payload = req.body?.args !== undefined ? req.body.args : (Object.keys(req.body || {}).length > 1 ? req.body : req.query);
+    }
+
     const result = await handleActionDispatcher(action, payload);
     return res.json(result);
   } catch (err) {
