@@ -1,9 +1,12 @@
 /**
  * ============================================================================
  * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC
- * File: server.js (Tahap 1: Enterprise Clinical Core Engine)
+ * File: server.js (Tahap 4: Enterprise Clinical Core Engine)
  * Fitur: Primary Upstash Redis / Vercel KV Database (13 Tabel Medis Murni),
  *        Bebas Duplikasi DB Bot WA (Tabel Bot Didelegasikan Penuh ke serverv2.js),
+ *        Harmonisasi Data Pasien & Bookings (Rencana Waktu Kunjungan),
+ *        Auto-Sanitize Nomor WhatsApp Standar Internasional (62...),
+ *        Auto-Dispatch Notifikasi WhatsApp Pasca-Reservasi via Bot Railway,
  *        Full Clinical Logic (EMR, Odontogram 52 Gigi, E-Resep, Lab, Kasir POS),
  *        Dual-Mode V1 Router & V2 Reverse Delegation Handler,
  *        Multi-Model AI (Gemini 3.5 Flash Default, OpenAI ChatGPT, Groq LPU),
@@ -24,6 +27,7 @@ const PORT_V2 = process.env.PORT_V2 || 3001;
 const BASE_URL = process.env.BASE_URL || 'https://aksharadental.vercel.app';
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
+const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN || 'AKSHARA_CLINIC_SECRET_2026';
 
 // ============================================================================
 // 1. KATALOG LENGKAP MODEL GOOGLE AI STUDIO, OPENAI & GROQ
@@ -63,7 +67,7 @@ const SUPPORTED_AI_MODELS = [
   // OpenAI ChatGPT Series
   { id: 'gpt-4o', name: 'GPT-4o (Omni)', category: 'OpenAI ChatGPT', description: 'Flagship Multimodal Cerdas & Cepat' },
   { id: 'gpt-4o-mini', name: 'GPT-4o Mini', category: 'OpenAI ChatGPT', description: 'Ringan, Cepat & Hemat Token' },
-  { id: 'o3-mini', name: 'OpenAI o3-mini', category: 'OpenAI ChatGPT', description: 'Penalaran Logika & STEM Medis Mendalam' },
+  { id: 'o3-mini', name: 'OpenAI o3-mini', category: 'OpenAI Reasoning', description: 'Penalaran Logika & STEM Medis Mendalam' },
   { id: 'gpt-4-turbo', name: 'GPT-4 Turbo', category: 'OpenAI ChatGPT', description: 'Kapasitas Konteks Panjang' },
 
   // Groq LPU Ultra-Speed Series
@@ -159,7 +163,7 @@ async function initDatabaseStorage() {
       { key: 'KLINIK_NAMA', val: 'Estaka Dental Clinic', desc: 'Nama resmi entitas klinik' },
       { key: 'KLINIK_ALAMAT', val: 'Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar, Sulawesi Selatan 90131', desc: 'Alamat operasional klinik' },
       { key: 'KLINIK_TELEPON', val: '+62 853-3892-2586', desc: 'Kontak WhatsApp & Layanan Pasien' },
-      { key: 'KLINIK_LOGO_URL', val: `${BASE_URL}/img/axalogo.png`, desc: 'URL Logo Klinik Resmi' },
+      { key: 'KLINIK_LOGO_URL', val: `${BASE_URL}/img/etakalogo.png`, desc: 'URL Logo Favicon PNG Resmi' },
       { key: 'KLINIK_SLOGAN', val: 'Modern Dental Care & Aesthetic Space', desc: 'Slogan klinik' },
       { key: 'KLINIK_EMAIL', val: 'care@estakadental.space', desc: 'Email resmi klinik' },
       { key: 'KLINIK_JAM_OPERASIONAL', val: 'Setiap Hari, 08:00 – 21:00 WITA', desc: 'Jam layanan operasional' },
@@ -185,7 +189,7 @@ async function initDatabaseStorage() {
     await setTableData('DOKTER', defaultDokter);
   }
 
-  // 3. USERS (STAF MEDIS KLINIS V1)
+  // 3. USERS (STAF MEDIS KLINIS)
   const currentUsers = await getTableData('USERS');
   if (!currentUsers || currentUsers.length === 0) {
     const defaultUsers = [
@@ -200,7 +204,7 @@ async function initDatabaseStorage() {
     await setTableData('USERS', defaultUsers);
   }
 
-  // 4. MASTER OBAT DENTAL LENGKAP
+  // 4. MASTER OBAT DENTAL
   const currentObat = await getTableData('MASTER_OBAT');
   if (!currentObat || currentObat.length === 0) {
     const defaultObat = [
@@ -220,13 +224,13 @@ async function initDatabaseStorage() {
     await setTableData('MASTER_OBAT', defaultObat);
   }
 
-  // 5. PASIEN
+  // 5. PASIEN TERDAFTAR (Diselaraskan dengan Format 62... & Rencana Waktu Kunjungan)
   const currentPasien = await getTableData('PASIEN');
   if (!currentPasien || currentPasien.length === 0) {
     const defaultPasien = [
-      { nomorRm: 'RM-0001', nik: '7371101205920001', nama: 'Ahmad Dani Santoso', tanggalLahir: '1992-05-12', jenisKelamin: 'Laki-Laki', noHp: '081234567890', alamat: 'Jl. Pettarani No. 45, Makassar', alergiObat: 'Amoxicillin', tanggalDaftar: '2026-09-01 09:00:00' },
-      { nomorRm: 'RM-0002', nik: '7371104809950002', nama: 'Siti Fatimah Azzahra', tanggalLahir: '1995-09-18', jenisKelamin: 'Perempuan', noHp: '085298765432', alamat: 'Jl. Cenderawasih No. 12, Makassar', alergiObat: 'Tidak Ada', tanggalDaftar: '2026-09-02 10:15:00' },
-      { nomorRm: 'RM-0003', nik: '7371102511880003', nama: 'Bambang Sudirman', tanggalLahir: '1988-11-25', jenisKelamin: 'Laki-Laki', noHp: '082199887766', alamat: 'Jl. Sultan Alauddin No. 89, Makassar', alergiObat: 'Aspirin', tanggalDaftar: '2026-09-03 11:30:00' }
+      { nomorRm: 'RM-0001', nik: '7371101205920001', nama: 'Ahmad Dani Santoso', tanggalLahir: '1992-05-12', jenisKelamin: 'Laki-Laki', noHp: '6281234567890', alamat: 'Jl. Pettarani No. 45, Makassar', alergiObat: 'Amoxicillin', tanggalDaftar: '2026-09-01 09:00:00', rencanaWaktuKunjungan: '2026-09-10 16:30', dokterId: 'DOC-001', status: 'Active' },
+      { nomorRm: 'RM-0002', nik: '7371104809950002', nama: 'Siti Fatimah Azzahra', tanggalLahir: '1995-09-18', jenisKelamin: 'Perempuan', noHp: '6285298765432', alamat: 'Jl. Cenderawasih No. 12, Makassar', alergiObat: 'Tidak Ada', tanggalDaftar: '2026-09-02 10:15:00', rencanaWaktuKunjungan: '2026-09-10 10:00', dokterId: 'DOC-002', status: 'Active' },
+      { nomorRm: 'RM-0003', nik: '7371102511880003', nama: 'Bambang Sudirman', tanggalLahir: '1988-11-25', jenisKelamin: 'Laki-Laki', noHp: '6282199887766', alamat: 'Jl. Sultan Alauddin No. 89, Makassar', alergiObat: 'Aspirin', tanggalDaftar: '2026-09-03 11:30:00', rencanaWaktuKunjungan: '2026-09-10 14:00', dokterId: 'DOC-003', status: 'Active' }
     ];
     await setTableData('PASIEN', defaultPasien);
   }
@@ -235,7 +239,7 @@ async function initDatabaseStorage() {
 initDatabaseStorage();
 
 // ============================================================================
-// 4. HELPER SEKUENSIAL & AUDIT LOG
+// 4. HELPER SEKUENSIAL, SANITASI TELEPON & AUDIT LOG
 // ============================================================================
 
 function getNowTimestamp() {
@@ -250,6 +254,26 @@ function getTodayDateStr() {
 
 function getCompactDateStr() {
   return getTodayDateStr().replace(/[^0-9]/g, '');
+}
+
+function sanitizePhoneNumberE164(rawNumber) {
+  if (!rawNumber) return '';
+  let cleaned = String(rawNumber).replace(/\D/g, '');
+  if (cleaned.startsWith('0')) {
+    cleaned = '62' + cleaned.substring(1);
+  } else if (cleaned.startsWith('8')) {
+    cleaned = '62' + cleaned;
+  } else if (!cleaned.startsWith('62') && cleaned.length >= 8) {
+    cleaned = '62' + cleaned;
+  }
+  return cleaned;
+}
+
+async function getSettingValue(keyName) {
+  const settings = await getTableData('SETTINGS');
+  const matched = settings.find(s => s.key === keyName);
+  if (matched && matched.val) return matched.val;
+  return process.env[keyName] || '';
 }
 
 async function writeAuditLog(user, aksi, modul, detail) {
@@ -315,7 +339,57 @@ async function generateDocNumber(docType, dateStr) {
 }
 
 // ============================================================================
-// 5. AUTENTIKASI STAF MEDIS KLINIS (TABEL USERS)
+// 5. NOTIFIKASI OTOMATIS WHATSAPP PASCA-RESERVASI
+// ============================================================================
+
+async function sendReservationWaNotification(booking) {
+  try {
+    const railwayUrl = await getSettingValue('RAILWAY_DEFAULT_URL') || DEFAULT_RAILWAY_URL;
+    const token = await getSettingValue('SYNC_SECRET_TOKEN') || SYNC_SECRET_TOKEN;
+    const phone = sanitizePhoneNumberE164(booking.phoneNumber || booking.noHp);
+
+    if (!phone) return;
+
+    const message = 
+      '🦷 *ESTAKA DENTAL CLINIC — BUKTI PENDAFTARAN PASIEN*\n\n' +
+      'Halo Bapak/Ibu *' + (booking.patientName || booking.nama || 'Pasien') + '*,\n' +
+      'Pendaftaran janji temu pemeriksaan gigi Anda telah berhasil tercatat dalam sistem:\n\n' +
+      '• *Nomor RM / Tiket*: ' + (booking.nomorRm || booking.bookingId || '-') + '\n' +
+      '• *Kode Antrean*: ' + (booking.kodeAntrean || '-') + '\n' +
+      '• *NIK KTP*: ' + (booking.nik || '-') + '\n' +
+      '• *Nama Lengkap*: ' + (booking.patientName || booking.nama || '-') + '\n' +
+      '• *Tanggal Lahir*: ' + (booking.tanggalLahir || '-') + '\n' +
+      '• *Jenis Kelamin*: ' + (booking.jenisKelamin || '-') + '\n' +
+      '• *Dokter Pemeriksa*: ' + (booking.dokterNama || booking.dokterId || '-') + '\n' +
+      '• *Layanan / Poli*: ' + (booking.serviceType || booking.ruanganPoli || 'Poli Gigi & Spesialis') + '\n' +
+      '• *Rencana Waktu Kunjungan*: ' + (booking.rencanaWaktuKunjungan || booking.bookingDate || '-') + '\n' +
+      '• *Nomor WhatsApp*: ' + phone + '\n' +
+      '• *Alamat Domisili*: ' + (booking.alamat || '-') + '\n' +
+      '• *Riwayat Alergi*: ' + (booking.alergiObat || 'Tidak Ada') + '\n' +
+      '• *Keluhan Utama*: ' + (booking.keluhanUtama || booking.keluhan || '-') + '\n\n' +
+      '_Mohon hadir 15 menit sebelum slot waktu konsultasi. Tunjukkan bukti pendaftaran ini kepada staf registrasi kami._\n\n' +
+      '📍 *Alamat Klinik*: Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar\n' +
+      '📞 *Hotline WhatsApp*: +62 853-3892-2586\n' +
+      'Salam Senyum Sehat, *Estaka Dental Clinic* ✨';
+
+    const endpoint = `${railwayUrl.replace(/\/$/, '')}/api/send-message`;
+    fetch(endpoint, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${token}`,
+        'x-sync-token': token
+      },
+      body: JSON.stringify({ target: phone, message }),
+      signal: AbortSignal.timeout(6000)
+    }).catch(e => console.warn('[Direct Railway WA Send Error]:', e.message));
+  } catch (err) {
+    console.warn('[WA Auto-Notification Warning]:', err.message);
+  }
+}
+
+// ============================================================================
+// 6. AUTENTIKASI STAF MEDIS KLINIS (TABEL USERS)
 // ============================================================================
 
 async function loginClinicalUser(username, password) {
@@ -371,7 +445,7 @@ async function loginClinicalUser(username, password) {
 }
 
 // ============================================================================
-// 6. LOGIKA OPERASIONAL KLINIS LENGKAP 100% UTUH
+// 7. LOGIKA OPERASIONAL KLINIS LENGKAP & HARMONISASI FORM RESERVASI
 // ============================================================================
 
 async function getInitialPublicData() {
@@ -424,11 +498,24 @@ async function searchPatient(query) {
   return { status: 'success', success: true, found: false };
 }
 
-async function registerAppointment(payload) {
+/**
+ * Pendaftaran Pasien Terpadu:
+ * Auto-format 62..., Menyertakan Rencana Waktu Kunjungan,
+ * Simpan ke PASIEN & ANTREAN, Forward ke Bookings (serverv2/GAS), dan Kirim Bukti WA Otomatis.
+ */
+async function registerAppointment(payload = {}) {
   const pasienList = await getTableData('PASIEN');
   const antreanList = await getTableData('ANTREAN');
+  const dokterList = await getTableData('DOKTER');
   const nowStr = getNowTimestamp();
   const todayDate = getTodayDateStr();
+
+  const formattedPhone = sanitizePhoneNumberE164(payload.noHp || payload.phoneNumber);
+  const rencanaWaktu = payload.rencanaWaktuKunjungan || payload.bookingDate || `${todayDate} 10:00`;
+
+  let dokterNama = 'Dokter Gigi Jaga';
+  const matchedDoc = dokterList.find(d => d.id === payload.dokterId || d.nama.toLowerCase().trim() === String(payload.dokterId).toLowerCase().trim());
+  if (matchedDoc) dokterNama = matchedDoc.nama;
 
   let nomorRm = payload.nomorRm;
   if (!nomorRm || payload.isNewPatient) {
@@ -439,10 +526,13 @@ async function registerAppointment(payload) {
       nama: payload.nama || '',
       tanggalLahir: payload.tanggalLahir || '',
       jenisKelamin: payload.jenisKelamin || '',
-      noHp: payload.noHp || '',
+      noHp: formattedPhone,
       alamat: payload.alamat || '',
       alergiObat: payload.alergiObat || 'Tidak Ada',
-      tanggalDaftar: nowStr
+      tanggalDaftar: nowStr,
+      rencanaWaktuKunjungan: rencanaWaktu,
+      dokterId: payload.dokterId || 'DOC-001',
+      status: 'Active'
     });
     await setTableData('PASIEN', pasienList);
   }
@@ -455,7 +545,7 @@ async function registerAppointment(payload) {
     nomorRm: nomorRm,
     dokterId: payload.dokterId || 'DOC-001',
     ruanganPoli: payload.ruanganPoli || 'Poli Gigi & Spesialis',
-    slotWaktu: payload.slotWaktu || 'Hari Ini',
+    slotWaktu: rencanaWaktu,
     statusTriage: payload.statusTriage || 'Hijau',
     keluhanUtama: payload.keluhanUtama || '',
     statusAntrean: 'Menunggu',
@@ -465,7 +555,45 @@ async function registerAppointment(payload) {
   });
   await setTableData('ANTREAN', antreanList);
 
-  await writeAuditLog(payload.nama, 'REGISTRASI_ANTREAN', 'ANTREAN', `RM: ${nomorRm}, Kode: ${queueObj.kode}, Dokter: ${payload.dokterId}`);
+  const bookingDetails = {
+    nomorRm: nomorRm,
+    nik: payload.nik || '',
+    patientName: payload.nama,
+    nama: payload.nama,
+    tanggalLahir: payload.tanggalLahir || '',
+    jenisKelamin: payload.jenisKelamin || '',
+    phoneNumber: formattedPhone,
+    noHp: formattedPhone,
+    alamat: payload.alamat || '',
+    serviceType: payload.ruanganPoli || 'Poli Gigi & Spesialis',
+    ruanganPoli: payload.ruanganPoli || 'Poli Gigi & Spesialis',
+    dokterId: payload.dokterId || 'DOC-001',
+    dokterNama: dokterNama,
+    rencanaWaktuKunjungan: rencanaWaktu,
+    bookingDate: rencanaWaktu,
+    alergiObat: payload.alergiObat || 'Tidak Ada',
+    keluhanUtama: payload.keluhanUtama || '',
+    kodeAntrean: queueObj.kode
+  };
+
+  // 1. Forward ke serverv2 (Tabel Bookings) secara asinkron
+  fetch(`http://127.0.0.1:${PORT_V2}/api/v2/router`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'savePatientBooking', payload: bookingDetails })
+  }).catch(() => {});
+
+  // 2. Forward ke Google Apps Script secara asinkron
+  fetch(GAS_API_URL, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ action: 'registerAppointment', payload: { ...payload, noHp: formattedPhone, rencanaWaktuKunjungan: rencanaWaktu } })
+  }).catch(() => {});
+
+  // 3. Kirim Bukti Pendaftaran Langsung ke WhatsApp Pasien
+  sendReservationWaNotification(bookingDetails);
+
+  await writeAuditLog(payload.nama, 'REGISTRASI_ANTREAN', 'ANTREAN', `RM: ${nomorRm}, Antrean: ${queueObj.kode}, Rencana: ${rencanaWaktu}`);
 
   return {
     status: 'success',
@@ -474,7 +602,10 @@ async function registerAppointment(payload) {
     nomorUrut: queueObj.nomorUrut,
     nomorRm: nomorRm,
     nama: payload.nama,
-    poli: payload.ruanganPoli
+    poli: payload.ruanganPoli,
+    rencanaWaktuKunjungan: rencanaWaktu,
+    phoneNumber: formattedPhone,
+    message: 'Reservasi berhasil dikonfirmasi dan bukti pendaftaran dikirim ke WhatsApp.'
   };
 }
 
@@ -701,7 +832,6 @@ async function getPharmacyOrders() {
   return { status: 'success', success: true, list: list.reverse() };
 }
 
-// Potong Stok Obat Secara Akurat di Redis & Memori
 async function dispenseMedicine(payload) {
   const resepList = await getTableData('FARMASI_RESEP');
   const obatList = await getTableData('MASTER_OBAT');
@@ -825,7 +955,6 @@ async function openCashierShift(kasirId, namaKasir, shiftKerja, modalAwal) {
   return { status: 'success', success: true, shiftId: shiftId };
 }
 
-// Rincian Kalkulasi Kasir POS Lengkap
 async function getBillingDetails(kodeAntrean, nomorRm) {
   const cpptList = await getTableData('CPPT_MEDIS');
   const resepList = await getTableData('FARMASI_RESEP');
@@ -879,7 +1008,6 @@ async function getBillingDetails(kodeAntrean, nomorRm) {
   };
 }
 
-// Proses Pembayaran Kasir & Penambahan Omset Shift
 async function processPayment(payload) {
   const trxList = await getTableData('TRANSAKSI_KASIR');
   const shiftList = await getTableData('POS_SHIFT');
@@ -924,7 +1052,6 @@ async function processPayment(payload) {
   return { status: 'success', success: true, transaksiId: trxId, tanggal: nowStr };
 }
 
-// Tutup Shift Kasir & Penerbitan Z-Report dengan Selisih Kas
 async function closeCashierShift(shiftId, actualCash, catatan, user) {
   const shiftList = await getTableData('POS_SHIFT');
   const nowStr = getNowTimestamp();
@@ -970,7 +1097,6 @@ async function closeCashierShift(shiftId, actualCash, catatan, user) {
   };
 }
 
-// Verifikasi Surat Keterangan Medis dengan QR Code & MD5 Digest
 async function generateMedicalDoc(payload) {
   const docList = await getTableData('DOKUMEN_MEDIS');
   const nowStr = getNowTimestamp();
@@ -1067,7 +1193,7 @@ async function getAnalyticsData() {
 }
 
 // ============================================================================
-// 7. ASISTEN MEDIS AI (GEMINI 3.5 DEFAULT, FORMAT AQ..., OPENAI & GROQ)
+// 8. ASISTEN MEDIS AI (GEMINI 3.5 DEFAULT, FORMAT AQ..., OPENAI & GROQ)
 // ============================================================================
 
 async function generateGroqAiAssist(payload) {
@@ -1154,7 +1280,6 @@ async function testGroqKey(apiKey, modelName) {
   }
 }
 
-// Google Gemini Engine - Mendukung Format Kunci AQ... & AIzaSy... Secara Akurat
 async function generateAiMedicalAssist(payload) {
   payload = payload || {};
   let apiKey = payload.geminiKey || payload.apiKey;
@@ -1322,7 +1447,7 @@ async function testOpenAiKey(apiKey, modelName) {
 }
 
 // ============================================================================
-// 8. ROUTER UTAMA: PEMBERSIHAN DARI TABEL BOT & DELEGASI PENUH KE V2
+// 9. ROUTER UTAMA: PEMBERSIHAN DARI TABEL BOT & DELEGASI PENUH KE V2
 // ============================================================================
 
 async function handleActionRouter(action, payload) {
@@ -1338,12 +1463,13 @@ async function handleActionRouter(action, payload) {
     p2 = payload.adminId || payload.currentAdminId || payload.user || 'SUPERADMIN';
   }
 
-  // 1. Aksi Khusus Bot WA (Didelegasikan ke serverv2 agar TIDAK ADA DOUBLE LOGIC / DOUBLE DB)
+  // 1. Aksi Bot WA & Custom Prompts (Didelegasikan penuh ke serverv2)
   const botActions = [
     'syncChatLog', 'getChatLogsPaginated', 'getBroadcastQueuePaginated',
     'addBroadcastQueueItem', 'sendBroadcastNow', 'deleteBroadcastQueueItem',
     'getClientsList', 'saveOrUpdateClient', 'deleteClient', 'pingRailwayClient',
-    'getRailwayQrPayload', 'getTemplatesList', 'savePatientBooking', 'getBookingsList'
+    'getRailwayQrPayload', 'getTemplatesList', 'savePatientBooking', 'getBookingsList',
+    'getCustomAiPrompts', 'saveCustomAiPrompt', 'deleteCustomAiPrompt', 'setActiveAiPrompt'
   ];
 
   if (botActions.includes(normAction)) {
@@ -1356,13 +1482,17 @@ async function handleActionRouter(action, payload) {
       });
       if (v2Res.ok) return await v2Res.json();
     } catch (e) {
-      // Fallback ke Google Apps Script Web App jika serverv2 belum online
-      const gasRes = await fetch(GAS_API_URL, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: normAction, payload })
-      });
-      return await gasRes.json();
+      // Fallback ke Google Apps Script jika serverv2 offline
+      try {
+        const gasRes = await fetch(GAS_API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: normAction, payload, args: [payload] })
+        });
+        return await gasRes.json();
+      } catch (err) {
+        return { status: 'error', success: false, message: 'Gagal menghubungkan ke gateway V2 / GAS.' };
+      }
     }
   }
 
@@ -1452,7 +1582,7 @@ async function handleActionRouter(action, payload) {
         const gasRes = await fetch(GAS_API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: normAction, payload })
+          body: JSON.stringify({ action: normAction, payload, args: [payload] })
         });
         return await gasRes.json();
       } catch (err) {
@@ -1463,7 +1593,7 @@ async function handleActionRouter(action, payload) {
 }
 
 // ============================================================================
-// 9. SEO GENERATOR (JSON-LD & SCHEMA.ORG)
+// 10. SEO GENERATOR (JSON-LD & SCHEMA.ORG)
 // ============================================================================
 
 async function generateSeoConfig(pageKey, customData = {}) {
@@ -1479,7 +1609,7 @@ async function generateSeoConfig(pageKey, customData = {}) {
     email: settings.KLINIK_EMAIL || 'care@estakadental.space',
     jamOperasional: settings.KLINIK_JAM_OPERASIONAL || 'Setiap Hari, 08:00 – 21:00 WITA',
     instagram: settings.KLINIK_INSTAGRAM || 'https://instagram.com/aksharadental',
-    logo: settings.KLINIK_LOGO_URL || `${BASE_URL}/img/axalogo.png`,
+    logo: `${BASE_URL}/img/etakalogo.png`,
     gmapsEmbed: settings.KLINIK_GMAPS_EMBED || 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d727.2324807218503!2d119.4172300669712!3d-5.171147028938255!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dbf1d71cf75a47d%3A0xa90a84353b81134a!2sJl.%20Andi%20Tonro%20Blok%20F%20No.30%2C%20Bongaya%2C%20Kec.%20Tamalate%2C%20Kota%20Makassar%2C%20Sulawesi%20Selatan%2090131!5e0!3m2!1sid!2sid!4v1788866524919!5m2!1sid!2sid',
     footerNote: settings.KLINIK_FOOTER_NOTE || 'Terakreditasi Paripurna Kemenkes RI — No. Akreditasi: YM.02.01/VI/2024'
   };
@@ -1550,7 +1680,7 @@ async function generateSeoConfig(pageKey, customData = {}) {
 }
 
 // ============================================================================
-// 10. MIDDLEWARE EXPRESS & ASSET HANDLING
+// 11. MIDDLEWARE EXPRESS & ASSET HANDLING (FAVICON & IMAGES ANTI-404)
 // ============================================================================
 
 const rootDir = process.cwd();
@@ -1582,10 +1712,25 @@ app.get('/css/mainv2.css', (req, res) => {
   res.status(404).send('/* CSS mainv2.css tidak ditemukan */');
 });
 
+// Penanganan Favicon etakalogo.png
+app.get(['/img/etakalogo.png', '/etakalogo.png'], (req, res) => {
+  res.setHeader('Content-Type', 'image/png');
+  res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  const files = [
+    path.join(rootDir, 'public', 'img', 'etakalogo.png'),
+    path.join(rootDir, 'public', 'etakalogo.png'),
+    path.join(__dirname, 'public', 'img', 'etakalogo.png')
+  ];
+  for (const f of files) { if (fs.existsSync(f)) return res.sendFile(f); }
+  res.status(404).send('Logo etakalogo.png tidak ditemukan');
+});
+
+// Backward-Compatibility Favicon axalogo.png
 app.get(['/img/axalogo.png', '/axalogo.png'], (req, res) => {
   res.setHeader('Content-Type', 'image/png');
   res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
   const files = [
+    path.join(rootDir, 'public', 'img', 'etakalogo.png'),
     path.join(rootDir, 'public', 'img', 'axalogo.png'),
     path.join(rootDir, 'public', 'axalogo.png'),
     path.join(__dirname, 'public', 'img', 'axalogo.png')
@@ -1606,14 +1751,13 @@ app.all(['/api/v2/router', '/api/railway/webhook'], async (req, res) => {
     const result = await v2Res.json();
     return res.json(result);
   } catch (err) {
-    // Fallback eksekusi langsung ke GAS jika serverv2 lokal belum aktif
     const action = req.body?.action || req.query?.action || '';
     const payload = req.body?.payload !== undefined ? req.body.payload : (req.body?.args !== undefined ? req.body.args : (req.body?.data || req.query));
     try {
       const gasRes = await fetch(GAS_API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action, payload })
+        body: JSON.stringify({ action, payload, args: [payload] })
       });
       return res.json(await gasRes.json());
     } catch (e) {
@@ -1669,7 +1813,7 @@ app.post('/api/groq/tts', async (req, res) => {
 });
 
 // ============================================================================
-// 11. ROUTING HALAMAN WEB & PORTAL
+// 12. ROUTING HALAMAN WEB & PORTAL
 // ============================================================================
 
 app.get(['/admin-dashboardv2', '/portalv2', '/v2'], async (req, res) => {
