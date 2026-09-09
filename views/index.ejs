@@ -110,9 +110,9 @@
       position: fixed;
       bottom: 88px;
       right: 24px;
-      width: 420px;
+      width: 440px;
       max-width: calc(100vw - 32px);
-      height: 560px;
+      height: 580px;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -152,10 +152,10 @@
     }
 
     .landing-ai-bubble {
-      max-width: 86%;
-      padding: 10px 14px;
+      max-width: 88%;
+      padding: 11px 15px;
       border-radius: 14px;
-      line-height: 1.5;
+      line-height: 1.55;
       word-wrap: break-word;
       font-size: 0.88rem;
     }
@@ -186,7 +186,7 @@
       background: rgba(0, 180, 216, 0.12);
       color: #0077b6;
       font-weight: 700;
-      margin-bottom: 4px;
+      margin-bottom: 6px;
     }
 
     .ai-quick-chips-container {
@@ -231,7 +231,7 @@
         width: calc(100vw - 24px);
         right: 12px;
         bottom: 84px;
-        height: 500px;
+        height: 520px;
       }
       .landing-floating-container {
         bottom: 18px;
@@ -676,20 +676,20 @@
     <div id="landingAiMessages" class="landing-ai-chat-body">
       <div class="landing-ai-bubble bubble-model-landing">
         <span class="ai-persona-tag" id="landingAiWelcomeTag">Estaka Care</span><br>
-        Halo Kak! Selamat datang di Estaka Dental Clinic. Saya asisten AI medis odontolog cerdas kami. Ada yang bisa saya bantu terkait keluhan gigi, prosedur perawatan saluran akar, jadwal dokter, atau estimasi biaya? 😊
+        Halo Kak! Selamat datang di Estaka Dental Clinic Makassar. Saya asisten AI medis odontolog cerdas kami. Ada yang bisa saya bantu terkait keluhan gigi, prosedur perawatan saluran akar, jadwal dokter spesialis, atau cara reservasi online? 😊
       </div>
     </div>
 
     <!-- Quick Action Chips Pasien Publik -->
     <div class="ai-quick-chips-container">
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Gigi geraham saya ngilu dan berdenyut, apa penyebabnya?')">Triage Gigi Ngilu</button>
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana jadwal dokter gigi spesialis konservasi di Estaka?')">Jadwal Dokter</button>
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Berapa estimasi biaya scaling pembersihan karang gigi dan tambal?')">Biaya Perawatan</button>
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana cara melakukan reservasi periksa gigi online?')">Cara Reservasi</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana cara reservasi online dan apa saja formatnya?')">Format Reservasi</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Gigi geraham saya berdenyut dan ngilu minum dingin, apa tindakannya?')">Triage Nyeri Akut</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Jadwal dokter gigi spesialis konservasi endodontik dan dokter gigi umum?')">Jadwal Dokter</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Berapa kisaran biaya scaling pembersihan karang gigi dan tambal?')">Biaya Perawatan</button>
     </div>
 
     <form class="landing-ai-chat-footer" onsubmit="event.preventDefault(); sendLandingAiMessage();">
-      <input type="text" id="landingAiUserInput" class="cyber-input" style="padding:8px 12px; font-size:0.86rem; border-radius:12px;" placeholder="Tanyakan seputar perawatan gigi..." autocomplete="off">
+      <input type="text" id="landingAiUserInput" class="cyber-input" style="padding:8px 12px; font-size:0.86rem; border-radius:12px;" placeholder="Tanyakan seputar perawatan gigi atau ketik format reservasi..." autocomplete="off">
       <button type="submit" id="btnSendLandingAi" class="nav-btn btn-primary" style="padding:8px 14px; border-radius:12px; height:40px;">
         <i class="fa-solid fa-paper-plane"></i>
       </button>
@@ -884,7 +884,7 @@
     let systemTtsModel = localStorage.getItem('estaka_tts_model') || 'canopylabs/orpheus-arabic-saudi';
     let systemTtsVoice = localStorage.getItem('estaka_tts_voice') || 'abdullah';
 
-    // State Chat AI Landing Page
+    // State Chat AI Landing Page Terpadu
     const landingAiState = {
       history: [],
       activePersonaPrompt: '',
@@ -1272,19 +1272,97 @@
       sendLandingAiMessage(text);
     }
 
+    /**
+     * Markdown & Formatting Parser Lengkap (Mencegah ### Terlihat Mentah)
+     */
     function formatAiLandingText(text) {
       if (!text) return '';
       let clean = (text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
-      // Code block
-      clean = clean.replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(15,23,42,0.06); padding:8px; border-radius:6px; font-family:monospace; font-size:0.8rem; overflow-x:auto;">$1</pre>');
-      // Bold
+
+      // Code blocks
+      clean = clean.replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(15,23,42,0.06); padding:8px 10px; border-radius:6px; font-family:monospace; font-size:0.8rem; overflow-x:auto; margin:6px 0;">$1</pre>');
+
+      // Inline code
+      clean = clean.replace(/`([^`]+)`/g, '<code style="background:rgba(0,180,216,0.12); padding:1px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
+
+      // Headings (Hapus tanda ###, ##, # dan ubah ke gaya judul elegan)
+      clean = clean.replace(/^###\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:0.92rem; display:block; margin:8px 0 3px;">$1</strong>');
+      clean = clean.replace(/^##\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:0.96rem; display:block; margin:10px 0 4px;">$1</strong>');
+      clean = clean.replace(/^#\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:1rem; display:block; margin:12px 0 5px;">$1</strong>');
+
+      // Bold & Italic
       clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
       clean = clean.replace(/\*([^*]+)\*/g, '<em>$1</em>');
-      // Bullets
+
+      // Bullets & Lists
       clean = clean.replace(/^[\*•\-]\s+(.*)$/gm, '• $1');
+
+      // Markdown Links [Text](Url)
+      clean = clean.replace(/\[([^\]]+)\]\((https?:\/\/[^\s\)]+)\)/g, '<a href="$2" target="_blank" style="color:var(--primary); font-weight:700; text-decoration:underline;">$1</a>');
+
+      // URLs Autolink
+      clean = clean.replace(/(^|[^"'])((https?:\/\/)[^\s<]+)/g, '$1<a href="$2" target="_blank" style="color:var(--primary); font-weight:600; text-decoration:underline;">$2</a>');
+
       // Line breaks
       clean = clean.replace(/\n/g, '<br>');
       return clean;
+    }
+
+    /**
+     * Membangun Sistem Prompt Cerdas Terpadu dengan Format Resmi Estaka Dental
+     */
+    function buildComprehensiveClinicalPrompt() {
+      const activeCustom = landingAiState.activePersonaPrompt || '';
+
+      const officialGuide = 
+        'SISTEM RESEPSIONIS & EDUKASI KLINIS ESTAKA DENTAL CLINIC MAKASSAR\n' +
+        'Nama Asisten: "Estaka Care". Sifat: Ramah, santun, hangat, empatik layaknya manusia sungguhan.\n' +
+        'ATURAN UTAMA: WAJIB MENJAWAB LENGKAP SAMPAI TUNTAS, DILARANG MEMOTONG JAWABAN DI TENGAH JALAN.\n\n' +
+        'JIKA PASIEN BERTANYA CARA RESERVASI / CARA BOOKING / DAFTAR PERIKSA GIGI, WAJIB BERIKAN FORMAT RESMI BERIKUT DENGAN LENGKAP:\n\n' +
+        '🟢 1. UNTUK PASIEN BARU (Belum Pernah Periksa):\n' +
+        'Silakan salin dan lengkapi format pendaftaran berikut:\n' +
+        '• NIK: (16 digit sesuai KTP)\n' +
+        '• Nama Lengkap: \n' +
+        '• Tanggal Lahir: (DD/MM/YYYY)\n' +
+        '• Jenis Kelamin: (Laki-laki / Perempuan)\n' +
+        '• Alamat: \n' +
+        '• Dokter: (DOC-001 / DOC-002 / DOC-003)\n' +
+        '• Nomor WhatsApp: \n' +
+        '• Rencana Waktu Kunjungan: (DD/MM/YYYY HH:mm)\n' +
+        '• Riwayat Alergi: (Misal: Alergi Amoxicillin / Tidak Ada)\n' +
+        '• Keluhan Gigi / Perawatan yang Diinginkan: \n\n' +
+        'Contoh Pengisian Pasien Baru:\n' +
+        '• NIK: 7371101205920001\n' +
+        '• Nama Lengkap: Fulan\n' +
+        '• Tanggal Lahir: 03/03/1998\n' +
+        '• Jenis Kelamin: Laki-laki\n' +
+        '• Alamat: Jl. Andi Tonro Blok F No.30\n' +
+        '• Dokter: DOC-001\n' +
+        '• Nomor WhatsApp: 628xxxxxxxxxx\n' +
+        '• Rencana Waktu Kunjungan: 09/09/2026 11:30\n' +
+        '• Riwayat Alergi: Alergi obat Amoxicillin\n' +
+        '• Keluhan Gigi / Perawatan yang Diinginkan: Sakit gigi geraham yang memerlukan Perawatan Saluran Akar\n\n' +
+        '🔵 2. UNTUK PASIEN LAMA (Sudah Memiliki No. RM):\n' +
+        '1. Cukup sebutkan NIK atau No. RM Anda terlebih dahulu (Contoh: NIK: 7371101205920001 atau No RM: RM-0001)\n' +
+        '2. Setelah data terkonfirmasi, isi jadwal rencana kunjungan:\n' +
+        '• Dokter: (DOC-001 / DOC-002 / DOC-003)\n' +
+        '• Rencana Waktu Kunjungan: (DD/MM/YYYY HH:mm)\n' +
+        '• Riwayat Alergi: (Jika ada obat baru)\n' +
+        '• Keluhan Gigi / Perawatan yang Diinginkan: \n\n' +
+        '👩‍⚕️ DAFTAR DOKTER GIGI RESMI ESTAKA DENTAL CLINIC:\n' +
+        '• DOC-001: drg. Hj. Kurniawaty, Sp.KG (Spesialis Konservasi Gigi / Saluran Akar) — Praktek: Senin - Sabtu (16.00 - 21.00 WITA)\n' +
+        '• DOC-002: drg. M. Aksa Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin - Sabtu (09.00 - 16.00 WITA)\n' +
+        '• DOC-003: drg. Tasya Awaliyah Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin - Sabtu (13.00 - 20.00 WITA)\n\n' +
+        'INFORMASI OPERASIONAL & PENDAFTARAN:\n' +
+        '• Reservasi Mandiri Web: https://estakadentalclinic.vercel.app/reservasi\n' +
+        '• Hotline WhatsApp Resmi: +62 853-3892-2586\n' +
+        '• Alamat: Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar\n' +
+        '• Jam Operasional: Setiap Hari, 08:00 – 21:00 WITA.\n';
+
+      if (activeCustom) {
+        return activeCustom + '\n\n' + officialGuide;
+      }
+      return officialGuide;
     }
 
     function sendLandingAiMessage(overridePrompt) {
@@ -1296,14 +1374,16 @@
       appendLandingAiBubble('user', prompt);
 
       const loadId = 'loadLandingAi_' + Date.now();
-      appendLandingAiBubble('model', `<i>${escapeHtml(landingAiState.activePersonaTitle)} sedang mengetik...</i>`, loadId);
+      appendLandingAiBubble('model', `<i>${escapeHtml(landingAiState.activePersonaTitle)} sedang menyusun jawaban lengkap...</i>`, loadId);
+
+      const comprehensivePrompt = buildComprehensiveClinicalPrompt();
 
       const payload = {
         prompt: prompt,
         model: 'gemini-3.5-flash',
         history: landingAiState.history,
-        systemPrompt: landingAiState.activePersonaPrompt,
-        customPrompt: landingAiState.activePersonaPrompt,
+        systemPrompt: comprehensivePrompt,
+        customPrompt: comprehensivePrompt,
         personaTitle: landingAiState.activePersonaTitle
       };
 
@@ -1317,14 +1397,18 @@
             appendLandingAiBubble('model', `<span class="ai-persona-tag">${escapeHtml(landingAiState.activePersonaTitle)}</span><br>${formatAiLandingText(reply)}`);
             landingAiState.history.push({ role: 'user', text: prompt });
             landingAiState.history.push({ role: 'model', text: reply });
+
+            if (landingAiState.history.length > 8) {
+              landingAiState.history = landingAiState.history.slice(-8);
+            }
           } else {
-            appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Kendala Sistem</span><br>⚠️ Mohon maaf, asisten AI sedang sibuk. Silakan hubungi Customer Care via WhatsApp kami.`);
+            appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Kendala Sistem</span><br>⚠️ Mohon maaf, asisten AI sedang mengalami sedikit kendala jaringan. Kakak dapat langsung menghubungi Admin WhatsApp kami di: <a href="https://wa.me/6285338922586" target="_blank" style="color:var(--primary); font-weight:700;">+62 853-3892-2586</a>`);
           }
         })
         .catch(function() {
           const loadingEl = document.getElementById(loadId);
           if (loadingEl) loadingEl.remove();
-          appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Koneksi Terputus</span><br>⚠️ Gagal terhubung ke engine AI. Silakan coba kembali sesaat lagi.`);
+          appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Koneksi Terputus</span><br>⚠️ Gagal terhubung ke engine AI. Silakan coba kembali atau gunakan fitur pendaftaran mandiri di tab Reservasi.`);
         });
     }
 
@@ -1612,6 +1696,17 @@
           btn.disabled = false;
           showToast('Error login: ' + err.toString(), 'error');
         });
+    }
+
+    function toggleWaBox() {
+      document.getElementById('waChatBox').classList.toggle('show');
+    }
+
+    function sendQuickWa() {
+      const msg = document.getElementById('waQuickMsgInput').value.trim() || 'Halo Admin Estaka Dental Clinic';
+      const targetUrl = 'https://api.whatsapp.com/send/?phone=6285338922586&text=' + encodeURIComponent(msg) + '&type=phone_number&app_absent=0';
+      window.open(targetUrl, '_blank');
+      toggleWaBox();
     }
 
     function openPwaModal() {
