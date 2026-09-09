@@ -5,21 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes" />
   <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 
-  <title><%= seo.title %></title>
+  <title><%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Estaka Dental Clinic — Spesialis Konservasi Gigi & Perawatan Gigi Modern Makassar' %></title>
   <meta name="google-site-verification" content="cbSE7olGd0ibEx_bhjC3aitjIovXCSwUKYbVOh7nbLs" />
-  <meta name="title" content="<%= seo.title %>" />
-  <meta name="description" content="<%= seo.description %>" />
-  <meta name="keywords" content="<%= seo.keywords %>" />
+  <meta name="title" content="<%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Estaka Dental Clinic' %>" />
+  <meta name="description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat perawatan gigi modern, spesialis konservasi endodontik, estetika gigi, dan EMR odontogram di Makassar.' %>" />
+  <meta name="keywords" content="dokter gigi makassar, spesialis konservasi gigi makassar, klinik gigi estaka, tambal gigi makassar, perawatan saluran akar, pasang behel makassar" />
   <meta name="author" content="Estaka Dental Clinic" />
   <meta name="publisher" content="Estaka Dental Clinic" />
   <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
   <meta name="googlebot" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
 
   <!-- Canonical & Alternate Reference -->
-  <link rel="canonical" href="<%= seo.canonicalUrl %>" />
-  <link rel="alternate" hreflang="id-ID" href="<%= seo.canonicalUrl %>" />
-  <link rel="alternate" hreflang="x-default" href="https://aksharadental.space/" />
-  <link rel="alternate" href="https://aksharadental.space/" />
+  <link rel="canonical" href="<%= (typeof seo !== 'undefined' && seo.canonicalUrl) ? seo.canonicalUrl : 'https://estakadentalclinic.vercel.app/' %>" />
+  <link rel="alternate" hreflang="id-ID" href="<%= (typeof seo !== 'undefined' && seo.canonicalUrl) ? seo.canonicalUrl : 'https://estakadentalclinic.vercel.app/' %>" />
+  <link rel="alternate" hreflang="x-default" href="https://estakadentalclinic.vercel.app/" />
   <link rel="sitemap" type="application/xml" title="Sitemap" href="/sitemap.xml" />
 
   <meta name="geo.region" content="ID-SN" />
@@ -30,12 +29,12 @@
   <!-- Open Graph / Facebook (Favicon & Preview Image PNG 100% SEO) -->
   <meta property="og:locale" content="id_ID" />
   <meta property="og:type" content="website" />
-  <meta property="og:title" content="<%= seo.title %>" />
-  <meta property="og:description" content="<%= seo.description %>" />
-  <meta property="og:url" content="<%= seo.canonicalUrl %>" />
+  <meta property="og:title" content="<%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Estaka Dental Clinic' %>" />
+  <meta property="og:description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat perawatan gigi modern dan spesialis konservasi endodontik di Makassar.' %>" />
+  <meta property="og:url" content="<%= (typeof seo !== 'undefined' && seo.canonicalUrl) ? seo.canonicalUrl : 'https://estakadentalclinic.vercel.app/' %>" />
   <meta property="og:site_name" content="Estaka Dental Clinic" />
-  <meta property="og:image" content="<%= seo.baseUrl %>/img/etakalogo.png" />
-  <meta property="og:image:secure_url" content="<%= seo.baseUrl %>/img/etakalogo.png" />
+  <meta property="og:image" content="https://estakadentalclinic.vercel.app/img/estakalogo.png" />
+  <meta property="og:image:secure_url" content="https://estakadentalclinic.vercel.app/img/estakalogo.png" />
   <meta property="og:image:width" content="512" />
   <meta property="og:image:height" content="512" />
   <meta property="og:image:alt" content="Logo Resmi Estaka Dental Clinic Makassar" />
@@ -43,16 +42,16 @@
 
   <!-- Twitter Card -->
   <meta name="twitter:card" content="summary_large_image" />
-  <meta name="twitter:title" content="<%= seo.title %>" />
-  <meta name="twitter:description" content="<%= seo.description %>" />
-  <meta name="twitter:image" content="<%= seo.baseUrl %>/img/etakalogo.png" />
+  <meta name="twitter:title" content="<%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Estaka Dental Clinic' %>" />
+  <meta name="twitter:description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat perawatan gigi modern dan spesialis konservasi endodontik di Makassar.' %>" />
+  <meta name="twitter:image" content="https://estakadentalclinic.vercel.app/img/estakalogo.png" />
   <meta name="twitter:image:alt" content="Estaka Dental Clinic" />
 
-  <!-- Favicon & Touch Icons Berbasis PNG etakalogo.png -->
-  <link rel="icon" type="image/png" href="/img/etakalogo.png" />
-  <link rel="shortcut icon" type="image/png" href="/img/etakalogo.png" />
-  <link rel="apple-touch-icon" type="image/png" href="/img/etakalogo.png" />
-  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%22%2C%22short_name%22%3A%22EstakaDental%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%230284c7%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Fetakalogo.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D" />
+  <!-- Favicon & Touch Icons Berbasis PNG estakalogo.png -->
+  <link rel="icon" type="image/png" href="/img/estakalogo.png" />
+  <link rel="shortcut icon" type="image/png" href="/img/estakalogo.png" />
+  <link rel="apple-touch-icon" type="image/png" href="/img/estakalogo.png" />
+  <link rel="manifest" href="data:application/manifest+json;utf-8,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%22%2C%22short_name%22%3A%22EstakaDental%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f8fafc%22%2C%22theme_color%22%3A%22%230284c7%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Festakalogo.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D" />
   <meta name="theme-color" content="#0284c7" />
 
   <!-- External Typography & Icons -->
@@ -65,9 +64,11 @@
   <link rel="stylesheet" href="/css/main.css" />
 
   <!-- Structured Data JSON-LD Dinamis GSC -->
+  <% if (typeof seo !== 'undefined' && seo.jsonLd) { %>
   <script type="application/ld+json">
   <%- JSON.stringify(seo.jsonLd) %>
   </script>
+  <% } %>
 </head>
 <body class="theme-white">
 
@@ -104,7 +105,7 @@
   <header class="site-header" role="banner">
     <a href="/" class="brand-logo" aria-label="Beranda Estaka Dental Clinic">
       <div class="brand-icon">
-        <img src="/img/etakalogo.png" alt="Logo Estaka Dental" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
+        <img src="/img/estakalogo.png" alt="Logo Estaka Dental" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
       </div>
       <div>
         <div class="brand-title">Estaka Dental Clinic</div>
@@ -114,11 +115,11 @@
 
     <!-- Desktop Navigation Links -->
     <nav class="nav-links" role="navigation" aria-label="Navigasi Utama">
-      <li class="nav-item"><a href="/" class="<%= activeTab === 'beranda' ? 'active' : '' %>">Beranda</a></li>
-      <li class="nav-item"><a href="/layanan" class="<%= activeTab === 'layanan' ? 'active' : '' %>">Layanan Dental</a></li>
-      <li class="nav-item"><a href="/dokter" class="<%= activeTab === 'dokter' ? 'active' : '' %>">Dokter & Jadwal</a></li>
-      <li class="nav-item"><a href="/reservasi" class="<%= activeTab === 'reservasi' ? 'active' : '' %>">Reservasi</a></li>
-      <li class="nav-item"><a href="/kontak" class="<%= activeTab === 'kontak' ? 'active' : '' %>">Kontak</a></li>
+      <li class="nav-item"><a href="/" class="<%= (typeof activeTab !== 'undefined' && activeTab === 'beranda') ? 'active' : '' %>">Beranda</a></li>
+      <li class="nav-item"><a href="/layanan" class="<%= (typeof activeTab !== 'undefined' && activeTab === 'layanan') ? 'active' : '' %>">Layanan Dental</a></li>
+      <li class="nav-item"><a href="/dokter" class="<%= (typeof activeTab !== 'undefined' && activeTab === 'dokter') ? 'active' : '' %>">Dokter & Jadwal</a></li>
+      <li class="nav-item"><a href="/reservasi" class="<%= (typeof activeTab !== 'undefined' && activeTab === 'reservasi') ? 'active' : '' %>">Reservasi</a></li>
+      <li class="nav-item"><a href="/kontak" class="<%= (typeof activeTab !== 'undefined' && activeTab === 'kontak') ? 'active' : '' %>">Kontak</a></li>
     </nav>
 
     <!-- Header Actions -->
@@ -243,7 +244,7 @@
         </div>
       </section>
 
-      <!-- Dokter & Jadwal Praktek (3 Dokter Gigi Resmi Estaka) -->
+      <!-- Dokter & Jadwal Praktek (NOMOR WHATSAPP DOKTER DILARANG KERAS MUNCUL DI SINI) -->
       <section class="container animate-swipe-up" id="dokter" aria-label="Profil Dokter Gigi">
         <div class="section-title">
           <h2>Tim Dokter Gigi Profesional</h2>
@@ -311,10 +312,10 @@
                 <select id="resDokterSelect" required></select>
               </div>
               
-              <!-- Form Baru: Rencana Waktu Kunjungan (Gambar 2) -->
+              <!-- Form Rencana Waktu Kunjungan -->
               <div class="form-group full">
                 <label for="resRencanaKunjungan" style="font-weight:700; color:var(--primary);">
-                  <i class="fa-solid fa-calendar-clock"></i> Rencana Waktu Kunjungan *
+                  <i class="fa-solid fa-calendar-days"></i> Rencana Waktu Kunjungan *
                 </label>
                 <input type="datetime-local" id="resRencanaKunjungan" required style="font-weight:600;" />
               </div>
@@ -342,7 +343,7 @@
         </div>
       </section>
 
-      <!-- Kontak & Lokasi (Rebranded: Estaka Dental Clinic) -->
+      <!-- Kontak & Lokasi Resmi Estaka Dental Clinic -->
       <section class="container animate-swipe-up" id="kontak" aria-label="Kontak dan Lokasi">
         <div class="section-title">
           <h2>Lokasi & Informasi Operasional</h2>
@@ -357,12 +358,12 @@
               Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar, Sulawesi Selatan 90131.<br>
               <strong>Jam Operasional:</strong> Setiap Hari, 08:00 – 21:00 WITA<br>
               <strong>Hotline WhatsApp:</strong> +62 853-3892-2586<br>
-              <strong>Email Resmi:</strong> care@estakadental.space<br>
-              <strong>Web Resmi:</strong> <a href="<%= seo.baseUrl %>" style="color:var(--primary); font-weight:600; text-decoration:none;"><%= seo.baseUrl %></a>
+              <strong>Email Resmi:</strong> estakadentalclinic@gmail.com<br>
+              <strong>Web Resmi:</strong> <a href="https://estakadentalclinic.vercel.app/" style="color:var(--primary); font-weight:600; text-decoration:none;">https://estakadentalclinic.vercel.app/</a>
             </p>
             <div style="display:flex; gap:10px; flex-wrap:wrap;">
               <a href="https://instagram.com/aksharadental" target="_blank" rel="noopener noreferrer" class="nav-btn btn-outline"><i class="fa-brands fa-instagram"></i> Instagram</a>
-              <a href="mailto:care@estakadental.space" class="nav-btn btn-outline"><i class="fa-solid fa-envelope"></i> Kirim Email</a>
+              <a href="mailto:estakadentalclinic@gmail.com" class="nav-btn btn-outline"><i class="fa-solid fa-envelope"></i> Kirim Email</a>
             </div>
           </div>
           <div class="glass-card" style="padding:8px; overflow:hidden; min-height:260px;">
@@ -381,7 +382,7 @@
           </div>
           <div style="font-size:0.82rem; color:var(--text-muted); text-align:left;">
             <div>&copy; 2026 Estaka Dental Clinic Makassar. All Rights Reserved.</div>
-            <div style="margin-top:4px;">Production Engine on <a href="<%= seo.baseUrl %>" style="color:var(--primary); font-weight:700; text-decoration:none;"><%= seo.baseUrl %></a></div>
+            <div style="margin-top:4px;">Production Engine on <a href="https://estakadentalclinic.vercel.app/" style="color:var(--primary); font-weight:700; text-decoration:none;">https://estakadentalclinic.vercel.app/</a></div>
           </div>
         </div>
       </footer>
@@ -394,7 +395,7 @@
         <div class="tv-header">
           <div style="display:flex; align-items:center; gap:12px;">
             <div class="brand-icon">
-              <img src="/img/etakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
+              <img src="/img/estakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-tooth\'></i>';" />
             </div>
             <div>
               <h1 style="font-size:1.35rem; font-weight:800; display:flex; align-items:center; gap:8px;">
@@ -487,7 +488,7 @@
       <button class="modal-close" onclick="closeLoginModal()" aria-label="Tutup Modal Login"><i class="fa-solid fa-xmark"></i></button>
       <div style="text-align:center; margin-bottom:18px;">
         <div class="brand-icon" style="margin:0 auto 10px;">
-          <img src="/img/etakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-lock\'></i>';" />
+          <img src="/img/estakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-lock\'></i>';" />
         </div>
         <h3 style="font-size:1.25rem; font-weight:800;">Gerbang Akses Staf Medis</h3>
         <p style="font-size:0.82rem; color:var(--text-muted);">Masukkan username & password resmi Anda</p>
@@ -513,7 +514,7 @@
     <div class="glass-card modal-box" style="text-align:center;">
       <button class="modal-close" onclick="closePwaModal()" aria-label="Tutup Modal PWA"><i class="fa-solid fa-xmark"></i></button>
       <div class="brand-icon" style="margin:0 auto 10px;">
-        <img src="/img/etakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-mobile-screen\'></i>';" />
+        <img src="/img/estakalogo.png" alt="Estaka Logo" onerror="this.onerror=null; this.parentElement.innerHTML='<i class=\'fa-solid fa-mobile-screen\'></i>';" />
       </div>
       <h3 style="font-size:1.15rem; font-weight:800; margin-bottom:8px;">Instal Aplikasi Estaka Dental</h3>
       <p style="font-size:0.84rem; color:var(--text-muted); line-height:1.5; margin-bottom:16px;">
@@ -615,7 +616,6 @@
         })
         .then(function(data) { resolve(data); })
         .catch(function(localErr) {
-          // Fallback ke Google Apps Script jika local router tidak tersedia
           fetch(GAS_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -628,7 +628,7 @@
       });
     }
 
-    // STATE DOKTER DEFAULT (3 DOKTER GIGI RESMI ESTAKA DENTAL CLINIC)
+    // STATE DOKTER DEFAULT (NOMOR WA DOKTER TIDAK DISERTAKAN DI SINI)
     let clinicDoctors = [
       {
         id: 'DOC-001',
@@ -670,9 +670,9 @@
     let deferredPwaPrompt = null;
     
     // PERSISTENT GROQ SETTINGS
-    let systemGroqKey = localStorage.getItem('akshara_groq_key') || '';
-    let systemTtsModel = localStorage.getItem('akshara_tts_model') || 'canopylabs/orpheus-arabic-saudi';
-    let systemTtsVoice = localStorage.getItem('akshara_tts_voice') || 'abdullah';
+    let systemGroqKey = localStorage.getItem('estaka_groq_key') || localStorage.getItem('akshara_groq_key') || '';
+    let systemTtsModel = localStorage.getItem('estaka_tts_model') || 'canopylabs/orpheus-arabic-saudi';
+    let systemTtsVoice = localStorage.getItem('estaka_tts_voice') || 'abdullah';
 
     window.addEventListener('DOMContentLoaded', function() {
       initTheme();
@@ -692,7 +692,7 @@
       const timeInput = document.getElementById('resRencanaKunjungan');
       if (timeInput && !timeInput.value) {
         const now = new Date();
-        now.setHours(now.getHours() + 2); // Default 2 jam ke depan
+        now.setHours(now.getHours() + 2);
         const pad = n => String(n).padStart(2, '0');
         const formatted = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
         timeInput.value = formatted;
@@ -753,7 +753,7 @@
     }
 
     function initTheme() {
-      const savedTheme = localStorage.getItem('akshara_theme') || 'theme-white';
+      const savedTheme = localStorage.getItem('estaka_theme') || localStorage.getItem('akshara_theme') || 'theme-white';
       document.body.className = savedTheme;
       updateThemeLabel(savedTheme);
     }
@@ -762,7 +762,7 @@
       const current = document.body.className;
       const next = current === 'theme-white' ? 'theme-blue' : 'theme-white';
       document.body.className = next;
-      localStorage.setItem('akshara_theme', next);
+      localStorage.setItem('estaka_theme', next);
       updateThemeLabel(next);
       showToast('Tema diubah ke: ' + (next === 'theme-white' ? 'White Higienis' : 'Blue Cyan Soft'), 'info');
     }
@@ -820,8 +820,8 @@
     function syncTtsSelectors(modelName, voiceName) {
       systemTtsModel = modelName || 'canopylabs/orpheus-arabic-saudi';
       systemTtsVoice = voiceName || 'abdullah';
-      localStorage.setItem('akshara_tts_model', systemTtsModel);
-      localStorage.setItem('akshara_tts_voice', systemTtsVoice);
+      localStorage.setItem('estaka_tts_model', systemTtsModel);
+      localStorage.setItem('estaka_tts_voice', systemTtsVoice);
 
       const tvTtsSel = document.getElementById('tvVoiceEngine');
       if (tvTtsSel) tvTtsSel.value = systemTtsModel;
@@ -927,11 +927,6 @@
         });
     }
 
-    /**
-     * Submit Formulir Reservasi Mandiri:
-     * Menjamin sanitasi format 62..., menyertakan Rencana Waktu Kunjungan,
-     * serta Dual-Sync ke Local Redis & Google Apps Script.
-     */
     function handleReservasiSubmit(e) {
       e.preventDefault();
       const btn = document.getElementById('btnSubmitReservasi');
@@ -991,7 +986,7 @@
           }
         })
         .catch(function(err) {
-          // Fallback langsung tembak ke Google Apps Script jika server lokal gagal
+          // Fallback langsung ke Google Apps Script jika server lokal belum siap
           fetch(GAS_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -1195,7 +1190,7 @@
         playTtsAudioBlob(blob, inputSpeechText, callback);
       })
       .catch(function(err) {
-        const apiKey = systemGroqKey || localStorage.getItem('akshara_groq_key') || '';
+        const apiKey = systemGroqKey || localStorage.getItem('estaka_groq_key') || localStorage.getItem('akshara_groq_key') || '';
         if (apiKey) {
           fetch('https://api.groq.com/openai/v1/audio/speech', {
             method: 'POST',
@@ -1273,6 +1268,7 @@
         .then(function(res) {
           btn.disabled = false;
           if (res && res.status === 'success') {
+            localStorage.setItem('estaka_user', JSON.stringify(res.user));
             localStorage.setItem('akshara_user', JSON.stringify(res.user));
             showToast('Login berhasil! Mengalihkan ke Portal Medis...', 'success');
             setTimeout(function() {
