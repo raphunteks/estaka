@@ -1,16 +1,17 @@
 /**
  * ============================================================================
- * SISTEM OPERASIONAL ENTERPRISE KLINIK AKSHARA DENTAL SPACE & WA BOT GATEWAY
- * File: serverv2.js (Super Big Upgrade - Hybrid Cloud Data Bridge)
- * Fitur: Express Server V2 Engine, Upstash Redis & In-Memory Fallback Storage,
- *        Hybrid Cloud Data Bridge (Auto-Pull & Sync Google Sheets ⇄ Redis),
+ * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC & WA BOT GATEWAY
+ * File: serverv2.js (Tahap 2: Dedicated WA Bot Gateway & Portal V2 Engine)
+ * Fitur: Express Server V2 Engine, Upstash Redis & Fallback Storage,
+ *        Murni Pengelola 7 Tabel Portal V2 (Bebas Double DB dengan server.js),
+ *        Hybrid Cloud Data Bridge (Sinkronisasi Otomatis Google Sheets ⇄ Redis),
  *        Bi-Directional Railway Webhook Forwarder,
  *        Penyedia Data 6 Tab (ChatLogs, BroadcastQueue, Clients, Templates,
- *        Bookings Pasien Terpadu, & AI Configuration Engine),
+ *        Bookings Pasien, & AI Configuration Engine),
  *        Multi-Model AI (Gemini 3.5 Flash Default, Gemini 3.8/3.7/3.6/3.1, 2.5,
  *        OpenAI ChatGPT, & Groq LPU),
  *        Dukungan Penuh Format API Key AQ... & AIzaSy...,
- *        Dual-Mode GAS Fallback Router & Reliable Static Assets Delivery.
+ *        Delegasi Kueri Medis ke server.js / GAS, & Reliable Static Delivery.
  * ============================================================================
  */
 
@@ -22,6 +23,7 @@ const { Redis } = require('@upstash/redis');
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const PORT_CLINICAL = process.env.PORT_CLINICAL || 3000;
 const BASE_URL = process.env.BASE_URL || 'https://aksharadental.vercel.app';
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
@@ -31,7 +33,7 @@ const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-ak
 // ============================================================================
 
 const SUPPORTED_AI_MODELS_V2 = [
-  // Gemini 3 Series
+  // Gemini 3 Series (Default: Gemini 3.5 Flash)
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', category: 'Gemini 3 Series', description: 'High Throughput Workhorse (Default Rekomendasi)' },
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', category: 'Gemini 3 Series', description: 'Ultra-Fast Next-Gen Precision' },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', category: 'Gemini 3 Series', description: 'High Performance & Speed' },
@@ -74,7 +76,7 @@ const SUPPORTED_AI_MODELS_V2 = [
 ];
 
 // ============================================================================
-// 2. INISIALISASI DATABASE UPSTASH REDIS & IN-MEMORY CACHE STORAGE
+// 2. BASIS DATA UPSTASH REDIS (MURNI 8 TABEL PORTAL V2 & BOT GATEWAY)
 // ============================================================================
 
 let redis = null;
@@ -92,6 +94,7 @@ if (redisUrl && redisToken) {
   }
 }
 
+// In-Memory Cache Terisolasi (Hanya menyimpan entitas bot WA & portal V2)
 const memoryDB = {
   Admins: [],
   Clients: [],
@@ -131,7 +134,7 @@ async function setTableData(tableName, dataArray) {
 }
 
 // ============================================================================
-// 3. HYBRID CLOUD DATA BRIDGE HELPER (SYNC GOOGLE SHEETS ⇄ REDIS)
+// 3. HYBRID CLOUD DATA BRIDGE (AUTO-PULL & SYNC GOOGLE SHEETS ⇄ REDIS)
 // ============================================================================
 
 async function fetchFromGAS(action, payload = {}) {
@@ -160,9 +163,9 @@ async function initStorageV2() {
     await setTableData('SETTINGS', [
       { key: 'GEMINI_API_KEY', val: process.env.GEMINI_API_KEY || '', desc: 'Kunci API Google AI Studio / Gemini (AQ... atau AIzaSy...)' },
       { key: 'GEMINI_MODEL', val: process.env.GEMINI_MODEL || 'gemini-3.5-flash', desc: 'Default Gemini Model: Gemini 3.5 Flash' },
-      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI' },
+      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI ChatGPT' },
       { key: 'OPENAI_MODEL', val: process.env.OPENAI_MODEL || 'gpt-4o-mini', desc: 'Model default OpenAI' },
-      { key: 'RAILWAY_DEFAULT_URL', val: DEFAULT_RAILWAY_URL, desc: 'URL instance Baileys di Railway' },
+      { key: 'RAILWAY_DEFAULT_URL', val: DEFAULT_RAILWAY_URL, desc: 'URL instance Baileys di Railway Cloud' },
       { key: 'KLINIK_NAMA', val: 'Estaka Dental Clinic', desc: 'Nama resmi klinik' },
       { key: 'KLINIK_TELEPON', val: '+62 853-3892-2586', desc: 'Hotline WhatsApp resmi' }
     ]);
@@ -249,7 +252,7 @@ async function executeDualLogin(username, password) {
     return { status: 'error', success: false, message: 'Username dan password wajib diisi!' };
   }
 
-  // 1. Periksa tabel Admins di Redis lokal
+  // 1. Cek tabel Admins di Redis V2
   const admins = await getTableData('Admins');
   const matchedAdmin = admins.find(a => a.username.toLowerCase() === cleanUser && a.password === cleanPass);
   if (matchedAdmin) {
@@ -266,7 +269,21 @@ async function executeDualLogin(username, password) {
     return { status: 'success', success: true, user: adminData, message: 'Login portal admin berhasil.' };
   }
 
-  // 2. Fallback cek ke Google Apps Script (tabel USERS / Admins)
+  // 2. Delegasikan pengecekan ke server.js klinis (port 3000)
+  try {
+    const clinicalRes = await fetch(`http://127.0.0.1:${PORT_CLINICAL}/api/router`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'loginUser', payload: { username: cleanUser, password: cleanPass } }),
+      signal: AbortSignal.timeout(3000)
+    });
+    if (clinicalRes.ok) {
+      const data = await clinicalRes.json();
+      if (data && (data.success || data.status === 'success')) return data;
+    }
+  } catch (e) {}
+
+  // 3. Fallback cek ke Google Apps Script
   const gasAuth = await fetchFromGAS('loginUser', { username: cleanUser, password: cleanPass });
   if (gasAuth && (gasAuth.success || gasAuth.status === 'success') && gasAuth.user) {
     return { status: 'success', success: true, user: gasAuth.user, message: 'Login berhasil via Cloud Bridge.' };
@@ -277,7 +294,7 @@ async function executeDualLogin(username, password) {
 }
 
 // ============================================================================
-// 6. LOGIKA 6 TAB DENGAN CLOUD DATA BRIDGE OTOMATIS
+// 6. LOGIKA 6 TAB DENGAN CLOUD DATA BRIDGE
 // ============================================================================
 
 // TAB 1: LOG PERCAKAPAN WHATSAPP (ChatLogs Bridge)
@@ -339,7 +356,7 @@ async function syncChatLog(payload = {}) {
   logs.push(newLog);
   await setTableData('ChatLogs', logs);
 
-  // Teruskan juga ke Google Apps Script secara asinkron
+  // Teruskan ke Google Apps Script secara asinkron
   fetchFromGAS('syncChatLog', payload).catch(() => {});
 
   return { success: true, status: 'success', message: 'Chat log tersimpan dan disinkronkan', logId };
@@ -458,7 +475,6 @@ async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
 async function getClientsList() {
   let clients = await getTableData('Clients');
 
-  // Tarik node dari Google Apps Script jika Redis kosong
   if (!clients || clients.length === 0) {
     const gasRes = await fetchFromGAS('getClientsList', {});
     if (gasRes && gasRes.clients && gasRes.clients.length > 0) {
@@ -467,7 +483,6 @@ async function getClientsList() {
     }
   }
 
-  // Jika tetap kosong, inisialisasi node default resmi Estaka Railway agar dashboard tidak kosong
   if (!clients || clients.length === 0) {
     clients = [{
       clientId: 'CLI-0001',
@@ -573,7 +588,7 @@ async function getTemplatesList() {
   return { success: true, status: 'success', templates };
 }
 
-// TAB 5: ANTREAN & RESERVASI PASIEN TERPADU (Bookings & ANTREAN Bridge)
+// TAB 5: ANTREAN & RESERVASI PASIEN TERPADU (Bookings Bridge)
 async function savePatientBooking(payload = {}) {
   if (!payload.patientName || !payload.phoneNumber) {
     return { success: false, status: 'error', message: 'Nama dan nomor telepon wajib diisi.' };
@@ -595,7 +610,7 @@ async function savePatientBooking(payload = {}) {
   bookings.push(item);
   await setTableData('Bookings', bookings);
 
-  // Sync ke GAS
+  // Sinkronkan ke Google Apps Script
   fetchFromGAS('savePatientBooking', payload).catch(() => {});
   await writeAuditLog('PUBLIC', 'PATIENT_BOOKING', 'BOOKINGS', `Booking ${bookingId}`);
 
@@ -605,7 +620,6 @@ async function savePatientBooking(payload = {}) {
 async function getBookingsList() {
   let bookings = await getTableData('Bookings');
 
-  // Tarik data reservasi dari Google Sheets jika Redis kosong
   if (!bookings || bookings.length === 0) {
     const gasRes = await fetchFromGAS('getBookingsList', {});
     if (gasRes && (gasRes.bookings || gasRes.data) && (gasRes.bookings || gasRes.data).length > 0) {
@@ -740,13 +754,14 @@ async function askOpenAiClinic(payload = {}) {
 }
 
 // ============================================================================
-// 7. UNIVERSAL ACTION ROUTER DISPATCHER
+// 7. UNIVERSAL ACTION ROUTER DISPATCHER V2
 // ============================================================================
 
 async function handleActionDispatcher(action, payload) {
   const normAction = String(action || '').trim();
   let p1 = Array.isArray(payload) ? (payload[0] || {}) : (payload || {});
 
+  // Login Portal V2
   if (normAction === 'login' || normAction === 'loginUser' || normAction === 'auth') {
     const u = String(p1.username || p1.user || '').trim();
     const p = String(p1.password || p1.pass || '').trim();
@@ -812,6 +827,18 @@ async function handleActionDispatcher(action, payload) {
     case 'getBookingsList': return await getBookingsList();
 
     default: {
+      // Jika ada kueri medis yang terkirim ke V2, delegasikan ke server.js klinis (port 3000)
+      try {
+        const clinicalRes = await fetch(`http://127.0.0.1:${PORT_CLINICAL}/api/router`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: normAction, payload }),
+          signal: AbortSignal.timeout(3000)
+        });
+        if (clinicalRes.ok) return await clinicalRes.json();
+      } catch (e) {}
+
+      // Fallback ke Google Apps Script
       try {
         const gasRes = await fetch(GAS_API_URL, {
           method: 'POST',
@@ -870,7 +897,7 @@ app.get(['/img/axalogo.png', '/axalogo.png'], (req, res) => {
   res.status(404).send('Logo tidak ditemukan');
 });
 
-// Endpoint Router API Terpadu (V1 & V2)
+// Endpoint Router API Terpadu V2
 app.all(['/api/v2/router', '/api/router', '/exec'], async (req, res) => {
   try {
     const action = req.body?.action || req.query?.action || '';
@@ -899,7 +926,6 @@ app.get(['/admin-dashboardv2', '/portalv2', '/v2'], async (req, res) => {
   res.render('admin-dashboardv2', { seo, activeTab: 'adminv2' });
 });
 
-// Default Fallback ke Dashboard V2
 app.get('/', async (req, res) => {
   res.redirect('/admin-dashboardv2');
 });
