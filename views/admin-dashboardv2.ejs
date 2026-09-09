@@ -383,9 +383,9 @@
       position: fixed;
       bottom: 88px;
       right: 24px;
-      width: 420px;
+      width: 440px;
       max-width: calc(100vw - 32px);
-      height: 560px;
+      height: 580px;
       display: none;
       flex-direction: column;
       z-index: 1002;
@@ -417,7 +417,7 @@
     }
 
     .ai-bubble {
-      max-width: 85%;
+      max-width: 88%;
       padding: 10px 14px;
       border-radius: 14px;
       line-height: 1.45;
@@ -450,6 +450,34 @@
       color: var(--cyan-deep);
       font-weight: 700;
       margin-bottom: 4px;
+    }
+
+    .ai-quick-suggestions {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 6px 12px;
+      background: #f8fafc;
+      border-top: 1px solid rgba(0, 180, 216, 0.15);
+      scrollbar-width: none;
+    }
+    .ai-quick-suggestions::-webkit-scrollbar { display: none; }
+
+    .quick-chip {
+      background: #ffffff;
+      border: 1px solid var(--border-subtle);
+      color: var(--cyan-deep);
+      font-size: 0.72rem;
+      font-weight: 600;
+      padding: 4px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .quick-chip:hover {
+      background: rgba(0, 180, 216, 0.12);
+      border-color: var(--cyan-soft);
     }
 
     .ai-chat-footer {
@@ -502,7 +530,7 @@
       .brand-logo { font-size: 1.1rem; }
       .stats-grid { grid-template-columns: 1fr; }
       .portal-header { flex-direction: column; align-items: flex-start; }
-      .ai-chat-box { width: calc(100vw - 24px); right: 12px; bottom: 80px; height: 500px; }
+      .ai-chat-box { width: calc(100vw - 24px); right: 12px; bottom: 80px; height: 520px; }
       .floating-container { bottom: 16px; right: 16px; }
     }
   </style>
@@ -817,7 +845,7 @@
       <div id="templatesListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;"></div>
     </div>
 
-    <!-- TAB 5: ANTREAN & RESERVASI PASIEN (FORMAT TERPADU DENGAN RENCANA KUNJUNGAN) -->
+    <!-- TAB 5: ANTREAN & RESERVASI PASIEN (DENGAN DEDUPLIKASI FRONTEND BEBAS DOBEL) -->
     <div id="tabContentBookings" class="glass-panel" style="display: none; padding: 22px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div>
@@ -984,7 +1012,7 @@
             Custom Prompt AI Medis (Gemini & ChatGPT)
           </h3>
           <p style="font-size: 0.84rem; color: var(--text-muted);">
-            Sesuaikan karakter, instruksi klinis, protokol pre-triage gigi, dan gaya bahasa bot WhatsApp resmi Estaka Dental Clinic secara dinamis.
+            Sesuaikan karakter, instruksi klinis, protokol pre-triage gigi, dan gaya bahasa bot WhatsApp serta asisten AI resmi Estaka Dental Clinic secara dinamis.
           </p>
         </div>
         <div style="display: flex; gap: 8px;">
@@ -1020,7 +1048,7 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- FLOATING ACTIONS & CHATBOT WIDGET                                     -->
+  <!-- FLOATING ACTIONS & SMART CHATBOT WIDGET (SESUAI CUSTOM PROMPT)        -->
   <!-- ===================================================================== -->
   <div class="floating-container">
     <div class="float-circle-btn btn-ai-float" onclick="toggleAIChat()" title="Tanya AI Medis Odontolog">
@@ -1039,7 +1067,7 @@
           <iconify-icon icon="solar:atom-bold-duotone" style="color: var(--cyan-soft); font-size: 22px;"></iconify-icon>
           <div>
             <div style="font-size: 0.88rem; font-weight: 700; color: var(--cyan-deep);">Estaka Dental AI Assistant</div>
-            <div style="font-size: 0.72rem; color: var(--cyan-soft);">Google Gemini & OpenAI Engine</div>
+            <div style="font-size: 0.72rem; color: var(--cyan-soft);" id="chatActivePersonaDisplay">Persona: Loading Persona...</div>
           </div>
         </div>
         <button onclick="toggleAIChat(false)" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 20px;">
@@ -1057,10 +1085,18 @@
     </div>
 
     <div id="aiChatMessages" class="ai-chat-body">
-      <div class="ai-bubble bubble-model">
-        <span class="ai-model-tag">Sistem Online</span><br>
+      <div class="ai-bubble bubble-model" id="aiWelcomeBubble">
+        <span class="ai-model-tag" id="aiWelcomeTag">Estaka Care</span><br>
         Halo! Saya asisten AI cerdas Estaka Dental Clinic. Ada yang bisa saya bantu terkait konsultasi gigi, prosedur endodontik, atau pemantauan bot WhatsApp?
       </div>
+    </div>
+
+    <!-- Quick Action Chips -->
+    <div class="ai-quick-suggestions">
+      <button type="button" class="quick-chip" onclick="sendQuickPrompt('Triage pasien sakit gigi berdenyut malam hari')">Triage Nyeri Akut</button>
+      <button type="button" class="quick-chip" onclick="sendQuickPrompt('Rekomendasi medikamen endodontik saluran akar')">Endodontik</button>
+      <button type="button" class="quick-chip" onclick="sendQuickPrompt('Protokol scaling dan gigi berdarah')">Periodonsia</button>
+      <button type="button" class="quick-chip" onclick="sendQuickPrompt('Periksa status bot WhatsApp dan antrean')">Status Bot</button>
     </div>
 
     <form class="ai-chat-footer" onsubmit="event.preventDefault(); sendAiMessage();">
@@ -1257,7 +1293,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN LIVE POLLING STATUS -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN SMART CUSTOMPROMPT CHATBOT -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1352,6 +1388,7 @@
     window.addEventListener('DOMContentLoaded', function() {
       checkSavedSession();
       loadAiModelCatalog();
+      loadCustomPromptsBackend(false);
     });
 
     function checkSavedSession() {
@@ -1382,7 +1419,7 @@
       loadClientsBackend(true);
       loadBookingsBackend(true);
 
-      // Mulai auto-polling live status client bot setiap 6 detik
+      // Auto-polling status telemetri bot setiap 6 detik
       if (!appState.clientsPollingTimer) {
         appState.clientsPollingTimer = setInterval(() => {
           loadClientsBackend(false);
@@ -1700,7 +1737,7 @@
     }
 
     // =========================================================================
-    // TAB 3: CLIENT RAILWAY BOT (DENGAN SINKRONISASI TELEMETRI STATUS LIVE)
+    // TAB 3: CLIENT RAILWAY BOT (TELEMETRI LIVE)
     // =========================================================================
     function loadClientsBackend(forceCloud) {
       runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1773,7 +1810,6 @@
         tbody.appendChild(tr);
       });
 
-      // Update statistik kartu dashboard secara dinamis
       document.getElementById('statTotalClients').innerText = clients.length;
       document.getElementById('statConnectedClients').innerText = stats?.connected !== undefined ? stats.connected : connectedCount;
       document.getElementById('statScanningClients').innerText = stats?.scanning !== undefined ? stats.scanning : scanningCount;
@@ -1865,7 +1901,7 @@
     }
 
     // =========================================================================
-    // TAB 4: TEMPLATES (8 TEMPLATE LENGKAP & PROFESIONAL)
+    // TAB 4: TEMPLATES
     // =========================================================================
     function loadTemplatesBackend(forceCloud) {
       runBackend('getTemplatesList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1918,7 +1954,7 @@
     }
 
     // =========================================================================
-    // TAB 5: ANTREAN & RESERVASI PASIEN (FORMAT TERPADU DENGAN RENCANA KUNJUNGAN)
+    // TAB 5: ANTREAN & RESERVASI PASIEN (DENGAN DEDUPLIKASI FRONTEND BEBAS DOBEL)
     // =========================================================================
     function loadBookingsBackend(forceCloud) {
       runBackend('getBookingsList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1947,7 +1983,31 @@
         return;
       }
 
-      bookings.forEach(b => {
+      // Deduplikasi Frontend Mutlak (Mencegah Baris Dobel seperti Gambar 1 & Gambar 2 Terulang)
+      const seenRecords = new Set();
+      const uniqueBookings = [];
+
+      (bookings || []).forEach(b => {
+        const isArr = Array.isArray(b);
+        const bookingId = b.bookingId || b.kodeAntrean || (isArr ? b[0] : '');
+        const rmId = b.nomorRm || (isArr ? b[1] : bookingId);
+        const nik = b.nik || (isArr ? b[2] : '');
+        const phone = sanitizePhoneNumberToE164(b.phoneNumber || b.noHp || (isArr ? b[6] : ''));
+        const rencanaKunjungan = b.rencanaWaktuKunjungan || b.bookingDate || (isArr ? b[10] : '');
+
+        // Kunci unik deduplikasi berdasarkan kombinasi RM/NIK dan Rencana Waktu Kunjungan
+        const dedupeKey = `${rmId}_${nik}_${phone}_${rencanaKunjungan}`;
+
+        if (seenRecords.has(dedupeKey)) return;
+        if (bookingId && seenRecords.has(bookingId)) return;
+
+        if (dedupeKey !== '___') seenRecords.add(dedupeKey);
+        if (bookingId) seenRecords.add(bookingId);
+
+        uniqueBookings.push(b);
+      });
+
+      uniqueBookings.forEach(b => {
         const isArr = Array.isArray(b);
         const bookingId = b.bookingId || b.kodeAntrean || (isArr ? b[0] : '-');
         const rmId = b.nomorRm || (isArr ? b[1] : bookingId);
@@ -2119,6 +2179,7 @@
           fetchDirectFromGAS('getCustomAiPrompts', {}, function(gasRes) {
             if (gasRes && gasRes.prompts) {
               renderCustomPromptsTable(gasRes.prompts);
+              updateAiChatPersonaFromPrompts(gasRes.prompts);
               return;
             }
             renderCustomPromptsTable([]);
@@ -2126,6 +2187,7 @@
           return;
         }
         renderCustomPromptsTable(rawPrompts);
+        updateAiChatPersonaFromPrompts(rawPrompts);
       });
     }
 
@@ -2170,6 +2232,21 @@
         `;
         tbody.appendChild(tr);
       });
+    }
+
+    function updateAiChatPersonaFromPrompts(prompts) {
+      const active = (prompts || []).find(p => p.isActive === true || String(p.isActive).toLowerCase() === 'true');
+      const displayEl = document.getElementById('chatActivePersonaDisplay');
+      const welcomeTag = document.getElementById('aiWelcomeTag');
+
+      if (active) {
+        const title = active.title || 'Estaka Dental Care';
+        if (displayEl) displayEl.innerText = `Persona: ${title}`;
+        if (welcomeTag) welcomeTag.innerText = title;
+      } else {
+        if (displayEl) displayEl.innerText = 'Persona: Estaka Odontolog';
+        if (welcomeTag) welcomeTag.innerText = 'Estaka Odontolog';
+      }
     }
 
     function openAddCustomPromptModal() {
@@ -2218,7 +2295,7 @@
       showToast('Mengaktifkan prompt ' + promptId + '...', 'warning');
       runBackend('setActiveAiPrompt', [promptId], function(res) {
         if (res && (res.success || res.status === 'success')) {
-          showToast(res.message || 'Prompt telah diaktifkan untuk bot WA!', 'success');
+          showToast(res.message || 'Prompt telah diaktifkan untuk bot WA & asisten!', 'success');
           loadCustomPromptsBackend(true);
         }
       });
@@ -2236,7 +2313,7 @@
     }
 
     // =========================================================================
-    // FLOATING AI CHATBOX & EXPORT ACTIONS
+    // SMART FLOATING AI CHATBOX (INTEGRASI PENUH CUSTOMPROMPTS & FORMATTING)
     // =========================================================================
     function toggleKeyMask(inputId, btn) {
       const input = document.getElementById(inputId);
@@ -2254,31 +2331,66 @@
       box.style.display = (typeof force === 'boolean') ? (force ? 'flex' : 'none') : (box.style.display === 'flex' ? 'none' : 'flex');
     }
 
-    function sendAiMessage() {
+    function sendQuickPrompt(text) {
+      sendAiMessage(text);
+    }
+
+    function formatAiResponse(text) {
+      if (!text) return '';
+      let clean = escapeHtml(text);
+      // Code block
+      clean = clean.replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(15,23,42,0.06); padding:8px; border-radius:6px; font-family:monospace; font-size:0.8rem; overflow-x:auto;">$1</pre>');
+      // Inline code
+      clean = clean.replace(/`([^`]+)`/g, '<code style="background:rgba(0,180,216,0.12); padding:1px 4px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
+      // Bold
+      clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      clean = clean.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      // Bullets
+      clean = clean.replace(/^[\*•\-]\s+(.*)$/gm, '• $1');
+      // Line breaks
+      clean = clean.replace(/\n/g, '<br>');
+      return clean;
+    }
+
+    function sendAiMessage(overridePrompt) {
       const input = document.getElementById('aiUserInput');
-      const prompt = input.value.trim();
+      const prompt = (overridePrompt || input.value).trim();
       if (!prompt) return;
 
       const chosen = appState.selectedModel || 'gemini-3.5-flash';
-      input.value = '';
-      appendBubble('user', prompt);
+      if (!overridePrompt) input.value = '';
+      appendBubble('user', escapeHtml(prompt));
+
+      // Ambil Custom Prompt aktif saat ini dari appState
+      const activeCustom = appState.customPrompts.find(p => p.isActive === true || String(p.isActive).toLowerCase() === 'true');
+      const activePromptText = activeCustom ? activeCustom.systemPrompt : '';
+      const activeTitle = activeCustom ? activeCustom.title : 'Estaka Care';
 
       const loadId = 'aiLoad_' + Date.now();
-      appendBubble('model', `<i>Menghubungkan ke ${chosen}...</i>`, loadId);
+      appendBubble('model', `<i>${escapeHtml(activeTitle)} sedang menganalisis (${chosen})...</i>`, loadId);
 
       const action = chosen.includes('gpt') || chosen.includes('o3') ? 'askOpenAiClinic' : 'askGeminiClinic';
 
-      runBackend(action, [{ prompt, model: chosen, history: appState.aiHistory }], function(res) {
+      const payload = {
+        prompt,
+        model: chosen,
+        history: appState.aiHistory,
+        systemPrompt: activePromptText,
+        customPrompt: activePromptText,
+        personaTitle: activeTitle
+      };
+
+      runBackend(action, [payload], function(res) {
         const el = document.getElementById(loadId);
         if (el) el.remove();
 
         if (res && (res.success || res.status === 'success')) {
-          const reply = res.reply || res.text;
-          appendBubble('model', `<span class="ai-model-tag">${res.modelUsed || chosen}</span><br>${escapeHtml(reply).replace(/\n/g, '<br>')}`);
+          const reply = res.reply || res.text || 'Tidak ada balasan dari server.';
+          appendBubble('model', `<span class="ai-model-tag">${escapeHtml(activeTitle)} • ${res.modelUsed || chosen}</span><br>${formatAiResponse(reply)}`);
           appState.aiHistory.push({ role: 'user', text: prompt });
           appState.aiHistory.push({ role: 'model', text: reply });
         } else {
-          appendBubble('model', `<span class="ai-model-tag" style="color:var(--danger);">${chosen} Error</span><br>⚠️ ${escapeHtml(res.message || 'Gagal memuat respon')}`);
+          appendBubble('model', `<span class="ai-model-tag" style="color:var(--danger);">${chosen} Error</span><br>⚠️ ${escapeHtml(res ? (res.message || 'Gagal memuat respon') : 'Koneksi terputus')}`);
         }
       });
     }
