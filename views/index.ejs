@@ -26,7 +26,7 @@
   <meta name="geo.position" content="-5.171147;119.417230" />
   <meta name="ICBM" content="-5.171147, 119.417230" />
 
-  <!-- Open Graph / Facebook (Favicon & Preview Image PNG 100% SEO) -->
+  <!-- Open Graph / Facebook -->
   <meta property="og:locale" content="id_ID" />
   <meta property="og:type" content="website" />
   <meta property="og:title" content="<%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Estaka Dental Clinic' %>" />
@@ -244,7 +244,7 @@
         </div>
       </section>
 
-      <!-- Dokter & Jadwal Praktek (NOMOR WHATSAPP DOKTER DILARANG KERAS MUNCUL DI SINI) -->
+      <!-- Dokter & Jadwal Praktek (NOMOR WHATSAPP DOKTER DILINDUNGI DARI PUBLIK) -->
       <section class="container animate-swipe-up" id="dokter" aria-label="Profil Dokter Gigi">
         <div class="section-title">
           <h2>Tim Dokter Gigi Profesional</h2>
@@ -585,12 +585,8 @@
       console.clear();
     }, 4000);
 
-    // DUAL-MODE API CLIENT: Default Express Local/Redis Router -> Google Apps Script Fallback
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
 
-    /**
-     * Helper Sanitasi Nomor WhatsApp Otomatis ke Format Internasional (62...)
-     */
     function sanitizePhoneNumberToE164(raw) {
       let cleaned = String(raw || '').replace(/\D/g, '');
       if (cleaned.startsWith('0')) {
@@ -628,7 +624,7 @@
       });
     }
 
-    // STATE DOKTER DEFAULT (NOMOR WA DOKTER TIDAK DISERTAKAN DI SINI)
+    // STATE DOKTER DEFAULT (NOMOR WA TERLINDUNGI)
     let clinicDoctors = [
       {
         id: 'DOC-001',
@@ -669,7 +665,6 @@
     let slideTimer = null;
     let deferredPwaPrompt = null;
     
-    // PERSISTENT GROQ SETTINGS
     let systemGroqKey = localStorage.getItem('estaka_groq_key') || localStorage.getItem('akshara_groq_key') || '';
     let systemTtsModel = localStorage.getItem('estaka_tts_model') || 'canopylabs/orpheus-arabic-saudi';
     let systemTtsVoice = localStorage.getItem('estaka_tts_voice') || 'abdullah';
@@ -686,16 +681,30 @@
       setDefaultBookingTime();
 
       syncTtsSelectors(systemTtsModel, systemTtsVoice);
+
+      // Unlock browser audio policy pada klik pertama halaman
+      document.body.addEventListener('click', function unlockAudio() {
+        try {
+          const ctx = new (window.AudioContext || window.webkitAudioContext)();
+          if (ctx.state === 'suspended') ctx.resume();
+        } catch (e) {}
+        document.body.removeEventListener('click', unlockAudio);
+      }, { once: true });
     });
 
     function setDefaultBookingTime() {
       const timeInput = document.getElementById('resRencanaKunjungan');
-      if (timeInput && !timeInput.value) {
+      if (timeInput) {
         const now = new Date();
-        now.setHours(now.getHours() + 2);
-        const pad = n => String(n).padStart(2, '0');
-        const formatted = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-        timeInput.value = formatted;
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        const isoString = now.toISOString().slice(0, 16);
+        timeInput.min = isoString;
+
+        if (!timeInput.value) {
+          const defaultTime = new Date(Date.now() + 2 * 60 * 60 * 1000);
+          defaultTime.setMinutes(defaultTime.getMinutes() - defaultTime.getTimezoneOffset());
+          timeInput.value = defaultTime.toISOString().slice(0, 16);
+        }
       }
     }
 
@@ -934,6 +943,12 @@
       const cleanHp = sanitizePhoneNumberToE164(rawHp);
       const rencanaWaktu = document.getElementById('resRencanaKunjungan').value;
 
+      if (!cleanHp || cleanHp.length < 8) {
+        showToast('Nomor WhatsApp tidak valid. Pastikan nomor aktif!', 'error');
+        document.getElementById('resNoHp').focus();
+        return;
+      }
+
       if (!rencanaWaktu) {
         showToast('Silakan pilih Rencana Waktu Kunjungan Anda!', 'error');
         document.getElementById('resRencanaKunjungan').focus();
@@ -946,24 +961,23 @@
       const payload = {
         isNewPatient: document.getElementById('resIsNew').value === 'true',
         nomorRm: document.getElementById('resNomorRm').value,
-        nik: document.getElementById('resNik').value,
-        nama: document.getElementById('resNama').value,
-        patientName: document.getElementById('resNama').value,
+        nik: document.getElementById('resNik').value.trim(),
+        nama: document.getElementById('resNama').value.trim(),
+        patientName: document.getElementById('resNama').value.trim(),
         tanggalLahir: document.getElementById('resTglLahir').value,
         jenisKelamin: document.getElementById('resGender').value,
         noHp: cleanHp,
         phoneNumber: cleanHp,
-        alamat: document.getElementById('resAlamat').value,
-        alergiObat: document.getElementById('resAlergi').value,
+        alamat: document.getElementById('resAlamat').value.trim(),
+        alergiObat: document.getElementById('resAlergi').value.trim() || 'Tidak Ada',
         dokterId: document.getElementById('resDokterSelect').value || 'DOC-001',
         ruanganPoli: 'Poli Gigi & Spesialis',
         serviceType: 'Poli Gigi & Spesialis',
         rencanaWaktuKunjungan: rencanaWaktu,
         bookingDate: rencanaWaktu,
-        keluhanUtama: document.getElementById('resKeluhan').value
+        keluhanUtama: document.getElementById('resKeluhan').value.trim()
       };
 
-      // 1. Kirim ke Server Local Express / Upstash Redis
       runApi('registerAppointment', payload)
         .then(function(res) {
           btn.disabled = false;
@@ -972,7 +986,7 @@
           if (res && res.status === 'success') {
             showToast('Pendaftaran Berhasil! Nomor Antrean: ' + (res.kodeAntrean || res.bookingId), 'success');
             
-            // 2. Sinkronkan secara langsung ke Google Apps Script (Dual-Commit)
+            // Dual-Commit ke GAS
             fetch(GAS_API_URL, {
               method: 'POST',
               headers: { 'Content-Type': 'text/plain;charset=utf-8' },
@@ -986,7 +1000,7 @@
           }
         })
         .catch(function(err) {
-          // Fallback langsung ke Google Apps Script jika server lokal belum siap
+          // Fallback direct GAS
           fetch(GAS_API_URL, {
             method: 'POST',
             headers: { 'Content-Type': 'text/plain;charset=utf-8' },
