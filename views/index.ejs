@@ -153,7 +153,7 @@
 
     .landing-ai-bubble {
       max-width: 88%;
-      padding: 11px 15px;
+      padding: 12px 16px;
       border-radius: 14px;
       line-height: 1.55;
       word-wrap: break-word;
@@ -682,8 +682,8 @@
 
     <!-- Quick Action Chips Pasien Publik -->
     <div class="ai-quick-chips-container">
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana cara reservasi online dan apa saja formatnya?')">Format Reservasi</button>
-      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Gigi geraham saya berdenyut dan ngilu minum dingin, apa tindakannya?')">Triage Nyeri Akut</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana cara reservasi online dan format reservasinya?')">Format Reservasi</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Gigi geraham saya berdenyut dan ngilu saat minum dingin, apa penyebab dan tindakannya?')">Triage Gigi Ngilu</button>
       <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Jadwal dokter gigi spesialis konservasi endodontik dan dokter gigi umum?')">Jadwal Dokter</button>
       <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Berapa kisaran biaya scaling pembersihan karang gigi dan tambal?')">Biaya Perawatan</button>
     </div>
@@ -1235,7 +1235,7 @@
     }
 
     // =========================================================================
-    // FITUR BARU: BUBBLE CHAT AI ASISTEN MEDIS CERDAS SESUAI CUSTOMPROMPT
+    // FITUR: BUBBLE CHAT AI ASISTEN MEDIS CERDAS SESUAI FORMAT RESERVASI RESMI
     // =========================================================================
 
     function loadActiveLandingCustomPrompt() {
@@ -1273,7 +1273,7 @@
     }
 
     /**
-     * Markdown & Formatting Parser Lengkap (Mencegah ### Terlihat Mentah)
+     * Markdown & Formatting Parser Lengkap (Mencegah ### & List Mentah Terlihat Buruk)
      */
     function formatAiLandingText(text) {
       if (!text) return '';
@@ -1285,14 +1285,14 @@
       // Inline code
       clean = clean.replace(/`([^`]+)`/g, '<code style="background:rgba(0,180,216,0.12); padding:1px 5px; border-radius:4px; font-family:monospace; font-size:0.82rem;">$1</code>');
 
-      // Headings (Hapus tanda ###, ##, # dan ubah ke gaya judul elegan)
+      // Headings (Hapus tanda ###, ##, # dan ubah ke gaya judul elegan tebal)
       clean = clean.replace(/^###\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:0.92rem; display:block; margin:8px 0 3px;">$1</strong>');
       clean = clean.replace(/^##\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:0.96rem; display:block; margin:10px 0 4px;">$1</strong>');
       clean = clean.replace(/^#\s*(.*)$/gm, '<strong style="color:var(--primary); font-size:1rem; display:block; margin:12px 0 5px;">$1</strong>');
 
       // Bold & Italic
       clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
-      clean = clean.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      clean = clean.replace(/\*([^*]+)\*/g, '<strong>$1</strong>');
 
       // Bullets & Lists
       clean = clean.replace(/^[\*•\-]\s+(.*)$/gm, '• $1');
@@ -1309,55 +1309,63 @@
     }
 
     /**
-     * Membangun Sistem Prompt Cerdas Terpadu dengan Format Resmi Estaka Dental
+     * Membangun Sistem Prompt Cerdas Gemini 3.5 Flash dengan Format Reservasi Resmi Estaka Dental
      */
     function buildComprehensiveClinicalPrompt() {
       const activeCustom = landingAiState.activePersonaPrompt || '';
 
       const officialGuide = 
-        'SISTEM RESEPSIONIS & EDUKASI KLINIS ESTAKA DENTAL CLINIC MAKASSAR\n' +
-        'Nama Asisten: "Estaka Care". Sifat: Ramah, santun, hangat, empatik layaknya manusia sungguhan.\n' +
-        'ATURAN UTAMA: WAJIB MENJAWAB LENGKAP SAMPAI TUNTAS, DILARANG MEMOTONG JAWABAN DI TENGAH JALAN.\n\n' +
-        'JIKA PASIEN BERTANYA CARA RESERVASI / CARA BOOKING / DAFTAR PERIKSA GIGI, WAJIB BERIKAN FORMAT RESMI BERIKUT DENGAN LENGKAP:\n\n' +
-        '🟢 1. UNTUK PASIEN BARU (Belum Pernah Periksa):\n' +
-        'Silakan salin dan lengkapi format pendaftaran berikut:\n' +
-        '• NIK: (16 digit sesuai KTP)\n' +
-        '• Nama Lengkap: \n' +
-        '• Tanggal Lahir: (DD/MM/YYYY)\n' +
-        '• Jenis Kelamin: (Laki-laki / Perempuan)\n' +
-        '• Alamat: \n' +
-        '• Dokter: (DOC-001 / DOC-002 / DOC-003)\n' +
-        '• Nomor WhatsApp: \n' +
-        '• Rencana Waktu Kunjungan: (DD/MM/YYYY HH:mm)\n' +
-        '• Riwayat Alergi: (Misal: Alergi Amoxicillin / Tidak Ada)\n' +
-        '• Keluhan Gigi / Perawatan yang Diinginkan: \n\n' +
-        'Contoh Pengisian Pasien Baru:\n' +
-        '• NIK: 7371101205920001\n' +
-        '• Nama Lengkap: Fulan\n' +
-        '• Tanggal Lahir: 03/03/1998\n' +
-        '• Jenis Kelamin: Laki-laki\n' +
-        '• Alamat: Jl. Andi Tonro Blok F No.30\n' +
-        '• Dokter: DOC-001\n' +
-        '• Nomor WhatsApp: 628xxxxxxxxxx\n' +
-        '• Rencana Waktu Kunjungan: 09/09/2026 11:30\n' +
-        '• Riwayat Alergi: Alergi obat Amoxicillin\n' +
-        '• Keluhan Gigi / Perawatan yang Diinginkan: Sakit gigi geraham yang memerlukan Perawatan Saluran Akar\n\n' +
-        '🔵 2. UNTUK PASIEN LAMA (Sudah Memiliki No. RM):\n' +
-        '1. Cukup sebutkan NIK atau No. RM Anda terlebih dahulu (Contoh: NIK: 7371101205920001 atau No RM: RM-0001)\n' +
-        '2. Setelah data terkonfirmasi, isi jadwal rencana kunjungan:\n' +
-        '• Dokter: (DOC-001 / DOC-002 / DOC-003)\n' +
-        '• Rencana Waktu Kunjungan: (DD/MM/YYYY HH:mm)\n' +
-        '• Riwayat Alergi: (Jika ada obat baru)\n' +
-        '• Keluhan Gigi / Perawatan yang Diinginkan: \n\n' +
-        '👩‍⚕️ DAFTAR DOKTER GIGI RESMI ESTAKA DENTAL CLINIC:\n' +
-        '• DOC-001: drg. Hj. Kurniawaty, Sp.KG (Spesialis Konservasi Gigi / Saluran Akar) — Praktek: Senin - Sabtu (16.00 - 21.00 WITA)\n' +
-        '• DOC-002: drg. M. Aksa Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin - Sabtu (09.00 - 16.00 WITA)\n' +
-        '• DOC-003: drg. Tasya Awaliyah Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin - Sabtu (13.00 - 20.00 WITA)\n\n' +
-        'INFORMASI OPERASIONAL & PENDAFTARAN:\n' +
-        '• Reservasi Mandiri Web: https://estakadentalclinic.vercel.app/reservasi\n' +
-        '• Hotline WhatsApp Resmi: +62 853-3892-2586\n' +
+        'IDENTITAS DAN PERAN ANDA:\n' +
+        'Nama Asisten: "Estaka Care" (Asisten Medis AI & Odontolog Cerdas Resmi Estaka Dental Clinic Makassar).\n' +
+        'Engine: Google Gemini 3.5 Flash Generative AI.\n' +
+        'Karakter: Sangat cerdas, ramah, hangat, sopan, empatik layaknya manusia sungguhan (staf resepsionis dan perawat gigi profesional).\n\n' +
+        'ATURAN UTAMA PENULISAN RESPON:\n' +
+        '1. JAWABAN LENGKAP & TUNTAS: DILARANG KERAS MEMOTONG JAWABAN DI TENGAH KALIMAT. Pastikan jawaban tuntas hingga penutup yang sopan.\n' +
+        '2. JIKA PENGGUNA BERTANYA CARA RESERVASI, FORMAT PENDAFTARAN, CARA DAFTAR, ATAU CARA BOOKING PERIKSA GIGI, ANDA WAJIB MEMBERIKAN FORMAT RESMI BERIKUT SECARA UTUH DAN PERSIS:\n\n' +
+        'Untuk memudahkan proses reservasi (Pasien Baru), silakan isi data singkat berikut ini:\n' +
+        '* *NIK:*\n' +
+        '* *Nama Lengkap:*\n' +
+        '* *Tanggar Lahir:*\n' +
+        '* *Jenis Kelamin:*\n' +
+        '* *Alamat:*\n' +
+        '* *Dokter:*\n' +
+        '* *Nomor WhatsApp:*\n' +
+        '* *Rencana Waktu Kunjungan:*\n' +
+        '* *Riwayat Alergi:*\n' +
+        '* *Keluhan Gigi / Perawatan yang Diinginkan:*\n\n' +
+        'Berikut contoh format reservasi (Pasien Baru):\n' +
+        '* NIK: 73xxxxxxxxxxxxxx (16 digit)\n' +
+        '* Nama Lengkap: Fulan\n' +
+        '* Tanggar Lahir: 03/03/1998\n' +
+        '* Jenis Kelamin: Laki-laki\n' +
+        '* Alamat: Jl. Andi Tonro\n' +
+        '* Dokter: DOC-001\n' +
+        '* Nomor WhatsApp: 628xxxx\n' +
+        '* Rencana Waktu Kunjungan: 09/09/2026 11:30\n' +
+        '* Riwayat Alergi: Alergi obat Amoxicillin\n' +
+        '* Keluhan Gigi / Perawatan yang Diinginkan: (Misal: Tambal gigi, scaling, pasang behel, atau sakit gigi yang memerlukan Perawatan Saluran Akar)\n\n' +
+        'Untuk memudahkan proses reservasi (Pasien Lama), terlebih dahulu mengirim NIK/No RM Pasien (NIK: xxx / No RM: RM-00xx) lalu Apakah data anda sudah betul? (Bot mengirim data px), kemudian jika sudah ada di database silakan isi data singkat berikut ini:\n' +
+        '* *Dokter:*\n' +
+        '* *Rencana Waktu Kunjungan:*\n' +
+        '* *Riwayat Alergi:* Jika ada tamabahan/diperlukan\n' +
+        '* *Keluhan Gigi / Perawatan yang Diinginkan:*\n\n' +
+        'Berikut contoh format reservasi (Pasien Lama):\n' +
+        '1. Silahkan mengkonfirmasi NIK/No. RM and aterlebih dahulu\n' +
+        '* NIK: 73xxxxxxxxxxxxxx (16 digit)\n' +
+        '2. Apakah data anda sudah betul? (Bot mengirim data px)\n' +
+        '* Dokter: DOC-002\n' +
+        '* Rencana Waktu Kunjungan: 09/09/2026 11:30\n' +
+        '* Riwayat Alergi: Alergi obat Amoxicillin\n' +
+        '* Keluhan Gigi / Perawatan yang Diinginkan: (Misal: Tambal gigi, scaling, pasang behel, atau sakit gigi yang memerlukan Perawatan Saluran Akar)\n\n' +
+        '3. PILIHAN DOKTER GIGI RESMI:\n' +
+        '• DOC-001: drg. Hj. Kurniawaty, Sp.KG (Spesialis Konservasi Gigi / Saluran Akar) — Praktek: Senin s/d Sabtu (16.00 - 21.00 WITA)\n' +
+        '• DOC-002: drg. M. Aksa Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin s/d Sabtu (09.00 - 16.00 WITA)\n' +
+        '• DOC-003: drg. Tasya Awaliyah Arsyad (Kedokteran Gigi Umum & Estetika) — Praktek: Senin s/d Sabtu (13.00 - 20.00 WITA)\n\n' +
+        '4. INFORMASI OPERASIONAL KLINIK:\n' +
         '• Alamat: Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar\n' +
-        '• Jam Operasional: Setiap Hari, 08:00 – 21:00 WITA.\n';
+        '• Jam Buka: Setiap Hari, 08:00 – 21:00 WITA\n' +
+        '• Hotline WhatsApp: +62 853-3892-2586\n' +
+        '• Reservasi Mandiri Web: https://estakadentalclinic.vercel.app/reservasi\n';
 
       if (activeCustom) {
         return activeCustom + '\n\n' + officialGuide;
@@ -1408,7 +1416,7 @@
         .catch(function() {
           const loadingEl = document.getElementById(loadId);
           if (loadingEl) loadingEl.remove();
-          appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Koneksi Terputus</span><br>⚠️ Gagal terhubung ke engine AI. Silakan coba kembali atau gunakan fitur pendaftaran mandiri di tab Reservasi.`);
+          appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Koneksi Terputus</span><br>⚠️ Gagal terhubung ke engine AI. Silakan coba kembali atau gunakan formulir pendaftaran mandiri pada tab Reservasi.`);
         });
     }
 
