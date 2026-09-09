@@ -1,4 +1,16 @@
-
+/**
+ * ============================================================================
+ * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC
+ * File: server.js (Tahap 1: Enterprise Clinical Core Engine)
+ * Fitur: Primary Upstash Redis / Vercel KV Database (13 Tabel Medis Murni),
+ *        Bebas Duplikasi DB Bot WA (Tabel Bot Didelegasikan Penuh ke serverv2.js),
+ *        Full Clinical Logic (EMR, Odontogram 52 Gigi, E-Resep, Lab, Kasir POS),
+ *        Dual-Mode V1 Router & V2 Reverse Delegation Handler,
+ *        Multi-Model AI (Gemini 3.5 Flash Default, OpenAI ChatGPT, Groq LPU),
+ *        Dukungan Kunci API Format AQ... & AIzaSy...,
+ *        Orpheus Audio TTS Proxy, Dynamic SEO (GSC), & Asset Delivery Anti-404.
+ * ============================================================================
+ */
 
 const express = require('express');
 const path = require('path');
@@ -8,22 +20,23 @@ const { Redis } = require('@upstash/redis');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const PORT_V2 = process.env.PORT_V2 || 3001;
 const BASE_URL = process.env.BASE_URL || 'https://aksharadental.vercel.app';
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
 
 // ============================================================================
-// 1. KATALOG LENGKAP MODEL GOOGLE AI STUDIO (GAMBAR 1 - 5) & OPENAI / GROQ
+// 1. KATALOG LENGKAP MODEL GOOGLE AI STUDIO, OPENAI & GROQ
 // ============================================================================
 
 const SUPPORTED_AI_MODELS = [
-  // Gemini 3 Series (Gambar 1, 2, 3)
+  // Gemini 3 Series (Default: Gemini 3.5 Flash)
   { id: 'gemini-3.5-flash', name: 'Gemini 3.5 Flash', category: 'Gemini 3 Series', description: 'High Throughput Workhorse (Default Rekomendasi)' },
   { id: 'gemini-3.8-flash', name: 'Gemini 3.8 Flash', category: 'Gemini 3 Series', description: 'Ultra-Fast Next-Gen Precision' },
   { id: 'gemini-3.7-flash', name: 'Gemini 3.7 Flash', category: 'Gemini 3 Series', description: 'High Performance & Speed' },
   { id: 'gemini-3.6-flash', name: 'Gemini 3.6 Flash', category: 'Gemini 3 Series', description: 'Rapid Clinical Triage' },
   { id: 'gemini-3.5-flash-lite', name: 'Gemini 3.5 Flash Lite', category: 'Gemini 3 Series', description: 'Lightweight & High RPM' },
-  { id: 'gemini-3.5-transcribe', name: 'Gemini 3.5 Transcribe', category: 'Gemini 3 Series', description: 'Live Audio & Transcription' },
+  { id: 'gemini-3.5-transcribe', name: 'Gemini 3.5 Transcribe', category: 'Gemini 3 Series', description: 'Live Audio & EMR Transcription' },
   { id: 'gemini-3.1-pro', name: 'Gemini 3.1 Pro', category: 'Gemini 3 Series', description: 'Deep Clinical Reasoning' },
   { id: 'gemini-3.1-flash-lite', name: 'Gemini 3.1 Flash Lite', category: 'Gemini 3 Series', description: 'Low Footprint High Speed' },
   { id: 'gemini-3.1-flash-tts', name: 'Gemini 3.1 Flash TTS', category: 'Gemini 3 Series', description: 'Multimodal Text-to-Speech' },
@@ -31,7 +44,7 @@ const SUPPORTED_AI_MODELS = [
   { id: 'gemini-omni-1.1-flash', name: 'Gemini Omni 1.1 Flash', category: 'Gemini 3 Series', description: 'Omni Multimodal Generative' },
   { id: 'gemini-omni-flash', name: 'Gemini Omni Flash', category: 'Gemini 3 Series', description: 'Omni Fast Vision & Voice' },
 
-  // Gemini 2 & 2.5 Series (Gambar 1, 2, 3)
+  // Gemini 2 & 2.5 Series
   { id: 'gemini-2.5-pro', name: 'Gemini 2.5 Pro', category: 'Gemini 2.5 Series', description: 'Complex Analytical Triage' },
   { id: 'gemini-2.5-flash', name: 'Gemini 2.5 Flash', category: 'Gemini 2.5 Series', description: 'Stable Fast Conversational' },
   { id: 'gemini-2.5-flash-lite', name: 'Gemini 2.5 Flash Lite', category: 'Gemini 2.5 Series', description: 'Ultra-Low Latency' },
@@ -40,7 +53,7 @@ const SUPPORTED_AI_MODELS = [
   { id: 'gemini-2-flash', name: 'Gemini 2 Flash', category: 'Gemini 2 Series', description: 'High Performance Text Engine' },
   { id: 'gemini-2-flash-lite', name: 'Gemini 2 Flash Lite', category: 'Gemini 2 Series', description: 'Ultra-Fast Lightweight' },
 
-  // Specialized Agents & Open Models (Gambar 1, 3)
+  // Specialized Agents & Open Architecture
   { id: 'deep-research-pro-preview', name: 'Deep Research Pro Preview', category: 'Specialist Agents', description: 'Agentic Deep Clinical Synthesizer' },
   { id: 'antigravity', name: 'Antigravity', category: 'Specialist Agents', description: 'Autonomous High-RPM Agent Engine' },
   { id: 'computer-use-preview', name: 'Computer Use Preview', category: 'Specialist Agents', description: 'System Automation Agent' },
@@ -60,7 +73,7 @@ const SUPPORTED_AI_MODELS = [
 ];
 
 // ============================================================================
-// 2. INISIALISASI DATABASE UPSTASH REDIS & IN-MEMORY CACHE STORAGE
+// 2. BASIS DATA UPSTASH REDIS (MURNI 13 TABEL OPERASIONAL KLINIS)
 // ============================================================================
 
 let redis = null;
@@ -78,6 +91,7 @@ if (redisUrl && redisToken) {
   }
 }
 
+// In-Memory Storage Cache Khusus 13 Tabel Klinis (Bebas Duplikasi Tabel Bot WA)
 const memoryDB = {
   SETTINGS: [],
   USERS: [],
@@ -91,14 +105,7 @@ const memoryDB = {
   POS_SHIFT: [],
   TRANSAKSI_KASIR: [],
   DOKUMEN_MEDIS: [],
-  AUDIT_LOG: [],
-  Admins: [],
-  Clients: [],
-  ChatLogs: [],
-  Templates: [],
-  BroadcastQueue: [],
-  Bookings: [],
-  ActivityLogs: []
+  AUDIT_LOG: []
 };
 
 async function getTableData(tableName) {
@@ -131,33 +138,30 @@ async function setTableData(tableName, dataArray) {
 }
 
 // ============================================================================
-// 3. SEEDING DATABASE OTOMATIS (KLINIS & PORTAL V2 DENGAN DEFAULT GEMINI 3.5 FLASH)
+// 3. SEEDING AWAL ENTITAS KLINIK (ESTAKA DENTAL CLINIC)
 // ============================================================================
 
 async function initDatabaseStorage() {
   const nowStr = new Date().toISOString().replace('T', ' ').substring(0, 19);
 
-  // 1. SETTINGS TERPADU
+  // 1. SETTINGS KLINIS
   const currentSettings = await getTableData('SETTINGS');
   if (!currentSettings || currentSettings.length === 0) {
     const defaultSettings = [
-      { key: 'GEMINI_API_KEY', val: process.env.GEMINI_API_KEY || '', desc: 'Kunci API Google AI Studio / Gemini (AQ... atau AIzaSy...)' },
-      { key: 'GEMINI_MODEL', val: process.env.GEMINI_MODEL || 'gemini-3.5-flash', desc: 'Model default Google Gemini (Default: Gemini 3.5 Flash)' },
-      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI ChatGPT' },
-      { key: 'OPENAI_MODEL', val: process.env.OPENAI_MODEL || 'gpt-4o-mini', desc: 'Model default OpenAI ChatGPT' },
       { key: 'GROQ_API_KEY', val: process.env.GROQ_API_KEY || '', desc: 'Kunci API Groq LPU Inference' },
       { key: 'GROQ_MODEL', val: 'openai/gpt-oss-120b', desc: 'Model default Groq AI Agent' },
       { key: 'GROQ_TTS_MODEL', val: 'canopylabs/orpheus-arabic-saudi', desc: 'Model default Text-to-Speech' },
       { key: 'GROQ_TTS_VOICE', val: 'abdullah', desc: 'Persona suara default pemanggil antrean' },
-      { key: 'RAILWAY_DEFAULT_URL', val: DEFAULT_RAILWAY_URL, desc: 'URL instance Baileys di Railway Cloud' },
-      { key: 'RAILWAY_PING_TIMEOUT', val: '4000', desc: 'Timeout ping Railway (ms)' },
-      { key: 'SYNC_SECRET_TOKEN', val: 'AKSHARA_CLINIC_SECRET_2026', desc: 'Token otentikasi bot Railway' },
-      { key: 'KLINIK_NAMA', val: 'Klinik Akshara Dental Space', desc: 'Nama resmi entitas klinik' },
+      { key: 'GEMINI_API_KEY', val: process.env.GEMINI_API_KEY || '', desc: 'Kunci API Google AI Studio / Gemini (AQ... atau AIzaSy...)' },
+      { key: 'GEMINI_MODEL', val: process.env.GEMINI_MODEL || 'gemini-3.5-flash', desc: 'Model default Google Gemini (Default: Gemini 3.5 Flash)' },
+      { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI ChatGPT' },
+      { key: 'OPENAI_MODEL', val: process.env.OPENAI_MODEL || 'gpt-4o-mini', desc: 'Model default OpenAI ChatGPT' },
+      { key: 'KLINIK_NAMA', val: 'Estaka Dental Clinic', desc: 'Nama resmi entitas klinik' },
       { key: 'KLINIK_ALAMAT', val: 'Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar, Sulawesi Selatan 90131', desc: 'Alamat operasional klinik' },
       { key: 'KLINIK_TELEPON', val: '+62 853-3892-2586', desc: 'Kontak WhatsApp & Layanan Pasien' },
       { key: 'KLINIK_LOGO_URL', val: `${BASE_URL}/img/axalogo.png`, desc: 'URL Logo Klinik Resmi' },
       { key: 'KLINIK_SLOGAN', val: 'Modern Dental Care & Aesthetic Space', desc: 'Slogan klinik' },
-      { key: 'KLINIK_EMAIL', val: 'care@aksharadental.space', desc: 'Email resmi klinik' },
+      { key: 'KLINIK_EMAIL', val: 'care@estakadental.space', desc: 'Email resmi klinik' },
       { key: 'KLINIK_JAM_OPERASIONAL', val: 'Setiap Hari, 08:00 – 21:00 WITA', desc: 'Jam layanan operasional' },
       { key: 'KLINIK_INSTAGRAM', val: 'https://instagram.com/aksharadental', desc: 'Instagram resmi klinik' },
       { key: 'KLINIK_GMAPS_EMBED', val: 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d727.2324807218503!2d119.4172300669712!3d-5.171147028938255!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dbf1d71cf75a47d%3A0xa90a84353b81134a!2sJl.%20Andi%20Tonro%20Blok%20F%20No.30%2C%20Bongaya%2C%20Kec.%20Tamalate%2C%20Kota%20Makassar%2C%20Sulawesi%20Selatan%2090131!5e0!3m2!1sid!2sid!4v1788866524919!5m2!1sid!2sid', desc: 'Google Maps Embed URL' },
@@ -170,7 +174,7 @@ async function initDatabaseStorage() {
     await setTableData('SETTINGS', defaultSettings);
   }
 
-  // 2. DOKTER RESMI AKSHARA DENTAL SPACE
+  // 2. DOKTER RESMI
   const currentDokter = await getTableData('DOKTER');
   if (!currentDokter || currentDokter.length === 0) {
     const defaultDokter = [
@@ -181,11 +185,11 @@ async function initDatabaseStorage() {
     await setTableData('DOKTER', defaultDokter);
   }
 
-  // 3. USERS (STAF KLINIS V1)
+  // 3. USERS (STAF MEDIS KLINIS V1)
   const currentUsers = await getTableData('USERS');
   if (!currentUsers || currentUsers.length === 0) {
     const defaultUsers = [
-      { userId: 'USR-001', username: 'admin', passwordHash: 'admin123', fullName: 'Super Administrator Akshara', role: 'Admin', poliklinikId: 'POLI-ALL', status: 'Active' },
+      { userId: 'USR-001', username: 'admin', passwordHash: 'admin123', fullName: 'Super Administrator Estaka', role: 'Admin', poliklinikId: 'POLI-ALL', status: 'Active' },
       { userId: 'USR-002', username: 'drg_kurniawaty', passwordHash: 'dokter123', fullName: 'drg. Hj. Kurniawaty, Sp.KG', role: 'Dokter', poliklinikId: 'DOC-001', status: 'Active' },
       { userId: 'USR-003', username: 'drg_aksa', passwordHash: 'dokter123', fullName: 'drg. M. Aksa Arsyad', role: 'Dokter', poliklinikId: 'DOC-002', status: 'Active' },
       { userId: 'USR-004', username: 'drg_tasya', passwordHash: 'dokter123', fullName: 'drg. Tasya Awaliyah Arsyad', role: 'Dokter', poliklinikId: 'DOC-003', status: 'Active' },
@@ -196,17 +200,7 @@ async function initDatabaseStorage() {
     await setTableData('USERS', defaultUsers);
   }
 
-  // 4. ADMINS (PORTAL BOT RAILWAY V2)
-  const currentAdmins = await getTableData('Admins');
-  if (!currentAdmins || currentAdmins.length === 0) {
-    const defaultAdmins = [
-      { adminId: 'ADM-0001', username: 'superadmin', password: 'admin123', fullName: 'Super Administrator Akshara', role: 'Superadmin', createdAt: nowStr },
-      { adminId: 'ADM-0002', username: 'operator1', password: 'op123', fullName: 'Operator Medis Akshara', role: 'Operator Medis', createdAt: nowStr }
-    ];
-    await setTableData('Admins', defaultAdmins);
-  }
-
-  // 5. MASTER OBAT DENTAL LENGKAP
+  // 4. MASTER OBAT DENTAL LENGKAP
   const currentObat = await getTableData('MASTER_OBAT');
   if (!currentObat || currentObat.length === 0) {
     const defaultObat = [
@@ -226,18 +220,7 @@ async function initDatabaseStorage() {
     await setTableData('MASTER_OBAT', defaultObat);
   }
 
-  // 6. TEMPLATES WHATSAPP
-  const currentTemplates = await getTableData('Templates');
-  if (!currentTemplates || currentTemplates.length === 0) {
-    const defaultTemplates = [
-      { templateId: 'TPL-0001', name: 'Konfirmasi Reservasi Jadwal Gigi', category: 'Reservasi', content: 'Halo Bapak/Ibu {nama}, pendaftaran janji temu pemeriksaan gigi di Klinik Akshara Dental Space telah terkonfirmasi untuk tanggal {tanggal}. Mohon hadir 15 menit sebelum slot waktu.', updatedAt: nowStr },
-      { templateId: 'TPL-0002', name: 'Pengingat Kontrol Saluran Akar & Tambalan', category: 'Kontrol Rutin', content: 'Yth. Pasien {nama}, jadwal evaluasi perawatan saluran akar / kontrol gigi Anda dijadwalkan besok jam {jam}. Balas 1 jika hadir, atau hubungi hotline kami.', updatedAt: nowStr },
-      { templateId: 'TPL-0003', name: 'Rincian E-Billing Kasir Gigi', category: 'Billing', content: 'Pemberitahuan: Rincian transaksi perawatan gigi {nama} sebesar Rp {nominal} telah lunas. Struk elektronik dan resume medis dapat diakses di portal resmi.', updatedAt: nowStr }
-    ];
-    await setTableData('Templates', defaultTemplates);
-  }
-
-  // 7. PASIEN
+  // 5. PASIEN
   const currentPasien = await getTableData('PASIEN');
   if (!currentPasien || currentPasien.length === 0) {
     const defaultPasien = [
@@ -283,17 +266,6 @@ async function writeAuditLog(user, aksi, modul, detail) {
     };
     logs.push(item);
     await setTableData('AUDIT_LOG', logs);
-
-    // Sinkronkan juga ke ActivityLogs
-    const actLogs = await getTableData('ActivityLogs');
-    actLogs.push({
-      actId: 'ACT-' + (actLogs.length + 1).toString().padStart(4, '0'),
-      timestamp: getNowTimestamp(),
-      userId: user || 'ANONYMOUS',
-      action: aksi,
-      details: typeof detail === 'object' ? JSON.stringify(detail) : String(detail)
-    });
-    await setTableData('ActivityLogs', actLogs);
   } catch (err) {
     console.error('Audit Log Error:', err.message);
   }
@@ -343,10 +315,10 @@ async function generateDocNumber(docType, dateStr) {
 }
 
 // ============================================================================
-// 5. DUAL-AUTHENTICATION ENGINE (USERS & ADMINS)
+// 5. AUTENTIKASI STAF MEDIS KLINIS (TABEL USERS)
 // ============================================================================
 
-async function executeDualLogin(username, password) {
+async function loginClinicalUser(username, password) {
   const cleanUser = String(username || '').trim().toLowerCase();
   const cleanPass = String(password || '').trim();
 
@@ -354,24 +326,6 @@ async function executeDualLogin(username, password) {
     return { status: 'error', success: false, message: 'Username dan password wajib diisi!' };
   }
 
-  // 1. Cek tabel Admins (Portal V2)
-  const admins = await getTableData('Admins');
-  const matchedAdmin = admins.find(a => a.username.toLowerCase() === cleanUser && a.password === cleanPass);
-  if (matchedAdmin) {
-    const adminData = {
-      userId: matchedAdmin.adminId,
-      adminId: matchedAdmin.adminId,
-      username: matchedAdmin.username,
-      fullName: matchedAdmin.fullName,
-      role: matchedAdmin.role,
-      poliklinikId: 'POLI-ALL',
-      dokterId: 'DOC-001'
-    };
-    await writeAuditLog(matchedAdmin.username, 'LOGIN_SUCCESS', 'AUTH_PORTAL_V2', 'Login admin portal V2');
-    return { status: 'success', success: true, user: adminData, message: 'Login portal admin berhasil.' };
-  }
-
-  // 2. Cek tabel USERS (Staf Medis Klinik V1)
   const users = await getTableData('USERS');
   const matchedUser = users.find(u => u.username.trim().toLowerCase() === cleanUser && u.passwordHash.trim() === cleanPass);
 
@@ -401,12 +355,23 @@ async function executeDualLogin(username, password) {
     return { status: 'success', success: true, user: userData, message: 'Login berhasil.' };
   }
 
+  // Jika tidak ditemukan di tabel USERS lokal, delegasikan cek ke serverv2 atau GAS
+  try {
+    const v2Res = await fetch(`http://127.0.0.1:${PORT_V2}/api/v2/router`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'loginUser', payload: { username: cleanUser, password: cleanPass } }),
+      signal: AbortSignal.timeout(3000)
+    });
+    if (v2Res.ok) return await v2Res.json();
+  } catch (e) {}
+
   await writeAuditLog(cleanUser, 'LOGIN_FAILED', 'AUTH', `Percobaan login gagal untuk username: ${cleanUser}`);
   return { status: 'error', success: false, message: 'Username atau Password salah!' };
 }
 
 // ============================================================================
-// 6. LOGIKA KLINIS LENGKAP 100% UTUH
+// 6. LOGIKA OPERASIONAL KLINIS LENGKAP 100% UTUH
 // ============================================================================
 
 async function getInitialPublicData() {
@@ -1014,7 +979,7 @@ async function generateMedicalDoc(payload) {
   const nomorSurat = await generateDocNumber(payload.jenisDokumen, todayYm);
   const docId = 'DOC-' + (docList.length + 1).toString().padStart(5, '0');
   const verificationCode = crypto.createHash('md5').update(nomorSurat + nowStr).digest('hex').substring(0, 10).toUpperCase();
-  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=VERIF-KLINIK-AKSHARA-${verificationCode}`;
+  const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=VERIF-KLINIK-ESTAKA-${verificationCode}`;
 
   const docItem = {
     docId,
@@ -1125,7 +1090,7 @@ async function generateGroqAiAssist(payload) {
     messages = [
       {
         role: 'system',
-        content: 'Anda adalah Asisten Medis AI & Odontolog Cerdas untuk Klinik Akshara Dental Space Makassar. Bantu dokter menegakkan diferensial diagnosa ICD-10, merancang rencana terapi, serta memeriksa kontraindikasi alergi obat secara profesional, ringkas, dan akurat.'
+        content: 'Anda adalah Asisten Medis AI & Odontolog Cerdas untuk Estaka Dental Clinic Makassar. Bantu dokter menegakkan diferensial diagnosa ICD-10, merancang rencana terapi, serta memeriksa kontraindikasi alergi obat secara profesional, ringkas, dan akurat.'
       },
       {
         role: 'user',
@@ -1211,7 +1176,7 @@ async function generateAiMedicalAssist(payload) {
   }
 
   const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${targetModel}:generateContent?key=${apiKey}`;
-  const systemInstruction = 'Anda adalah Asisten Medis AI & Odontolog Cerdas untuk Klinik Akshara Dental Space Makassar. Bantu dokter menganalisis diferensial diagnosis ICD-10, merapikan format SOAP, peringatan interaksi obat atau alergi, dan rekomendasi terapi secara singkat, profesional, dan akurat.';
+  const systemInstruction = 'Anda adalah Asisten Medis AI & Odontolog Cerdas untuk Estaka Dental Clinic Makassar. Bantu dokter menganalisis diferensial diagnosis ICD-10, merapikan format SOAP, peringatan interaksi obat atau alergi, dan rekomendasi terapi secara singkat, profesional, dan akurat.';
 
   const formattedContents = [];
   (payload.history || []).forEach(item => {
@@ -1290,7 +1255,7 @@ async function generateOpenAiAssist(payload) {
 
   const endpoint = 'https://api.openai.com/v1/chat/completions';
   const messages = [
-    { role: 'system', content: 'Anda adalah Asisten Medis AI & Odontolog Cerdas Klinik Akshara Dental Space Makassar.' }
+    { role: 'system', content: 'Anda adalah Asisten Medis AI untuk Estaka Dental Clinic Makassar.' }
   ];
 
   (payload.history || []).forEach(h => {
@@ -1357,302 +1322,7 @@ async function testOpenAiKey(apiKey, modelName) {
 }
 
 // ============================================================================
-// 8. GATEWAY WHATSAPP RAILWAY, LOGS & BROADCAST QUEUE (6 TAB V2)
-// ============================================================================
-
-async function getChatLogsPaginated(filters = {}) {
-  const logs = await getTableData('ChatLogs');
-  const page = parseInt(filters.page, 10) || 1;
-  const pageSize = parseInt(filters.pageSize, 10) || 10;
-  const search = (filters.search || '').toLowerCase().trim();
-  const status = (filters.status || '').toUpperCase().trim();
-
-  let filtered = [...logs].reverse();
-  if (status) {
-    filtered = filtered.filter(l => (l.status || '').toUpperCase() === status);
-  }
-  if (search) {
-    filtered = filtered.filter(l =>
-      (l.logId || '').toLowerCase().includes(search) ||
-      (l.sender || '').toLowerCase().includes(search) ||
-      (l.receiver || '').toLowerCase().includes(search) ||
-      (l.content || '').toLowerCase().includes(search)
-    );
-  }
-
-  const totalCount = filtered.length;
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
-  const start = (page - 1) * pageSize;
-  const paginated = filtered.slice(start, start + pageSize);
-
-  return { success: true, status: 'success', logs: paginated, totalCount, page, totalPages };
-}
-
-async function syncChatLog(payload = {}) {
-  if (!payload.content) {
-    return { success: false, status: 'error', message: 'Konten pesan log kosong.' };
-  }
-  const logs = await getTableData('ChatLogs');
-  const logId = 'LOG-' + (logs.length + 1).toString().padStart(4, '0');
-  const newLog = {
-    logId,
-    timestamp: getNowTimestamp(),
-    clientId: payload.clientId || 'CLI-0001',
-    sender: String(payload.senderNumber || payload.sender || 'UNKNOWN'),
-    receiver: String(payload.receiverNumber || payload.receiver || 'BOT'),
-    type: String(payload.messageType || payload.type || 'INCOMING').toUpperCase(),
-    content: String(payload.content || ''),
-    status: String(payload.status || 'DELIVERED').toUpperCase()
-  };
-
-  logs.push(newLog);
-  await setTableData('ChatLogs', logs);
-  return { success: true, status: 'success', message: 'Chat log tersinkronisasi', logId };
-}
-
-async function getBroadcastQueuePaginated(filters = {}) {
-  const queue = await getTableData('BroadcastQueue');
-  const page = parseInt(filters.page, 10) || 1;
-  const pageSize = parseInt(filters.pageSize, 10) || 10;
-  const search = (filters.search || '').toLowerCase().trim();
-  const status = (filters.status || '').toUpperCase().trim();
-
-  let filtered = [...queue].reverse();
-  if (status) {
-    filtered = filtered.filter(q => (q.status || '').toUpperCase() === status);
-  }
-  if (search) {
-    filtered = filtered.filter(q =>
-      (q.queueId || '').toLowerCase().includes(search) ||
-      (q.targetNumber || '').toLowerCase().includes(search) ||
-      (q.messageContent || '').toLowerCase().includes(search)
-    );
-  }
-
-  const totalCount = filtered.length;
-  const totalPages = Math.ceil(totalCount / pageSize) || 1;
-  const start = (page - 1) * pageSize;
-  const paginated = filtered.slice(start, start + pageSize);
-
-  return { success: true, status: 'success', queue: paginated, totalCount, page, totalPages };
-}
-
-async function addBroadcastQueueItem(payload = {}, adminId = 'SUPERADMIN') {
-  if (!payload.targetNumber || !payload.messageContent) {
-    return { success: false, status: 'error', message: 'Nomor WhatsApp dan isi pesan wajib diisi.' };
-  }
-  const queue = await getTableData('BroadcastQueue');
-  const queueId = 'QUE-' + (queue.length + 1).toString().padStart(4, '0');
-  const nowStr = getNowTimestamp();
-
-  const item = {
-    queueId,
-    clientId: payload.clientId || 'CLI-0001',
-    targetNumber: String(payload.targetNumber),
-    messageContent: String(payload.messageContent),
-    scheduledTime: payload.scheduledTime || nowStr,
-    status: 'PENDING',
-    sentAt: '-'
-  };
-
-  queue.push(item);
-  await setTableData('BroadcastQueue', queue);
-  await writeAuditLog(adminId, 'ADD_BROADCAST', 'BROADCAST', `Jadwal kirim ${queueId} ke ${payload.targetNumber}`);
-  return { success: true, status: 'success', message: 'Pesan berhasil dijadwalkan ke antrean.', queueId };
-}
-
-async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
-  const queue = await getTableData('BroadcastQueue');
-  const matched = queue.find(q => q.queueId === queueId);
-  if (!matched) return { success: false, status: 'error', message: 'Antrean tidak ditemukan.' };
-
-  const nowStr = getNowTimestamp();
-  matched.status = 'SENT';
-  matched.sentAt = nowStr;
-  await setTableData('BroadcastQueue', queue);
-
-  await syncChatLog({
-    clientId: matched.clientId,
-    sender: 'KLINIK_BROADCAST',
-    receiver: matched.targetNumber,
-    type: 'OUTGOING',
-    content: matched.messageContent,
-    status: 'SENT'
-  });
-
-  await writeAuditLog(adminId, 'DISPATCH_BROADCAST', 'BROADCAST', `Kirim antrean ${queueId}`);
-  return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dikirim!` };
-}
-
-async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
-  let queue = await getTableData('BroadcastQueue');
-  const initialLen = queue.length;
-  queue = queue.filter(q => q.queueId !== queueId);
-
-  if (queue.length === initialLen) return { success: false, status: 'error', message: 'Antrean tidak ditemukan.' };
-  await setTableData('BroadcastQueue', queue);
-  await writeAuditLog(adminId, 'DELETE_BROADCAST', 'BROADCAST', `Hapus antrean ${queueId}`);
-  return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dibatalkan.` };
-}
-
-async function getClientsList() {
-  const clients = await getTableData('Clients');
-  let connected = 0, scanning = 0, disconnected = 0;
-
-  clients.forEach(c => {
-    const st = (c.status || 'CONNECTED').toUpperCase();
-    if (st === 'CONNECTED') connected++;
-    else if (st === 'SCANNING') scanning++;
-    else disconnected++;
-  });
-
-  return {
-    success: true,
-    status: 'success',
-    clients,
-    stats: { total: clients.length, connected, scanning, disconnected }
-  };
-}
-
-async function saveOrUpdateClient(payload = {}, adminId = 'SUPERADMIN') {
-  if (!payload.name || !payload.phone) {
-    return { success: false, status: 'error', message: 'Nama client dan nomor bot wajib diisi.' };
-  }
-  const clients = await getTableData('Clients');
-  let finalId = payload.clientId;
-
-  if (finalId) {
-    const index = clients.findIndex(c => c.clientId === finalId);
-    if (index !== -1) {
-      clients[index] = { ...clients[index], ...payload };
-    } else {
-      clients.push({ ...payload, clientId: finalId });
-    }
-  } else {
-    finalId = 'CLI-' + (clients.length + 1).toString().padStart(4, '0');
-    clients.push({
-      clientId: finalId,
-      name: payload.name,
-      phone: payload.phone,
-      railwayUrl: payload.railwayUrl || DEFAULT_RAILWAY_URL,
-      status: payload.status || 'CONNECTED',
-      expiredDate: payload.expiredDate || '31/12/2027 23:59:59',
-      notes: payload.notes || '',
-      createdAt: getNowTimestamp()
-    });
-  }
-
-  await setTableData('Clients', clients);
-  await writeAuditLog(adminId, 'SAVE_CLIENT', 'CLIENTS', `Simpan client ${finalId}`);
-  return { success: true, status: 'success', message: 'Data client tersimpan.', clientId: finalId };
-}
-
-async function deleteClient(clientId, adminId = 'SUPERADMIN') {
-  let clients = await getTableData('Clients');
-  clients = clients.filter(c => c.clientId !== clientId);
-  await setTableData('Clients', clients);
-  await writeAuditLog(adminId, 'DELETE_CLIENT', 'CLIENTS', `Hapus client ${clientId}`);
-  return { success: true, status: 'success', message: `Client ${clientId} berhasil dihapus.` };
-}
-
-async function pingRailwayClient(url) {
-  const target = (url || DEFAULT_RAILWAY_URL).replace(/\/$/, '');
-  const start = Date.now();
-  try {
-    const res = await fetch(`${target}/`, { method: 'GET', signal: AbortSignal.timeout(5000) });
-    const latency = Date.now() - start;
-    return {
-      success: res.status >= 200 && res.status < 400,
-      status: 'success',
-      statusCode: res.status,
-      latencyMs: latency,
-      message: `Server Railway Online (HTTP ${res.status}) dalam ${latency} ms.`
-    };
-  } catch (err) {
-    return { success: false, status: 'error', statusCode: 0, latencyMs: 9999, message: 'Koneksi Railway gagal: ' + err.message };
-  }
-}
-
-async function getTemplatesList() {
-  const templates = await getTableData('Templates');
-  return { success: true, status: 'success', templates };
-}
-
-async function savePatientBooking(payload = {}) {
-  if (!payload.patientName || !payload.phoneNumber) {
-    return { success: false, status: 'error', message: 'Nama pasien dan nomor WhatsApp wajib diisi.' };
-  }
-  const bookings = await getTableData('Bookings');
-  const bookingId = 'BKG-' + (bookings.length + 1).toString().padStart(4, '0');
-  const nowStr = getNowTimestamp();
-
-  const item = {
-    bookingId,
-    patientName: payload.patientName,
-    phoneNumber: payload.phoneNumber,
-    serviceType: payload.serviceType || 'Pemeriksaan Gigi Terpadu',
-    bookingDate: payload.bookingDate || nowStr,
-    status: 'PENDING',
-    createdAt: nowStr
-  };
-
-  bookings.push(item);
-  await setTableData('Bookings', bookings);
-  await writeAuditLog('PUBLIC', 'PATIENT_BOOKING', 'BOOKINGS', `Booking ${bookingId}`);
-  return { success: true, status: 'success', message: `Reservasi berhasil dibuat! Nomor: ${bookingId}`, bookingId };
-}
-
-async function getBookingsList() {
-  const bookings = await getTableData('Bookings');
-  return { success: true, status: 'success', bookings: [...bookings].reverse() };
-}
-
-async function getAiConfig() {
-  const settings = await getTableData('SETTINGS');
-  const getVal = k => {
-    const m = settings.find(s => s.key === k);
-    return m ? m.val : '';
-  };
-
-  const geminiKey = getVal('GEMINI_API_KEY');
-  const geminiModel = getVal('GEMINI_MODEL') || 'gemini-3.5-flash';
-  const openAiKey = getVal('OPENAI_API_KEY');
-  const openAiModel = getVal('OPENAI_MODEL') || 'gpt-4o-mini';
-
-  const mask = k => (k && k.length > 6 ? `${k.substring(0, 5)}****************${k.substring(k.length - 4)}` : '');
-
-  return {
-    success: true,
-    status: 'success',
-    currentModel: geminiModel,
-    openAiModel,
-    isConfigured: Boolean(geminiKey && !geminiKey.includes('Placeholder')),
-    isOpenAiConfigured: Boolean(openAiKey && !openAiKey.includes('Placeholder')),
-    maskedApiKey: mask(geminiKey),
-    maskedOpenAiKey: mask(openAiKey)
-  };
-}
-
-async function saveAiConfig(payload = {}, adminId = 'SUPERADMIN') {
-  const settings = await getTableData('SETTINGS');
-  const setVal = (k, v) => {
-    const m = settings.find(s => s.key === k);
-    if (m) m.val = v;
-    else settings.push({ key: k, val: v, desc: 'Set via Portal V2' });
-  };
-
-  if (payload.model) setVal('GEMINI_MODEL', payload.model);
-  if (payload.apiKey && !payload.apiKey.includes('*')) setVal('GEMINI_API_KEY', payload.apiKey);
-  if (payload.openaiModel) setVal('OPENAI_MODEL', payload.openaiModel);
-  if (payload.openaiApiKey && !payload.openaiApiKey.includes('*')) setVal('OPENAI_API_KEY', payload.openaiApiKey);
-
-  await setTableData('SETTINGS', settings);
-  await writeAuditLog(adminId, 'UPDATE_AI_CONFIG', 'SETTINGS', 'Perbarui konfigurasi Gemini / OpenAI');
-  return { success: true, status: 'success', message: 'Konfigurasi model AI berhasil disimpan!' };
-}
-
-// ============================================================================
-// 9. UNIVERSAL ACTION ROUTER DISPATCHER (V1 & V2 COMPATIBLE)
+// 8. ROUTER UTAMA: PEMBERSIHAN DARI TABEL BOT & DELEGASI PENUH KE V2
 // ============================================================================
 
 async function handleActionRouter(action, payload) {
@@ -1668,7 +1338,35 @@ async function handleActionRouter(action, payload) {
     p2 = payload.adminId || payload.currentAdminId || payload.user || 'SUPERADMIN';
   }
 
-  // Normalisasi login
+  // 1. Aksi Khusus Bot WA (Didelegasikan ke serverv2 agar TIDAK ADA DOUBLE LOGIC / DOUBLE DB)
+  const botActions = [
+    'syncChatLog', 'getChatLogsPaginated', 'getBroadcastQueuePaginated',
+    'addBroadcastQueueItem', 'sendBroadcastNow', 'deleteBroadcastQueueItem',
+    'getClientsList', 'saveOrUpdateClient', 'deleteClient', 'pingRailwayClient',
+    'getRailwayQrPayload', 'getTemplatesList', 'savePatientBooking', 'getBookingsList'
+  ];
+
+  if (botActions.includes(normAction)) {
+    try {
+      const v2Res = await fetch(`http://127.0.0.1:${PORT_V2}/api/v2/router`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: normAction, payload }),
+        signal: AbortSignal.timeout(4000)
+      });
+      if (v2Res.ok) return await v2Res.json();
+    } catch (e) {
+      // Fallback ke Google Apps Script Web App jika serverv2 belum online
+      const gasRes = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: normAction, payload })
+      });
+      return await gasRes.json();
+    }
+  }
+
+  // 2. Aksi Otentikasi
   if (normAction === 'login' || normAction === 'loginUser' || normAction === 'auth') {
     let u = '';
     let p = '';
@@ -1686,11 +1384,11 @@ async function handleActionRouter(action, payload) {
       p = payload.password || payload.pass || payload.p || '';
     }
 
-    return await executeDualLogin(u, p);
+    return await loginClinicalUser(u, p);
   }
 
+  // 3. Aksi Murni Operasional Klinis (13 Tabel Medis)
   switch (normAction) {
-    // Faktual & Publik
     case 'getInitialData': return await getInitialPublicData();
     case 'searchPatient': return await searchPatient(p1 ? (p1.query || p1) : '');
     case 'registerAppointment': return await registerAppointment(p1);
@@ -1699,8 +1397,6 @@ async function handleActionRouter(action, payload) {
     case 'callQueue': return await updateQueueStatus(p1 ? p1.kodeAntrean : '', 'Dipanggil', p2);
     case 'completeQueue': return await updateQueueStatus(p1 ? p1.kodeAntrean : '', 'Selesai', p2);
     case 'saveCppt': return await saveCppt(p1);
-
-    // AI Assist
     case 'askGroq': return await generateGroqAiAssist(p1);
     case 'testGroqKey': return await testGroqKey(p1.apiKey, p1.model);
     case 'askGemini':
@@ -1711,59 +1407,30 @@ async function handleActionRouter(action, payload) {
     case 'testOpenAiKey': return await testOpenAiKey(p1.apiKey, p1.model);
     case 'getAvailableAiModels': {
       const settings = await getTableData('SETTINGS');
-      const cur = settings.find(s => s.key === 'GEMINI_MODEL')?.val || 'gemini-3.5-flash';
+      const m = settings.find(s => s.key === 'GEMINI_MODEL');
       return {
         success: true,
         status: 'success',
         models: SUPPORTED_AI_MODELS,
-        defaultModel: cur
+        defaultModel: (m && m.val) ? m.val : 'gemini-3.5-flash'
       };
     }
-    case 'getAiConfig': return await getAiConfig();
-    case 'saveAiConfig': return await saveAiConfig(p1, p2);
+    case 'getAiConfig': return await getSystemSettings('ADMIN');
+    case 'saveAiConfig': {
+      if (p1.model) await updateSystemSettings('ADMIN', 'GEMINI_MODEL', p1.model);
+      if (p1.apiKey && !p1.apiKey.includes('*')) await updateSystemSettings('ADMIN', 'GEMINI_API_KEY', p1.apiKey);
+      if (p1.openaiModel) await updateSystemSettings('ADMIN', 'OPENAI_MODEL', p1.openaiModel);
+      if (p1.openaiApiKey && !p1.openaiApiKey.includes('*')) await updateSystemSettings('ADMIN', 'OPENAI_API_KEY', p1.openaiApiKey);
+      return { success: true, status: 'success', message: 'Konfigurasi model AI berhasil disimpan!' };
+    }
     case 'setClinicModelQuick': {
       const modelClean = String(p1).trim();
-      const settings = await getTableData('SETTINGS');
       const key = (modelClean.includes('gpt') || modelClean.includes('o3')) ? 'OPENAI_MODEL' : 'GEMINI_MODEL';
-      const matched = settings.find(s => s.key === key);
-      if (matched) matched.val = modelClean;
-      else settings.push({ key, val: modelClean, desc: 'Quick Model' });
-      await setTableData('SETTINGS', settings);
+      await updateSystemSettings('ADMIN', key, modelClean);
       return { success: true, status: 'success', message: `Model disetel ke ${modelClean}`, currentModel: modelClean };
     }
 
-    // Gateway WhatsApp Railway (6 Tab V2)
-    case 'syncChatLog': return await syncChatLog(p1);
-    case 'getChatLogsPaginated': return await getChatLogsPaginated(p1);
-    case 'getBroadcastQueuePaginated': return await getBroadcastQueuePaginated(p1);
-    case 'addBroadcastQueueItem': return await addBroadcastQueueItem(p1, p2);
-    case 'sendBroadcastNow': return await sendBroadcastNow(p1, p2);
-    case 'deleteBroadcastQueueItem': return await deleteBroadcastQueueItem(p1, p2);
-    case 'getClientsList': return await getClientsList();
-    case 'saveOrUpdateClient': return await saveOrUpdateClient(p1, p2);
-    case 'deleteClient': return await deleteClient(p1, p2);
-    case 'pingRailwayClient': return await pingRailwayClient(p1 ? (p1.railwayUrl || p1) : '');
-    case 'getRailwayQrPayload': {
-      const settings = await getTableData('SETTINGS');
-      const target = (settings.find(s => s.key === 'RAILWAY_DEFAULT_URL')?.val || DEFAULT_RAILWAY_URL).replace(/\/$/, '');
-      return { success: true, status: 'success', qrUrl: `${target}/qr` };
-    }
-    case 'getTemplatesList': return await getTemplatesList();
-    case 'savePatientBooking': return await savePatientBooking(p1);
-    case 'getBookingsList': return await getBookingsList();
-    case 'exportDataCSV': {
-      const sheetType = (p1 && p1.sheetName) ? p1.sheetName : 'ChatLogs';
-      const items = await getTableData(sheetType);
-      if (!items || items.length === 0) return { success: false, status: 'error', message: 'Data kosong.' };
-      const headers = Object.keys(items[0]);
-      let csv = headers.join(',') + '\r\n';
-      items.forEach(row => {
-        csv += headers.map(h => `"${String(row[h] || '').replace(/"/g, '""')}"`).join(',') + '\r\n';
-      });
-      return { success: true, status: 'success', csvData: csv, fileName: `Export_${sheetType}.csv`, totalExported: items.length };
-    }
-
-    // Farmasi, Lab & Kasir POS
+    // Kasir POS, Resep & Rekam Medis
     case 'getPharmacyOrders': return await getPharmacyOrders();
     case 'dispenseMedicine': return await dispenseMedicine(p1);
     case 'getMasterObat': return await getMasterObat();
@@ -1796,7 +1463,7 @@ async function handleActionRouter(action, payload) {
 }
 
 // ============================================================================
-// 10. SEO GENERATOR (JSON-LD & SCHEMA.ORG)
+// 9. SEO GENERATOR (JSON-LD & SCHEMA.ORG)
 // ============================================================================
 
 async function generateSeoConfig(pageKey, customData = {}) {
@@ -1805,11 +1472,11 @@ async function generateSeoConfig(pageKey, customData = {}) {
   settingsList.forEach(s => { settings[s.key] = s.val; });
 
   const defaultClinic = {
-    name: settings.KLINIK_NAMA || 'Klinik Akshara Dental Space',
+    name: settings.KLINIK_NAMA || 'Estaka Dental Clinic',
     slogan: settings.KLINIK_SLOGAN || 'Modern Dental Care & Aesthetic Space',
     address: settings.KLINIK_ALAMAT || 'Jl. Andi Tonro Blok F No.30, Bongaya, Kec. Tamalate, Kota Makassar, Sulawesi Selatan 90131',
     phone: settings.KLINIK_TELEPON || '+62 853-3892-2586',
-    email: settings.KLINIK_EMAIL || 'care@aksharadental.space',
+    email: settings.KLINIK_EMAIL || 'care@estakadental.space',
     jamOperasional: settings.KLINIK_JAM_OPERASIONAL || 'Setiap Hari, 08:00 – 21:00 WITA',
     instagram: settings.KLINIK_INSTAGRAM || 'https://instagram.com/aksharadental',
     logo: settings.KLINIK_LOGO_URL || `${BASE_URL}/img/axalogo.png`,
@@ -1883,7 +1550,7 @@ async function generateSeoConfig(pageKey, customData = {}) {
 }
 
 // ============================================================================
-// 11. MIDDLEWARE EXPRESS & ASSET HANDLING
+// 10. MIDDLEWARE EXPRESS & ASSET HANDLING
 // ============================================================================
 
 const rootDir = process.cwd();
@@ -1927,8 +1594,36 @@ app.get(['/img/axalogo.png', '/axalogo.png'], (req, res) => {
   res.status(404).send('Logo tidak ditemukan');
 });
 
-// Router API Universal (V1 & V2)
-app.all(['/api/v2/router', '/api/router', '/exec', '/macros/s/*/exec'], async (req, res) => {
+// Proksi API V2: Jika permintaan menuju rute V2 diterima di server.js, teruskan ke serverv2.js
+app.all(['/api/v2/router', '/api/railway/webhook'], async (req, res) => {
+  try {
+    const v2Res = await fetch(`http://127.0.0.1:${PORT_V2}${req.originalUrl}`, {
+      method: req.method,
+      headers: { 'Content-Type': 'application/json' },
+      body: req.method !== 'GET' ? JSON.stringify(req.body) : undefined,
+      signal: AbortSignal.timeout(4000)
+    });
+    const result = await v2Res.json();
+    return res.json(result);
+  } catch (err) {
+    // Fallback eksekusi langsung ke GAS jika serverv2 lokal belum aktif
+    const action = req.body?.action || req.query?.action || '';
+    const payload = req.body?.payload !== undefined ? req.body.payload : (req.body?.args !== undefined ? req.body.args : (req.body?.data || req.query));
+    try {
+      const gasRes = await fetch(GAS_API_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action, payload })
+      });
+      return res.json(await gasRes.json());
+    } catch (e) {
+      return res.status(500).json({ status: 'error', success: false, message: 'Server V2 Reverse Delegation Error: ' + err.message });
+    }
+  }
+});
+
+// Router API Universal Klinis (V1)
+app.all(['/api/router', '/exec', '/macros/s/*/exec'], async (req, res) => {
   try {
     const action = req.body?.action || req.query?.action || req.body?.api || req.query?.api || '';
     const payload = req.body?.payload !== undefined ? req.body.payload : (req.body?.args !== undefined ? req.body.args : (req.body?.data || req.query));
@@ -1938,12 +1633,6 @@ app.all(['/api/v2/router', '/api/router', '/exec', '/macros/s/*/exec'], async (r
   } catch (err) {
     return res.status(500).json({ status: 'error', success: false, message: 'Internal Server Error: ' + err.message });
   }
-});
-
-// Webhook untuk Railway Baileys
-app.post('/api/railway/webhook', async (req, res) => {
-  const result = await syncChatLog(req.body);
-  return res.json(result);
 });
 
 // Proksi Suara Panggilan Antrean Orpheus Groq TTS
@@ -1980,12 +1669,12 @@ app.post('/api/groq/tts', async (req, res) => {
 });
 
 // ============================================================================
-// 12. ROUTING HALAMAN WEB & PORTAL V2
+// 11. ROUTING HALAMAN WEB & PORTAL
 // ============================================================================
 
 app.get(['/admin-dashboardv2', '/portalv2', '/v2'], async (req, res) => {
   const seo = {
-    title: 'Portal V2 & Railway WA Bot Gateway — Klinik Akshara Dental Space',
+    title: 'Portal V2 & Railway WA Bot Gateway — Estaka Dental Clinic',
     description: 'Pusat kendali bot WhatsApp multi-client Railway Baileys, monitoring antrean pesan, dan generative AI medis terpadu.',
     canonicalUrl: `${BASE_URL}/admin-dashboardv2`
   };
@@ -2052,7 +1741,7 @@ app.get('/robots.txt', (req, res) => {
 
 app.use(async (req, res) => {
   res.status(404).render('index', {
-    seo: { title: 'Halaman Tidak Ditemukan (404) — Klinik Akshara Dental Space', canonicalUrl: `${BASE_URL}/404` },
+    seo: { title: 'Halaman Tidak Ditemukan (404) — Estaka Dental Clinic', canonicalUrl: `${BASE_URL}/404` },
     activeTab: 'beranda',
     is404: true
   });
@@ -2060,7 +1749,7 @@ app.use(async (req, res) => {
 
 if (process.env.NODE_ENV !== 'production') {
   app.listen(PORT, () => {
-    console.log(`[Akshara Dental Space Engine] Berjalan di http://localhost:${PORT}`);
+    console.log(`[Estaka Dental Clinical Core Engine] Berjalan di http://localhost:${PORT}`);
   });
 }
 
