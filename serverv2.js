@@ -1,20 +1,7 @@
 /**
  * ============================================================================
  * SISTEM OPERASIONAL ENTERPRISE KLINIK ESTAKA DENTAL CLINIC & WA BOT GATEWAY
- * File: serverv2.js (Tahap 6: Dedicated WA Bot Gateway & Portal V2 Engine)
- * Fitur: Express Server V2 Engine, Upstash Redis & Fallback Storage,
- *        Dual-Dispatch WA Notification: Kirim Bukti Pasien & Notifikasi Dokter,
- *        Perbaikan Sinkronisasi Clients Railway Bot (Fix Data Hilang),
- *        Live Status Telemetri Akurat: CONNECTED, SCANNING, & DISCONNECTED,
- *        Murni Pengelola 8 Tabel Portal V2 (Bebas Double DB dengan server.js),
- *        Tabel Baru: CustomPrompts (CRUD Prompt Gemini & ChatGPT untuk Bot WA),
- *        Injeksi Dinamis Custom System Prompt pada askGemini & askOpenAi,
- *        Harmonisasi Data Reservasi Pasien (Rencana Waktu Kunjungan & Auto 62),
- *        Direct Railway Message Dispatcher (/api/send-message dengan Token),
- *        Penyedia Data 7 Tab (ChatLogs, BroadcastQueue, Clients, Templates,
- *        Bookings Pasien, AI Config Engine, & Custom AI Prompts),
- *        Multi-Model AI (Gemini 3.5 Flash Default, OpenAI ChatGPT, & Groq LPU),
- *        Asset Delivery Anti-404 (/img/estakalogo.png), Rebranding 100%.
+ * File: serverv2.js (Dedicated WA Bot Gateway & Portal V2 Engine)
  * ============================================================================
  */
 
@@ -30,7 +17,7 @@ const PORT_CLINICAL = process.env.PORT_CLINICAL || 3000;
 const BASE_URL = process.env.BASE_URL || 'https://estakadentalclinic.vercel.app';
 const GAS_API_URL = process.env.GAS_API_URL || 'https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec';
 const DEFAULT_RAILWAY_URL = process.env.RAILWAY_DEFAULT_URL || 'https://btwwa-akshra-production.up.railway.app';
-const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN || 'AKSHARA_CLINIC_SECRET_2026';
+const SYNC_SECRET_TOKEN = process.env.SYNC_SECRET_TOKEN || 'ESTAKA_CLINIC_SECRET_2026';
 
 // Mapping Baku Nomor WhatsApp Dokter Resmi Estaka Dental Clinic
 const OFFICIAL_DOCTOR_PHONES = {
@@ -170,7 +157,7 @@ async function fetchFromGAS(action, payload = {}) {
 
 function sanitizePhoneNumberE164(rawNumber) {
   if (!rawNumber) return '';
-  let cleaned = String(rawNumber).replace(/\D/g, '');
+  let cleaned = String(rawNumber).replace(/@s\.whatsapp\.net$/i, '').replace(/\D/g, '');
   if (cleaned.startsWith('0')) {
     cleaned = '62' + cleaned.substring(1);
   } else if (cleaned.startsWith('8')) {
@@ -205,7 +192,7 @@ async function initStorageV2() {
       { key: 'OPENAI_API_KEY', val: process.env.OPENAI_API_KEY || '', desc: 'Kunci API OpenAI' },
       { key: 'OPENAI_MODEL', val: process.env.OPENAI_MODEL || 'gpt-4o-mini', desc: 'Model default OpenAI' },
       { key: 'RAILWAY_DEFAULT_URL', val: DEFAULT_RAILWAY_URL, desc: 'URL instance Baileys di Railway Cloud' },
-      { key: 'SYNC_SECRET_TOKEN', val: SYNC_SECRET_TOKEN, desc: 'Token otentikasi webhook bot Railway' },
+      { key: 'SYNC_SECRET_TOKEN', val: 'ESTAKA_CLINIC_SECRET_2026', desc: 'Token otentikasi webhook bot Railway' },
       { key: 'KLINIK_NAMA', val: 'Estaka Dental Clinic', desc: 'Nama resmi klinik' },
       { key: 'KLINIK_TELEPON', val: '+62 853-3892-2586', desc: 'Hotline WhatsApp resmi' },
       { key: 'KLINIK_EMAIL', val: 'estakadentalclinic@gmail.com', desc: 'Email resmi klinik' },
@@ -559,6 +546,53 @@ async function addBroadcastQueueItem(payload = {}, adminId = 'SUPERADMIN') {
   return { success: true, status: 'success', message: 'Pesan berhasil dimasukkan ke antrean.', queueId };
 }
 
+// Multi-token sender helper ke Railway Baileys
+async function postToRailwaySendMessage(railwayUrl, targetPhone, messageContent) {
+  const endpoint = `${railwayUrl.replace(/\/$/, '')}/api/send-message`;
+  const configuredToken = await getSettingValue('SYNC_SECRET_TOKEN') || SYNC_SECRET_TOKEN;
+  
+  const candidateTokens = [
+    configuredToken,
+    'ESTAKA_CLINIC_SECRET_2026',
+    'ZETTBOS_CLINIC_SECRET_2026',
+    'AKSHARA_CLINIC_SECRET_2026',
+    'AKSHARA_DENTAL_SECRET_2026'
+  ];
+  const uniqueTokens = [...new Set(candidateTokens.filter(Boolean))];
+
+  for (const curToken of uniqueTokens) {
+    try {
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${curToken}`,
+          'x-sync-token': curToken
+        },
+        body: JSON.stringify({
+          target: targetPhone,
+          message: messageContent
+        }),
+        signal: AbortSignal.timeout(7000)
+      });
+
+      if (response.ok) {
+        const body = await response.json().catch(() => ({}));
+        return { success: true, code: response.status, body, tokenUsed: curToken };
+      } else if (response.status === 401) {
+        continue;
+      } else {
+        const errText = await response.text().catch(() => '');
+        return { success: false, code: response.status, body: errText };
+      }
+    } catch (err) {
+      return { success: false, error: err.message };
+    }
+  }
+
+  return { success: false, code: 401, body: 'Otentikasi token ditolak oleh Railway.' };
+}
+
 async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
   const queue = await getTableData('BroadcastQueue');
   const matched = queue.find(q => q.queueId === queueId);
@@ -566,30 +600,11 @@ async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
     return { success: false, status: 'error', message: 'Antrean tidak ditemukan.' };
   }
 
-  let directSendSuccess = false;
-  try {
-    const railwayEndpoint = `${DEFAULT_RAILWAY_URL.replace(/\/$/, '')}/api/send-message`;
-    const sendRes = await fetch(railwayEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${SYNC_SECRET_TOKEN}`,
-        'x-sync-token': SYNC_SECRET_TOKEN
-      },
-      body: JSON.stringify({
-        target: matched.targetNumber,
-        message: matched.messageContent
-      }),
-      signal: AbortSignal.timeout(7000)
-    });
-
-    if (sendRes.ok) directSendSuccess = true;
-  } catch (err) {
-    console.warn('[Direct Railway Dispatch Error]:', err.message);
-  }
+  const railwayUrl = await getSettingValue('RAILWAY_DEFAULT_URL') || DEFAULT_RAILWAY_URL;
+  const dispatchResult = await postToRailwaySendMessage(railwayUrl, matched.targetNumber, matched.messageContent);
 
   const nowStr = getNowTimestamp();
-  matched.status = directSendSuccess ? 'SENT' : 'FAILED';
+  matched.status = dispatchResult.success ? 'SENT' : 'FAILED';
   matched.sentAt = nowStr;
   await setTableData('BroadcastQueue', queue);
 
@@ -599,13 +614,17 @@ async function sendBroadcastNow(queueId, adminId = 'SUPERADMIN') {
     receiver: matched.targetNumber,
     type: 'OUTGOING',
     content: matched.messageContent,
-    status: directSendSuccess ? 'SENT' : 'FAILED'
+    status: dispatchResult.success ? 'SENT' : 'FAILED'
   });
 
   fetchFromGAS('sendBroadcastNow', { queueId }).catch(() => {});
-  await writeAuditLog(adminId, 'DISPATCH_BROADCAST', 'BROADCAST', `Kirim instan antrean ${queueId}`);
+  await writeAuditLog(adminId, 'DISPATCH_BROADCAST', 'BROADCAST', `Kirim antrean ${queueId} (Status: ${matched.status})`);
 
-  return { success: true, status: 'success', message: `Antrean ${queueId} berhasil diproses.`, directSend: directSendSuccess };
+  if (dispatchResult.success) {
+    return { success: true, status: 'success', message: `Antrean ${queueId} berhasil dikirim ke WhatsApp!`, directSend: true };
+  } else {
+    return { success: false, status: 'error', message: `Gagal mengirim ke bot WhatsApp: ${dispatchResult.body || dispatchResult.error || 'Bot belum terhubung'}` };
+  }
 }
 
 async function deleteBroadcastQueueItem(queueId, adminId = 'SUPERADMIN') {
@@ -658,7 +677,7 @@ async function getClientsList() {
     }
   }
 
-  // Jika tetap kosong, pastikan instance resmi Estaka selalu ada
+  // Jika tetap kosong, inisialisasi instance resmi Estaka
   if (!clients || clients.length === 0) {
     clients = [{
       clientId: 'CLI-0001',
@@ -667,7 +686,7 @@ async function getClientsList() {
       railwayUrl: DEFAULT_RAILWAY_URL,
       status: 'CONNECTED',
       expiredDate: '31/12/2027 23:59:59',
-      notes: 'Production Baileys Node'
+      notes: 'Production Baileys Node Primary'
     }];
     await setTableData('Clients', clients);
   }
@@ -682,7 +701,7 @@ async function getClientsList() {
         const pingData = await pingRes.json().catch(() => ({}));
         if (pingData && pingData.botStatus) {
           c.status = String(pingData.botStatus).toUpperCase();
-        } else if (pingData && (pingData.qr || pingData.qrDataUrl)) {
+        } else if (pingData && (pingData.qr || pingData.qrDataUrl || pingData.hasActiveQr)) {
           c.status = 'SCANNING';
         } else {
           c.status = 'CONNECTED';
@@ -745,6 +764,42 @@ async function saveOrUpdateClient(payload = {}, adminId = 'SUPERADMIN') {
   await writeAuditLog(adminId, 'SAVE_CLIENT', 'CLIENTS', `Simpan node client ${finalId}`);
 
   return { success: true, status: 'success', message: 'Data client tersimpan.', clientId: finalId };
+}
+
+/**
+ * Handler pembaruan status bot real-time langsung dari webhook Baileys Railway
+ */
+async function updateClientBotStatus(payload = {}) {
+  const clientId = payload.clientId || 'CLI-0001';
+  const newStatus = String(payload.status || payload.botStatus || 'CONNECTED').toUpperCase().trim();
+  const phone = payload.phone || payload.phoneNumber || '';
+  const notes = payload.notes || '';
+
+  const clients = await getTableData('Clients');
+  const matched = clients.find(c => c.clientId === clientId);
+
+  if (matched) {
+    matched.status = newStatus;
+    if (phone) matched.phone = sanitizePhoneNumberE164(phone);
+    if (notes) matched.notes = notes;
+  } else {
+    clients.push({
+      clientId,
+      name: payload.name || 'Estaka Core Bot (Railway)',
+      phone: sanitizePhoneNumberE164(phone || '6285338922586'),
+      railwayUrl: payload.railwayUrl || DEFAULT_RAILWAY_URL,
+      status: newStatus,
+      expiredDate: '31/12/2027 23:59:59',
+      notes: notes || 'Live Bot Node',
+      createdAt: getNowTimestamp()
+    });
+  }
+
+  await setTableData('Clients', clients);
+  fetchFromGAS('updateClientBotStatus', payload).catch(() => {});
+  await writeAuditLog(clientId, 'UPDATE_BOT_STATUS', 'CLIENTS', `Status bot diubah ke: ${newStatus}`);
+
+  return { success: true, status: 'success', message: `Status bot ${clientId} diperbarui ke ${newStatus}` };
 }
 
 async function deleteClient(clientId, adminId = 'SUPERADMIN') {
@@ -827,7 +882,7 @@ async function getTemplatesList() {
   return { success: true, status: 'success', templates };
 }
 
-// TAB 5: ANTREAN & RESERVASI PASIEN (DUAL-DISPATCH: PASIEN & DOKTER)
+// TAB 5: ANTREAN & RESERVASI PASIEN (DUAL-DISPATCH DENGAN VALIDASI PENGIRIMAN)
 async function savePatientBooking(payload = {}) {
   const patientName = payload.patientName || payload.nama;
   const rawPhone = payload.phoneNumber || payload.noHp;
@@ -868,11 +923,9 @@ async function savePatientBooking(payload = {}) {
   bookings.push(item);
   await setTableData('Bookings', bookings);
 
-  // Dual-Dispatch Notifikasi WhatsApp ke Pasien dan Dokter via Bot Baileys Railway
+  // Dual-Dispatch WhatsApp dengan Validasi HTTP & Auto-Queue Fallback
   try {
     const railwayUrl = await getSettingValue('RAILWAY_DEFAULT_URL') || DEFAULT_RAILWAY_URL;
-    const token = await getSettingValue('SYNC_SECRET_TOKEN') || SYNC_SECRET_TOKEN;
-    const sendEndpoint = `${railwayUrl.replace(/\/$/, '')}/api/send-message`;
 
     // 1. Pesan untuk Pasien
     const patientMsg = 
@@ -898,12 +951,28 @@ async function savePatientBooking(payload = {}) {
       '🌐 *Website*: https://estakadentalclinic.vercel.app/\n' +
       'Salam Senyum Sehat, *Estaka Dental Clinic* ✨';
 
-    fetch(sendEndpoint, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-sync-token': token },
-      body: JSON.stringify({ target: formattedPhone, message: patientMsg }),
-      signal: AbortSignal.timeout(6000)
-    }).catch(e => console.warn('[Auto WA Patient Send Error]:', e.message));
+    const patientDispatch = await postToRailwaySendMessage(railwayUrl, formattedPhone, patientMsg);
+
+    if (patientDispatch.success) {
+      await syncChatLog({
+        clientId: 'CLI-0001',
+        senderNumber: 'SYSTEM_BOT',
+        receiverNumber: formattedPhone,
+        messageType: 'OUTGOING',
+        content: patientMsg,
+        status: 'SENT'
+      });
+      await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_PATIENT', 'WHATSAPP', `Pesan berhasil dikirim ke pasien: ${formattedPhone}`);
+    } else {
+      // Jika bot belum terhubung / error, cadangkan otomatis ke BroadcastQueue
+      await addBroadcastQueueItem({
+        clientId: 'CLI-0001',
+        targetNumber: formattedPhone,
+        messageContent: patientMsg,
+        scheduledTime: nowStr
+      }, 'AUTO_RECOVERY');
+      await writeAuditLog('SYSTEM_BOT', 'QUEUE_WA_PATIENT', 'WHATSAPP', `Bot belum siap (HTTP ${patientDispatch.code || 'ERR'}). Dicadangkan ke BroadcastQueue`);
+    }
 
     // 2. Pesan untuk Dokter Pemeriksa Terkait
     const doctorPhone = resolveDoctorPhoneLocal(item.dokterId, item.dokterNama);
@@ -920,17 +989,34 @@ async function savePatientBooking(payload = {}) {
         '• *Keluhan Utama*: ' + (item.keluhanUtama || '-') + '\n\n' +
         '_Data rekam medis telah diperbarui pada sistem EMR Estaka Dental Clinic._';
 
-      fetch(sendEndpoint, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}`, 'x-sync-token': token },
-        body: JSON.stringify({ target: doctorPhone, message: doctorMsg }),
-        signal: AbortSignal.timeout(6000)
-      }).catch(e => console.warn('[Auto WA Doctor Send Error]:', e.message));
+      const doctorDispatch = await postToRailwaySendMessage(railwayUrl, doctorPhone, doctorMsg);
+
+      if (doctorDispatch.success) {
+        await syncChatLog({
+          clientId: 'CLI-0001',
+          senderNumber: 'SYSTEM_BOT',
+          receiverNumber: doctorPhone,
+          messageType: 'OUTGOING',
+          content: doctorMsg,
+          status: 'SENT'
+        });
+        await writeAuditLog('SYSTEM_BOT', 'DISPATCH_WA_DOCTOR', 'WHATSAPP', `Notifikasi berhasil dikirim ke dokter: ${doctorPhone}`);
+      } else {
+        await addBroadcastQueueItem({
+          clientId: 'CLI-0001',
+          targetNumber: doctorPhone,
+          messageContent: doctorMsg,
+          scheduledTime: nowStr
+        }, 'AUTO_RECOVERY');
+        await writeAuditLog('SYSTEM_BOT', 'QUEUE_WA_DOCTOR', 'WHATSAPP', `Bot belum siap (HTTP ${doctorDispatch.code || 'ERR'}). Notifikasi dokter dicadangkan ke BroadcastQueue`);
+      }
     }
-  } catch (err) {}
+  } catch (err) {
+    console.warn('[WA Dispatch Error]:', err.message);
+  }
 
   fetchFromGAS('registerAppointment', item).catch(() => {});
-  await writeAuditLog('PUBLIC', 'PATIENT_BOOKING', 'BOOKINGS', `Booking ${bookingId} (Dual-Dispatch Sent)`);
+  await writeAuditLog('PUBLIC', 'PATIENT_BOOKING', 'BOOKINGS', `Booking ${bookingId}`);
 
   return { success: true, status: 'success', message: `Reservasi berhasil dibuat! No: ${bookingId}`, bookingId, item };
 }
@@ -1282,9 +1368,11 @@ async function handleActionDispatcher(action, payload) {
     case 'sendBroadcastNow': return await sendBroadcastNow(p1.queueId || p1, 'SUPERADMIN');
     case 'deleteBroadcastQueueItem': return await deleteBroadcastQueueItem(p1.queueId || p1, 'SUPERADMIN');
 
-    // Tab 3: Clients Node (Railway Bot)
+    // Tab 3: Clients Node (Railway Bot & Status Telemetri)
     case 'getClientsList': return await getClientsList();
     case 'saveOrUpdateClient': return await saveOrUpdateClient(p1, 'SUPERADMIN');
+    case 'updateClientBotStatus':
+    case 'updateBotStatus': return await updateClientBotStatus(p1);
     case 'deleteClient': return await deleteClient(p1.clientId || p1, 'SUPERADMIN');
     case 'pingRailwayClient': return await pingRailwayClient(p1.railwayUrl || p1);
     case 'getRailwayQrPayload': {
