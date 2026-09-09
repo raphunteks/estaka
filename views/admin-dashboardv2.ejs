@@ -9,14 +9,14 @@
   <meta name="description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat kendali bot WhatsApp multi-client Railway Baileys, monitoring antrean pesan, dan generative AI medis terpadu.' %>">
   <meta name="robots" content="noindex, nofollow">
 
-  <!-- Favicon & Touch Icons -->
-  <link rel="icon" type="image/png" href="/img/axalogo.png">
-  <link rel="shortcut icon" href="/img/axalogo.png">
-  <link rel="apple-touch-icon" href="/img/axalogo.png">
+  <!-- Favicon & Touch Icons Berbasis PNG etakalogo.png -->
+  <link rel="icon" type="image/png" href="/img/etakalogo.png">
+  <link rel="shortcut icon" href="/img/etakalogo.png">
+  <link rel="apple-touch-icon" href="/img/etakalogo.png">
   <meta name="theme-color" content="#f0f7fa">
 
   <!-- Inline Dynamic PWA Manifest via Data URI -->
-  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%20Portal%22%2C%22short_name%22%3A%22EstakaPortal%22%2C%22start_url%22%3A%22%2Fadmin-dashboardv2%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f7fa%22%2C%22theme_color%22%3A%22%2300b4d8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Faxalogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
+  <link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22Estaka%20Dental%20Clinic%20Portal%22%2C%22short_name%22%3A%22EstakaPortal%22%2C%22start_url%22%3A%22%2Fadmin-dashboardv2%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f0f7fa%22%2C%22theme_color%22%3A%22%2300b4d8%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22%2Fimg%2Fetakalogo.png%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D">
 
   <!-- External Typography & Icons -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -341,7 +341,7 @@
 
     .modal-content {
       width: 100%;
-      max-width: 540px;
+      max-width: 560px;
       max-height: 90vh;
       overflow-y: auto;
       padding: 24px;
@@ -570,7 +570,7 @@
   </main>
 
   <!-- ===================================================================== -->
-  <!-- 2. PORTAL DASHBOARD V2                                                -->
+  <!-- 2. PORTAL DASHBOARD V2 (DENGAN 7 TAB TERPADU)                         -->
   <!-- ===================================================================== -->
   <main id="portalDashboardView" class="portal-view" style="display: none;">
     <div class="glass-panel portal-header">
@@ -624,7 +624,7 @@
       </div>
     </div>
 
-    <!-- 6 Tab Navigation System -->
+    <!-- 7 Tab Navigation System -->
     <div class="tabs-nav" role="tablist">
       <button class="tab-btn active" id="tabLogsBtn" onclick="switchDashboardTab('chatLogs')">
         <iconify-icon icon="solar:chat-line-bold"></iconify-icon>
@@ -644,11 +644,15 @@
       </button>
       <button class="tab-btn" id="tabBookingsBtn" onclick="switchDashboardTab('bookings')">
         <iconify-icon icon="solar:users-group-rounded-bold"></iconify-icon>
-        Antrean Pasien
+        Antrean & Reservasi Pasien
       </button>
       <button class="tab-btn" id="tabAiConfigBtn" onclick="switchDashboardTab('aiConfig')">
         <iconify-icon icon="solar:atom-bold"></iconify-icon>
-        Konfigurasi AI (Gemini & OpenAI)
+        Konfigurasi AI (Model & Key)
+      </button>
+      <button class="tab-btn" id="tabCustomPromptsBtn" onclick="switchDashboardTab('customPrompts')">
+        <iconify-icon icon="solar:magic-stick-3-bold"></iconify-icon>
+        Custom Prompt AI (Gemini & ChatGPT)
       </button>
     </div>
 
@@ -813,29 +817,39 @@
       <div id="templatesListContainer" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 16px;"></div>
     </div>
 
-    <!-- TAB 5: ANTREAN & RESERVASI PASIEN -->
+    <!-- TAB 5: ANTREAN & RESERVASI PASIEN (FORMAT TERPADU DENGAN RENCANA KUNJUNGAN) -->
     <div id="tabContentBookings" class="glass-panel" style="display: none; padding: 22px;">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
         <div>
-          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Antrean Reservasi Pasien Masuk</h3>
-          <p style="font-size: 0.84rem; color: var(--text-muted);">Permintaan registrasi online dari pasien klinik gigi.</p>
+          <h3 style="font-size: 1.15rem; font-weight: 800; color: var(--cyan-deep);">Daftar Antrean & Reservasi Pasien Terpadu</h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted);">Sinkronisasi otomatis pendaftaran online web & chatting WhatsApp (Pasien Baru & Lama).</p>
         </div>
-        <button class="cyber-btn-secondary" onclick="loadBookingsBackend(true)">
-          <iconify-icon icon="solar:refresh-bold"></iconify-icon>
-          Segarkan Antrean
-        </button>
+        <div style="display: flex; gap: 8px;">
+          <button class="cyber-btn-secondary" onclick="exportDataAction('Bookings')">
+            <iconify-icon icon="solar:file-download-bold"></iconify-icon>
+            Ekspor CSV
+          </button>
+          <button class="cyber-btn-secondary" onclick="loadBookingsBackend(true)">
+            <iconify-icon icon="solar:refresh-bold"></iconify-icon>
+            Segarkan Antrean
+          </button>
+        </div>
       </div>
       <div class="table-responsive">
         <table class="cyber-table">
           <thead>
             <tr>
-              <th>BOOKING ID</th>
+              <th>NO RM / TIKET</th>
+              <th>NIK KTP</th>
               <th>NAMA PASIEN</th>
-              <th>WHATSAPP</th>
-              <th>LAYANAN</th>
-              <th>TANGGAL JADWAL</th>
+              <th>WHATSAPP (62...)</th>
+              <th>DOKTER PEMERIKSA</th>
+              <th>LAYANAN POLI</th>
+              <th>RENCANA WAKTU KUNJUNGAN</th>
+              <th>KELUHAN UTAMA</th>
               <th>STATUS</th>
               <th>WAKTU DAFTAR</th>
+              <th>AKSI</th>
             </tr>
           </thead>
           <tbody id="bookingsTableBody"></tbody>
@@ -843,7 +857,7 @@
       </div>
     </div>
 
-    <!-- TAB 6: KONFIGURASI AI (GEMINI 3.5 DEFAULT & AQ... SUPPORT) -->
+    <!-- TAB 6: KONFIGURASI AI (MODEL & KEY) -->
     <div id="tabContentAiConfig" class="glass-panel" style="display: none; padding: 24px;">
       <div style="margin-bottom: 20px;">
         <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--cyan-deep); display: flex; align-items: center; gap: 8px;">
@@ -856,7 +870,6 @@
       </div>
 
       <div style="max-width: 760px; display: flex; flex-direction: column; gap: 18px;">
-
         <!-- CARD GOOGLE GEMINI AI -->
         <div style="background: rgba(0, 180, 216, 0.05); border: 1px solid rgba(0, 180, 216, 0.25); padding: 18px; border-radius: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
@@ -875,7 +888,6 @@
               Google AI Studio API Key (Format AQ... atau AIzaSy...)
             </label>
 
-            <!-- Proteksi Penuh: Kebal Autofill Sandi Akun Browser -->
             <div style="position: relative;">
               <input 
                 type="text" 
@@ -962,6 +974,49 @@
         </div>
       </div>
     </div>
+
+    <!-- TAB 7: CUSTOM AI SYSTEM PROMPTS (GEMINI & CHATGPT) -->
+    <div id="tabContentCustomPrompts" class="glass-panel" style="display: none; padding: 24px;">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; flex-wrap: wrap; gap: 10px;">
+        <div>
+          <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--cyan-deep); display: flex; align-items: center; gap: 8px;">
+            <iconify-icon icon="solar:magic-stick-3-bold" style="color: var(--cyan-soft); font-size: 24px;"></iconify-icon>
+            Custom Prompt AI Medis (Gemini & ChatGPT)
+          </h3>
+          <p style="font-size: 0.84rem; color: var(--text-muted);">
+            Sesuaikan karakter, instruksi klinis, protokol pre-triage gigi, dan gaya bahasa bot WhatsApp resmi Estaka Dental Clinic secara dinamis.
+          </p>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <button class="cyber-btn-secondary" onclick="loadCustomPromptsBackend(true)">
+            <iconify-icon icon="solar:refresh-bold"></iconify-icon>
+            Segarkan
+          </button>
+          <button class="cyber-btn" onclick="openAddCustomPromptModal()">
+            <iconify-icon icon="solar:add-circle-bold"></iconify-icon>
+            Tambah Custom Prompt
+          </button>
+        </div>
+      </div>
+
+      <div class="table-responsive">
+        <table class="cyber-table">
+          <thead>
+            <tr>
+              <th>PROMPT ID</th>
+              <th>JUDUL / PERSONA</th>
+              <th>TARGET MODEL</th>
+              <th>SISTEM INSTRUKSI (PROMPT)</th>
+              <th>STATUS AKTIF</th>
+              <th>TERAKHIR DIPERBARUI</th>
+              <th>AKSI</th>
+            </tr>
+          </thead>
+          <tbody id="customPromptsTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
   </main>
 
   <!-- ===================================================================== -->
@@ -1037,7 +1092,7 @@
         </div>
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Nomor WhatsApp Tujuan</label>
-          <input type="tel" id="bcTargetPhone" class="cyber-input" placeholder="62812xxxxxxx" required>
+          <input type="tel" id="bcTargetPhone" class="cyber-input" placeholder="08xxxxxxxxxx atau 628xxxx" required>
         </div>
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Isi Pesan Broadcast</label>
@@ -1073,7 +1128,7 @@
         </div>
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Nomor WhatsApp Bot</label>
-          <input type="tel" id="clPhone" class="cyber-input" placeholder="62811xxxxxx" required>
+          <input type="tel" id="clPhone" class="cyber-input" placeholder="08xxxxxxxxxx (Auto 62)" required>
         </div>
         <div style="margin-bottom: 12px;">
           <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Railway Base URL</label>
@@ -1094,6 +1149,46 @@
         <button type="submit" id="btnSaveClientSubmit" class="cyber-btn" style="width: 100%; justify-content: center; padding: 11px;">
           <iconify-icon icon="solar:disk-bold"></iconify-icon>
           Simpan Data Client
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Modal Tambah/Edit Custom AI Prompt (Baru) -->
+  <div id="customPromptModal" class="modal-overlay">
+    <div class="modal-content">
+      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
+        <h3 id="customPromptModalTitle" style="font-size: 1.2rem; color: var(--cyan-deep);">Tambah Custom System Prompt</h3>
+        <button onclick="closeModal('customPromptModal')" style="background: none; border: none; color: var(--text-muted); cursor: pointer; font-size: 22px;">
+          <iconify-icon icon="solar:close-circle-bold"></iconify-icon>
+        </button>
+      </div>
+
+      <form onsubmit="event.preventDefault(); submitCustomPromptForm();">
+        <input type="hidden" id="prmId">
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Judul / Nama Persona *</label>
+          <input type="text" id="prmTitle" class="cyber-input" placeholder="Contoh: Asisten Konsultasi Ramah & Preventif" required>
+        </div>
+        <div style="margin-bottom: 12px;">
+          <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Target Model AI *</label>
+          <select id="prmTargetModel" class="cyber-input">
+            <option value="Gemini">Google Gemini (Default)</option>
+            <option value="OpenAI">OpenAI ChatGPT</option>
+            <option value="All Models">Semua Model (Universal)</option>
+          </select>
+        </div>
+        <div style="margin-bottom: 14px;">
+          <label style="display: block; font-size: 0.82rem; margin-bottom: 4px; font-weight: 600;">Instruksi Sistem (System Prompt) *</label>
+          <textarea id="prmSystemPrompt" class="cyber-input" rows="6" placeholder="Tuliskan pedoman instruksi, peran medis gigi, batasan etis, dan cara bot merespons..." required></textarea>
+        </div>
+        <div style="margin-bottom: 20px; display: flex; align-items: center; gap: 8px;">
+          <input type="checkbox" id="prmIsActive" style="width: 16px; height: 16px; cursor: pointer;">
+          <label for="prmIsActive" style="font-size: 0.84rem; font-weight: 600; cursor: pointer;">Langsung Aktifkan Sebagai Prompt Bot WhatsApp</label>
+        </div>
+        <button type="submit" id="btnSaveCustomPromptSubmit" class="cyber-btn" style="width: 100%; justify-content: center; padding: 11px;">
+          <iconify-icon icon="solar:disk-bold"></iconify-icon>
+          Simpan Custom Prompt
         </button>
       </form>
     </div>
@@ -1177,8 +1272,24 @@
       queueTotalPages: 1,
       aiHistory: [],
       selectedModel: 'gemini-3.5-flash',
-      availableModels: []
+      availableModels: [],
+      customPrompts: []
     };
+
+    /**
+     * Sanitasi Nomor Telepon Otomatis ke Format Internasional WhatsApp (62...)
+     */
+    function sanitizePhoneNumberToE164(raw) {
+      let cleaned = String(raw || '').replace(/\D/g, '');
+      if (cleaned.startsWith('0')) {
+        cleaned = '62' + cleaned.substring(1);
+      } else if (cleaned.startsWith('8')) {
+        cleaned = '62' + cleaned;
+      } else if (!cleaned.startsWith('62') && cleaned.length >= 8) {
+        cleaned = '62' + cleaned;
+      }
+      return cleaned;
+    }
 
     /**
      * UNIVERSAL MULTI-COMPATIBLE RUNBACKEND (Express V2 -> V1 -> GAS Web App)
@@ -1232,9 +1343,6 @@
       });
     }
 
-    /**
-     * Permintaan data cadangan langsung ke Google Apps Script (Bypass Cache jika lokal kosong)
-     */
     function fetchDirectFromGAS(functionName, payload, callback) {
       fetch(GAS_API_URL, {
         method: 'POST',
@@ -1273,7 +1381,6 @@
       document.getElementById('userNameDisplay').innerText = appState.user.fullName || appState.user.username;
       document.getElementById('userRoleBadge').innerText = appState.user.role || 'Superadmin';
       
-      // Auto-Pull & Sync dari Cloud Bridge saat pertama kali dashboard dibuka
       loadChatLogsBackend(1, true);
       loadBroadcastQueueBackend(1, true);
       loadClientsBackend(true);
@@ -1336,7 +1443,7 @@
     }
 
     function switchDashboardTab(tabId) {
-      const tabs = ['chatLogs', 'broadcast', 'clients', 'templates', 'bookings', 'aiConfig'];
+      const tabs = ['chatLogs', 'broadcast', 'clients', 'templates', 'bookings', 'aiConfig', 'customPrompts'];
       tabs.forEach(t => {
         const btn = document.getElementById('tab' + t.charAt(0).toUpperCase() + t.slice(1) + 'Btn');
         const content = document.getElementById('tabContent' + t.charAt(0).toUpperCase() + t.slice(1));
@@ -1355,10 +1462,11 @@
       if (tabId === 'templates') loadTemplatesBackend(false);
       if (tabId === 'bookings') loadBookingsBackend(false);
       if (tabId === 'aiConfig') loadAiConfigBackend();
+      if (tabId === 'customPrompts') loadCustomPromptsBackend(false);
     }
 
     // =========================================================================
-    // TAB 1: MONITORING LOG CHAT (UNIVERSAL PARSER + CLOUD BRIDGE)
+    // TAB 1: MONITORING LOG CHAT
     // =========================================================================
     function loadChatLogsBackend(page, forceCloud) {
       page = page || 1;
@@ -1374,7 +1482,6 @@
           else if (Array.isArray(res.list)) rawLogs = res.list;
         }
 
-        // Jika data dari Express lokal kosong, tarik data langsung ke Google Apps Script
         if (rawLogs.length === 0 && (!search && !status)) {
           fetchDirectFromGAS('getChatLogsPaginated', { page, pageSize: 10, search, status }, function(gasRes) {
             let gasLogs = [];
@@ -1382,7 +1489,6 @@
               if (Array.isArray(gasRes)) gasLogs = gasRes;
               else if (Array.isArray(gasRes.logs)) gasLogs = gasRes.logs;
               else if (Array.isArray(gasRes.data)) gasLogs = gasRes.data;
-              else if (Array.isArray(gasRes.list)) gasLogs = gasRes.list;
             }
 
             if (gasLogs.length > 0) {
@@ -1421,8 +1527,8 @@
         const logId = l.logId || l.Log_ID || (isArr ? l[0] : '-');
         const timestamp = l.timestamp || l.Timestamp || (isArr ? l[1] : '-');
         const clientId = l.clientId || l.Client_ID || (isArr ? l[2] : 'CLI-0001');
-        const sender = l.sender || l.senderNumber || l.Sender_Number || (isArr ? l[3] : '-');
-        const receiver = l.receiver || l.receiverNumber || l.Receiver_Number || (isArr ? l[4] : '-');
+        const sender = sanitizePhoneNumberToE164(l.sender || l.senderNumber || l.Sender_Number) || (isArr ? l[3] : '-');
+        const receiver = sanitizePhoneNumberToE164(l.receiver || l.receiverNumber || l.Receiver_Number) || (isArr ? l[4] : '-');
         const type = l.type || l.messageType || l.Message_Type || (isArr ? l[5] : 'INCOMING');
         const content = l.content || l.messageContent || l.Message_Content || (isArr ? l[6] : '');
         const status = (l.status || l.Status || (isArr ? l[7] : 'DELIVERED')).toUpperCase();
@@ -1461,7 +1567,7 @@
     }
 
     // =========================================================================
-    // TAB 2: BROADCAST QUEUE MANAGER (UNIVERSAL PARSER + CLOUD BRIDGE)
+    // TAB 2: BROADCAST QUEUE MANAGER
     // =========================================================================
     function loadBroadcastQueueBackend(page, forceCloud) {
       page = page || 1;
@@ -1484,7 +1590,6 @@
               if (Array.isArray(gasRes)) gasQueue = gasRes;
               else if (Array.isArray(gasRes.queue)) gasQueue = gasRes.queue;
               else if (Array.isArray(gasRes.data)) gasQueue = gasRes.data;
-              else if (Array.isArray(gasRes.list)) gasQueue = gasRes.list;
             }
 
             if (gasQueue.length > 0) {
@@ -1522,7 +1627,7 @@
         const isArr = Array.isArray(q);
         const queueId = q.queueId || q.Queue_ID || (isArr ? q[0] : '-');
         const clientId = q.clientId || q.Client_ID || (isArr ? q[1] : 'CLI-0001');
-        const targetNumber = q.targetNumber || q.Target_Number || (isArr ? q[2] : '-');
+        const targetNumber = sanitizePhoneNumberToE164(q.targetNumber || q.Target_Number) || (isArr ? q[2] : '-');
         const messageContent = q.messageContent || q.Message_Content || (isArr ? q[3] : '');
         const scheduledTime = q.scheduledTime || q.Scheduled_Time || (isArr ? q[4] : '-');
         const status = (q.status || q.Status || (isArr ? q[5] : 'PENDING')).toUpperCase();
@@ -1564,7 +1669,7 @@
     }
     function submitAddBroadcast() {
       const clientId = document.getElementById('bcClientId').value;
-      const targetNumber = document.getElementById('bcTargetPhone').value.trim();
+      const targetNumber = sanitizePhoneNumberToE164(document.getElementById('bcTargetPhone').value.trim());
       const messageContent = document.getElementById('bcContent').value.trim();
       const scheduledTime = document.getElementById('bcScheduledTime').value;
 
@@ -1596,7 +1701,7 @@
     }
 
     // =========================================================================
-    // TAB 3: CLIENT RAILWAY BOT (UNIVERSAL PARSER + CLOUD BRIDGE)
+    // TAB 3: CLIENT RAILWAY BOT
     // =========================================================================
     function loadClientsBackend(forceCloud) {
       runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1605,7 +1710,6 @@
           if (Array.isArray(res)) rawClients = res;
           else if (Array.isArray(res.clients)) rawClients = res.clients;
           else if (Array.isArray(res.data)) rawClients = res.data;
-          else if (Array.isArray(res.list)) rawClients = res.list;
         }
 
         if (rawClients.length === 0) {
@@ -1614,7 +1718,6 @@
             if (gasRes) {
               if (Array.isArray(gasRes)) gasClients = gasRes;
               else if (Array.isArray(gasRes.clients)) gasClients = gasRes.clients;
-              else if (Array.isArray(gasRes.data)) gasClients = gasRes.data;
             }
 
             if (gasClients.length > 0) {
@@ -1638,11 +1741,10 @@
         const isArr = Array.isArray(c);
         const clientId = c.clientId || c.Client_ID || (isArr ? c[0] : 'CLI-0001');
         const name = c.name || c.Client_Name || (isArr ? c[1] : '-');
-        const phone = c.phone || c.Phone_Number || (isArr ? c[2] : '-');
+        const phone = sanitizePhoneNumberToE164(c.phone || c.Phone_Number) || (isArr ? c[2] : '-');
         const railwayUrl = c.railwayUrl || c.Railway_Base_URL || (isArr ? c[3] : DEFAULT_RAILWAY_URL);
         const status = (c.status || c.Bot_Status || (isArr ? c[4] : 'CONNECTED')).toUpperCase();
         const expiredDate = c.expiredDate || c.Expired_Date || (isArr ? c[5] : '-');
-        const notes = c.notes || c.Notes || (isArr ? c[6] : '');
 
         const dot = status === 'CONNECTED' ? 'status-connected' : (status === 'SCANNING' ? 'status-scanning' : 'status-disconnected');
         const tr = document.createElement('tr');
@@ -1689,7 +1791,7 @@
       const payload = {
         clientId: document.getElementById('modalClientId').value,
         name: document.getElementById('clName').value.trim(),
-        phone: document.getElementById('clPhone').value.trim(),
+        phone: sanitizePhoneNumberToE164(document.getElementById('clPhone').value.trim()),
         railwayUrl: document.getElementById('clRailwayUrl').value.trim() || DEFAULT_RAILWAY_URL,
         status: document.getElementById('clStatus').value,
         notes: document.getElementById('clNotes').value.trim()
@@ -1711,7 +1813,6 @@
       });
     }
 
-    // QR BAILEYS
     function openQrModal(clientId, railwayUrl) {
       const target = (railwayUrl || DEFAULT_RAILWAY_URL).replace(/\/$/, '');
       const qrImg = document.getElementById('qrImageElement');
@@ -1752,29 +1853,15 @@
     }
 
     // =========================================================================
-    // TAB 4: TEMPLATES (UNIVERSAL PARSER + CLOUD BRIDGE)
+    // TAB 4: TEMPLATES (8 TEMPLATE LENGKAP & PROFESIONAL)
     // =========================================================================
     function loadTemplatesBackend(forceCloud) {
       runBackend('getTemplatesList', [{ refresh: Boolean(forceCloud) }], function(res) {
-        let rawTemplates = [];
-        if (res) {
-          if (Array.isArray(res)) rawTemplates = res;
-          else if (Array.isArray(res.templates)) rawTemplates = res.templates;
-          else if (Array.isArray(res.data)) rawTemplates = res.data;
-          else if (Array.isArray(res.list)) rawTemplates = res.list;
-        }
-
+        let rawTemplates = (res && res.templates) ? res.templates : [];
         if (rawTemplates.length === 0) {
           fetchDirectFromGAS('getTemplatesList', {}, function(gasRes) {
-            let gasTemplates = [];
-            if (gasRes) {
-              if (Array.isArray(gasRes)) gasTemplates = gasRes;
-              else if (Array.isArray(gasRes.templates)) gasTemplates = gasRes.templates;
-              else if (Array.isArray(gasRes.data)) gasTemplates = gasRes.data;
-            }
-
-            if (gasTemplates.length > 0) {
-              renderTemplatesList(gasTemplates);
+            if (gasRes && gasRes.templates) {
+              renderTemplatesList(gasRes.templates);
               return;
             }
             renderTemplatesList([]);
@@ -1819,27 +1906,15 @@
     }
 
     // =========================================================================
-    // TAB 5: ANTREAN & RESERVASI PASIEN (UNIVERSAL PARSER + CLOUD BRIDGE)
+    // TAB 5: ANTREAN & RESERVASI PASIEN (FORMAT TERPADU DENGAN RENCANA KUNJUNGAN)
     // =========================================================================
     function loadBookingsBackend(forceCloud) {
       runBackend('getBookingsList', [{ refresh: Boolean(forceCloud) }], function(res) {
-        let rawBookings = [];
-        if (res) {
-          if (Array.isArray(res)) rawBookings = res;
-          else if (Array.isArray(res.bookings)) rawBookings = res.bookings;
-          else if (Array.isArray(res.data)) rawBookings = res.data;
-          else if (Array.isArray(res.list)) rawBookings = res.list;
-        }
+        let rawBookings = (res && res.bookings) ? res.bookings : [];
 
         if (rawBookings.length === 0) {
           fetchDirectFromGAS('getBookingsList', {}, function(gasRes) {
-            let gasBookings = [];
-            if (gasRes) {
-              if (Array.isArray(gasRes)) gasBookings = gasRes;
-              else if (Array.isArray(gasRes.bookings)) gasBookings = gasRes.bookings;
-              else if (Array.isArray(gasRes.data)) gasBookings = gasRes.data;
-            }
-
+            let gasBookings = (gasRes && (gasRes.bookings || gasRes.data)) ? (gasRes.bookings || gasRes.data) : [];
             if (gasBookings.length > 0) {
               renderBookingsTable(gasBookings);
               return;
@@ -1856,35 +1931,50 @@
       const tbody = document.getElementById('bookingsTableBody');
       tbody.innerHTML = '';
       if (!bookings || bookings.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:30px;">Belum ada pendaftaran pasien masuk.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" style="text-align:center; color:var(--text-muted); padding:30px;">Belum ada pendaftaran antrean pasien masuk.</td></tr>';
         return;
       }
+
       bookings.forEach(b => {
         const isArr = Array.isArray(b);
-        const bookingId = b.bookingId || b.kodeAntrean || b.Booking_ID || (isArr ? b[0] : '-');
-        const patientName = b.patientName || b.namaPasien || b.Nama_Pasien || (isArr ? b[1] : '-');
-        const phoneNumber = b.phoneNumber || b.noHp || b.Phone_Number || (isArr ? b[2] : '-');
-        const serviceType = b.serviceType || b.ruanganPoli || b.Service_Type || (isArr ? b[3] : 'Pemeriksaan Gigi');
-        const bookingDate = b.bookingDate || b.waktuDaftar || b.Booking_Date || (isArr ? b[4] : '-');
-        const status = b.status || b.statusAntrean || b.Status || (isArr ? b[5] : 'Menunggu');
-        const createdAt = b.createdAt || b.waktuDaftar || b.Created_At || (isArr ? b[6] : '-');
+        const bookingId = b.bookingId || b.kodeAntrean || (isArr ? b[0] : '-');
+        const rmId = b.nomorRm || (isArr ? b[1] : bookingId);
+        const nik = b.nik || (isArr ? b[2] : '-');
+        const patientName = b.patientName || b.namaPasien || b.Nama_Pasien || (isArr ? b[3] : '-');
+        const phoneNumber = sanitizePhoneNumberToE164(b.phoneNumber || b.noHp || b.Phone_Number) || (isArr ? b[6] : '-');
+        const dokter = b.dokterNama || b.dokterId || (isArr ? b[9] : 'drg. Pemeriksa');
+        const serviceType = b.serviceType || b.ruanganPoli || (isArr ? b[8] : 'Pemeriksaan Gigi');
+        const rencanaKunjungan = b.rencanaWaktuKunjungan || b.bookingDate || (isArr ? b[10] : '-');
+        const keluhan = b.keluhanUtama || (isArr ? b[12] : '-');
+        const status = b.status || b.Status || (isArr ? b[13] : 'CONFIRMED');
+        const createdAt = b.createdAt || (isArr ? b[14] : '-');
+
+        const waDirectUrl = `https://wa.me/${phoneNumber}?text=Halo%20Bapak/Ibu%20${encodeURIComponent(patientName)},%20kami%20dari%20Estaka%20Dental%20Clinic%20ingin%20mengonfirmasi%20jadwal%20kunjungan%20gigi%20Anda.`;
 
         const tr = document.createElement('tr');
         tr.innerHTML = `
-          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${bookingId}</span></td>
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${rmId}</span></td>
+          <td><span style="font-family:var(--font-mono); font-size:0.8rem;">${nik}</span></td>
           <td><strong>${escapeHtml(patientName)}</strong></td>
-          <td>${phoneNumber}</td>
-          <td>${serviceType}</td>
-          <td>${bookingDate}</td>
+          <td><a href="${waDirectUrl}" target="_blank" style="color:#25d366; font-weight:700; text-decoration:none;"><iconify-icon icon="solar:phone-calling-rounded-bold"></iconify-icon> ${phoneNumber}</a></td>
+          <td>${escapeHtml(dokter)}</td>
+          <td><span style="font-size:0.75rem; padding:2px 8px; border-radius:12px; background:rgba(0,180,216,0.12); color:var(--cyan-deep); font-weight:600;">${escapeHtml(serviceType)}</span></td>
+          <td style="font-weight:700; color:#0284c7; white-space:nowrap; font-size:0.84rem;"><iconify-icon icon="solar:calendar-bold"></iconify-icon> ${rencanaKunjungan}</td>
+          <td style="font-size:0.82rem;">${escapeHtml(keluhan.length > 30 ? keluhan.substring(0,30) + '...' : keluhan)}</td>
           <td><span style="padding:2px 8px; border-radius:4px; font-size:0.74rem; background:rgba(16,185,129,0.15); color:var(--success); font-weight:700;">${status}</span></td>
-          <td style="font-size:0.8rem;">${createdAt}</td>
+          <td style="font-size:0.8rem; white-space:nowrap;">${createdAt}</td>
+          <td>
+            <a href="${waDirectUrl}" target="_blank" class="cyber-btn" style="padding:4px 8px; font-size:0.74rem; background:#25d366;" title="Chat WhatsApp Pasien">
+              <iconify-icon icon="solar:plain-bold"></iconify-icon> Chat
+            </a>
+          </td>
         `;
         tbody.appendChild(tr);
       });
     }
 
     // =========================================================================
-    // TAB 6: AI CONFIGURATION
+    // TAB 6: AI CONFIGURATION (MODEL & API KEY)
     // =========================================================================
     function loadAiModelCatalog() {
       runBackend('getAvailableAiModels', [], function(res) {
@@ -2007,6 +2097,135 @@
       }
     }
 
+    // =========================================================================
+    // TAB 7 (FITUR BARU): CRUD CUSTOM AI SYSTEM PROMPTS (GEMINI & CHATGPT)
+    // =========================================================================
+    function loadCustomPromptsBackend(forceCloud) {
+      runBackend('getCustomAiPrompts', [{ refresh: Boolean(forceCloud) }], function(res) {
+        let rawPrompts = (res && res.prompts) ? res.prompts : [];
+        if (rawPrompts.length === 0) {
+          fetchDirectFromGAS('getCustomAiPrompts', {}, function(gasRes) {
+            if (gasRes && gasRes.prompts) {
+              renderCustomPromptsTable(gasRes.prompts);
+              return;
+            }
+            renderCustomPromptsTable([]);
+          });
+          return;
+        }
+        renderCustomPromptsTable(rawPrompts);
+      });
+    }
+
+    function renderCustomPromptsTable(prompts) {
+      const tbody = document.getElementById('customPromptsTableBody');
+      tbody.innerHTML = '';
+      appState.customPrompts = prompts || [];
+
+      if (!prompts || prompts.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align:center; color:var(--text-muted); padding:28px;">Belum ada Custom AI Prompt terdaftar.</td></tr>';
+        return;
+      }
+
+      prompts.forEach((p, idx) => {
+        const isArr = Array.isArray(p);
+        const promptId = p.promptId || (isArr ? p[0] : `PRM-000${idx+1}`);
+        const title = p.title || (isArr ? p[1] : '-');
+        const targetModel = p.targetModel || (isArr ? p[2] : 'Gemini');
+        const systemPrompt = p.systemPrompt || (isArr ? p[3] : '');
+        const isActive = p.isActive === true || String(p.isActive).toLowerCase() === 'true' || (isArr ? p[4] === 'true' : false);
+        const updatedAt = p.updatedAt || (isArr ? p[5] : '-');
+
+        const activeBadge = isActive 
+          ? '<span style="font-size:0.74rem; font-weight:700; color:var(--success); background:rgba(16,185,129,0.15); padding:2px 8px; border-radius:12px;">● SEDANG DIGUNAKAN</span>'
+          : '<span style="font-size:0.74rem; font-weight:600; color:var(--text-muted); background:rgba(0,0,0,0.06); padding:2px 8px; border-radius:12px;">Nonaktif</span>';
+
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td><span style="font-family:var(--font-mono); font-weight:700; color:var(--cyan-deep);">${promptId}</span></td>
+          <td><strong>${escapeHtml(title)}</strong></td>
+          <td><span style="font-size:0.75rem; padding:2px 6px; border-radius:4px; background:rgba(0,180,216,0.1); color:var(--cyan-deep); font-weight:600;">${targetModel}</span></td>
+          <td style="font-size:0.82rem; font-family:monospace; max-width:280px;">${escapeHtml(systemPrompt.length > 60 ? systemPrompt.substring(0, 60) + '...' : systemPrompt)}</td>
+          <td>${activeBadge}</td>
+          <td style="font-size:0.8rem; white-space:nowrap;">${updatedAt}</td>
+          <td>
+            <div style="display:flex; gap:6px; flex-wrap:wrap;">
+              ${!isActive ? `<button class="cyber-btn" style="padding:3px 8px; font-size:0.74rem;" onclick="setActiveCustomPromptAction('${promptId}')">Jadikan Aktif</button>` : ''}
+              <button class="cyber-btn-secondary" style="padding:3px 8px; font-size:0.74rem;" onclick="editCustomPrompt('${promptId}')">Edit</button>
+              <button class="cyber-btn-secondary" style="padding:3px 8px; font-size:0.74rem; color:var(--danger);" onclick="deleteCustomPromptAction('${promptId}')">Hapus</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function openAddCustomPromptModal() {
+      document.getElementById('customPromptModalTitle').innerText = 'Tambah Custom System Prompt';
+      document.getElementById('prmId').value = '';
+      document.getElementById('prmTitle').value = '';
+      document.getElementById('prmTargetModel').value = 'Gemini';
+      document.getElementById('prmSystemPrompt').value = '';
+      document.getElementById('prmIsActive').checked = true;
+      openModal('customPromptModal');
+    }
+
+    function editCustomPrompt(promptId) {
+      const item = appState.customPrompts.find(p => p.promptId === promptId);
+      if (!item) return;
+
+      document.getElementById('customPromptModalTitle').innerText = 'Edit Custom System Prompt (' + promptId + ')';
+      document.getElementById('prmId').value = item.promptId;
+      document.getElementById('prmTitle').value = item.title;
+      document.getElementById('prmTargetModel').value = item.targetModel || 'Gemini';
+      document.getElementById('prmSystemPrompt').value = item.systemPrompt;
+      document.getElementById('prmIsActive').checked = Boolean(item.isActive);
+      openModal('customPromptModal');
+    }
+
+    function submitCustomPromptForm() {
+      const payload = {
+        promptId: document.getElementById('prmId').value,
+        title: document.getElementById('prmTitle').value.trim(),
+        targetModel: document.getElementById('prmTargetModel').value,
+        systemPrompt: document.getElementById('prmSystemPrompt').value.trim(),
+        isActive: document.getElementById('prmIsActive').checked
+      };
+
+      showToast('Menyimpan custom prompt AI...', 'warning');
+      runBackend('saveCustomAiPrompt', [payload], function(res) {
+        if (res && (res.success || res.status === 'success')) {
+          showToast(res.message || 'Prompt AI berhasil disimpan!', 'success');
+          closeModal('customPromptModal');
+          loadCustomPromptsBackend(true);
+        }
+      });
+    }
+
+    function setActiveCustomPromptAction(promptId) {
+      showToast('Mengaktifkan prompt ' + promptId + '...', 'warning');
+      runBackend('setActiveAiPrompt', [promptId], function(res) {
+        if (res && (res.success || res.status === 'success')) {
+          showToast(res.message || 'Prompt telah diaktifkan untuk bot WA!', 'success');
+          loadCustomPromptsBackend(true);
+        }
+      });
+    }
+
+    function deleteCustomPromptAction(promptId) {
+      if (!confirm('Apakah Anda yakin ingin menghapus prompt ini?')) return;
+      showToast('Menghapus prompt ' + promptId + '...', 'warning');
+      runBackend('deleteCustomAiPrompt', [promptId], function(res) {
+        if (res && (res.success || res.status === 'success')) {
+          showToast(res.message || 'Prompt berhasil dihapus.', 'warning');
+          loadCustomPromptsBackend(true);
+        }
+      });
+    }
+
+    // =========================================================================
+    // FLOATING AI CHATBOX & EXPORT ACTIONS
+    // =========================================================================
     function toggleKeyMask(inputId, btn) {
       const input = document.getElementById(inputId);
       if (input.type === 'password') {
@@ -2018,7 +2237,6 @@
       }
     }
 
-    // FLOATING AI CHATBOX
     function toggleAIChat(force) {
       const box = document.getElementById('aiChatBox');
       box.style.display = (typeof force === 'boolean') ? (force ? 'flex' : 'none') : (box.style.display === 'flex' ? 'none' : 'flex');
