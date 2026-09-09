@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">
-  
+
   <title><%= (typeof seo !== 'undefined' && seo.title) ? seo.title : 'Portal V2 & Railway WA Bot Gateway — Estaka Dental Clinic' %></title>
   <meta name="description" content="<%= (typeof seo !== 'undefined' && seo.description) ? seo.description : 'Pusat kendali bot WhatsApp multi-client Railway Baileys, monitoring antrean pesan, dan generative AI medis terpadu.' %>">
   <meta name="robots" content="noindex, nofollow">
@@ -856,7 +856,7 @@
       </div>
 
       <div style="max-width: 760px; display: flex; flex-direction: column; gap: 18px;">
-        
+
         <!-- CARD GOOGLE GEMINI AI -->
         <div style="background: rgba(0, 180, 216, 0.05); border: 1px solid rgba(0, 180, 216, 0.25); padding: 18px; border-radius: 14px;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; flex-wrap: wrap; gap: 6px;">
@@ -1162,7 +1162,7 @@
 
   <div id="toastContainer" class="toast-container"></div>
 
-  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN UNIVERSAL DATA PARSER -->
+  <!-- SCRIPT ENGINE CLIENT TERPADU DENGAN UNIVERSAL DATA PARSER & CLOUD AUTO-SYNC -->
   <script>
     const GAS_API_URL = "https://script.google.com/macros/s/AKfycbzZ8HVyql76ZZbVY7qk8HISf9h8d8xfs6zb4NlrjUZu_MkEYlZMLbjoS300_ap80h-e/exec";
     const DEFAULT_RAILWAY_URL = "https://btwwa-akshra-production.up.railway.app";
@@ -1181,7 +1181,7 @@
     };
 
     /**
-     * UNIVERSAL MULTI-COMPATIBLE RUNBACKEND
+     * UNIVERSAL MULTI-COMPATIBLE RUNBACKEND (Express V2 -> V1 -> GAS Web App)
      */
     function runBackend(functionName, args, onSuccess, onError) {
       args = args || [];
@@ -1233,7 +1233,7 @@
     }
 
     /**
-     * Langsung meminta data ke Google Apps Script (Bypass Cache jika lokal kosong)
+     * Permintaan data cadangan langsung ke Google Apps Script (Bypass Cache jika lokal kosong)
      */
     function fetchDirectFromGAS(functionName, payload, callback) {
       fetch(GAS_API_URL, {
@@ -1272,9 +1272,12 @@
       document.getElementById('txtPortalAction').innerText = 'Keluar Sesi';
       document.getElementById('userNameDisplay').innerText = appState.user.fullName || appState.user.username;
       document.getElementById('userRoleBadge').innerText = appState.user.role || 'Superadmin';
-      loadChatLogsBackend(1);
-      loadBroadcastQueueBackend(1);
-      loadClientsBackend();
+      
+      // Auto-Pull & Sync dari Cloud Bridge saat pertama kali dashboard dibuka
+      loadChatLogsBackend(1, true);
+      loadBroadcastQueueBackend(1, true);
+      loadClientsBackend(true);
+      loadBookingsBackend(true);
     }
 
     function showLoginGateView() {
@@ -1346,16 +1349,16 @@
       if (activeBtn) activeBtn.classList.add('active');
       if (activeContent) activeContent.style.display = 'block';
 
-      if (tabId === 'chatLogs') loadChatLogsBackend(1);
-      if (tabId === 'broadcast') loadBroadcastQueueBackend(1);
-      if (tabId === 'clients') loadClientsBackend();
-      if (tabId === 'templates') loadTemplatesBackend();
-      if (tabId === 'bookings') loadBookingsBackend();
+      if (tabId === 'chatLogs') loadChatLogsBackend(1, false);
+      if (tabId === 'broadcast') loadBroadcastQueueBackend(1, false);
+      if (tabId === 'clients') loadClientsBackend(false);
+      if (tabId === 'templates') loadTemplatesBackend(false);
+      if (tabId === 'bookings') loadBookingsBackend(false);
       if (tabId === 'aiConfig') loadAiConfigBackend();
     }
 
     // =========================================================================
-    // TAB 1: MONITORING LOG CHAT (UNIVERSAL PARSER + DUAL CHANNEL)
+    // TAB 1: MONITORING LOG CHAT (UNIVERSAL PARSER + CLOUD BRIDGE)
     // =========================================================================
     function loadChatLogsBackend(page, forceCloud) {
       page = page || 1;
@@ -1414,7 +1417,6 @@
       }
 
       logs.forEach(l => {
-        // Universal Field Extractor (Mendukung Objek Redis, Objek GAS, maupun Row Array 2D)
         const isArr = Array.isArray(l);
         const logId = l.logId || l.Log_ID || (isArr ? l[0] : '-');
         const timestamp = l.timestamp || l.Timestamp || (isArr ? l[1] : '-');
@@ -1459,7 +1461,7 @@
     }
 
     // =========================================================================
-    // TAB 2: BROADCAST QUEUE MANAGER (UNIVERSAL PARSER + DUAL CHANNEL)
+    // TAB 2: BROADCAST QUEUE MANAGER (UNIVERSAL PARSER + CLOUD BRIDGE)
     // =========================================================================
     function loadBroadcastQueueBackend(page, forceCloud) {
       page = page || 1;
@@ -1594,7 +1596,7 @@
     }
 
     // =========================================================================
-    // TAB 3: CLIENT RAILWAY BOT (UNIVERSAL PARSER + DUAL CHANNEL)
+    // TAB 3: CLIENT RAILWAY BOT (UNIVERSAL PARSER + CLOUD BRIDGE)
     // =========================================================================
     function loadClientsBackend(forceCloud) {
       runBackend('getClientsList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1750,7 +1752,7 @@
     }
 
     // =========================================================================
-    // TAB 4: TEMPLATES (UNIVERSAL PARSER + DUAL CHANNEL)
+    // TAB 4: TEMPLATES (UNIVERSAL PARSER + CLOUD BRIDGE)
     // =========================================================================
     function loadTemplatesBackend(forceCloud) {
       runBackend('getTemplatesList', [{ refresh: Boolean(forceCloud) }], function(res) {
@@ -1817,7 +1819,7 @@
     }
 
     // =========================================================================
-    // TAB 5: ANTREAN & RESERVASI PASIEN (UNIVERSAL PARSER + DUAL CHANNEL)
+    // TAB 5: ANTREAN & RESERVASI PASIEN (UNIVERSAL PARSER + CLOUD BRIDGE)
     // =========================================================================
     function loadBookingsBackend(forceCloud) {
       runBackend('getBookingsList', [{ refresh: Boolean(forceCloud) }], function(res) {
