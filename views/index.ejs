@@ -63,6 +63,183 @@
   <!-- Modular Stylesheet -->
   <link rel="stylesheet" href="/css/main.css" />
 
+  <style>
+    /* Floating Multi-Action Buttons (AI Assistant & WhatsApp Care) */
+    .landing-floating-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      z-index: 1001;
+    }
+
+    .landing-float-circle {
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 24px;
+      cursor: pointer;
+      border: 2px solid rgba(255, 255, 255, 0.95);
+      box-shadow: 0 8px 24px rgba(0, 119, 182, 0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      text-decoration: none;
+    }
+
+    .landing-float-circle:hover {
+      transform: scale(1.08);
+      box-shadow: 0 12px 28px rgba(0, 119, 182, 0.35);
+    }
+
+    .btn-ai-bubble {
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      color: #ffffff !important;
+    }
+
+    .btn-wa-bubble {
+      background: #25d366;
+      color: #ffffff !important;
+    }
+
+    /* AI Chat Window Widget */
+    .landing-ai-chat-box {
+      position: fixed;
+      bottom: 88px;
+      right: 24px;
+      width: 420px;
+      max-width: calc(100vw - 32px);
+      height: 560px;
+      display: none;
+      flex-direction: column;
+      z-index: 1002;
+      background: rgba(255, 255, 255, 0.98);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(0, 180, 216, 0.3);
+      border-radius: 20px;
+      box-shadow: 0 18px 48px rgba(0, 119, 182, 0.25);
+      overflow: hidden;
+      animation: chatBoxFadeIn 0.25s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    }
+
+    @keyframes chatBoxFadeIn {
+      from { opacity: 0; transform: translateY(18px) scale(0.97); }
+      to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+
+    .landing-ai-chat-header {
+      padding: 12px 16px;
+      background: linear-gradient(135deg, #f0f9ff, #e0f2fe);
+      border-bottom: 1px solid rgba(0, 180, 216, 0.2);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .landing-ai-chat-body {
+      flex: 1;
+      padding: 16px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      font-size: 0.88rem;
+      background: rgba(240, 247, 250, 0.5);
+    }
+
+    .landing-ai-bubble {
+      max-width: 86%;
+      padding: 10px 14px;
+      border-radius: 14px;
+      line-height: 1.5;
+      word-wrap: break-word;
+      font-size: 0.88rem;
+    }
+
+    .bubble-user-landing {
+      align-self: flex-end;
+      background: linear-gradient(135deg, #00b4d8, #0077b6);
+      color: #ffffff;
+      border-bottom-right-radius: 2px;
+      box-shadow: 0 4px 12px rgba(0, 180, 216, 0.2);
+    }
+
+    .bubble-model-landing {
+      align-self: flex-start;
+      background: #ffffff;
+      border: 1px solid rgba(0, 180, 216, 0.25);
+      color: #0f172a;
+      border-bottom-left-radius: 2px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    }
+
+    .ai-persona-tag {
+      display: inline-block;
+      font-size: 0.68rem;
+      font-family: 'JetBrains Mono', monospace;
+      padding: 2px 7px;
+      border-radius: 4px;
+      background: rgba(0, 180, 216, 0.12);
+      color: #0077b6;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .ai-quick-chips-container {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 8px 12px;
+      background: #f8fafc;
+      border-top: 1px solid rgba(0, 180, 216, 0.15);
+      scrollbar-width: none;
+    }
+    .ai-quick-chips-container::-webkit-scrollbar { display: none; }
+
+    .ai-chip {
+      background: #ffffff;
+      border: 1px solid rgba(0, 180, 216, 0.3);
+      color: #0077b6;
+      font-size: 0.74rem;
+      font-weight: 600;
+      padding: 5px 11px;
+      border-radius: 14px;
+      white-space: nowrap;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+    .ai-chip:hover {
+      background: rgba(0, 180, 216, 0.12);
+      border-color: #00b4d8;
+      transform: translateY(-1px);
+    }
+
+    .landing-ai-chat-footer {
+      padding: 10px 12px;
+      border-top: 1px solid rgba(0, 180, 216, 0.2);
+      background: #ffffff;
+      display: flex;
+      gap: 8px;
+    }
+
+    @media (max-width: 768px) {
+      .landing-ai-chat-box {
+        width: calc(100vw - 24px);
+        right: 12px;
+        bottom: 84px;
+        height: 500px;
+      }
+      .landing-floating-container {
+        bottom: 18px;
+        right: 18px;
+      }
+    }
+  </style>
+
   <!-- Structured Data JSON-LD Dinamis GSC -->
   <% if (typeof seo !== 'undefined' && seo.jsonLd) { %>
   <script type="application/ld+json">
@@ -464,22 +641,59 @@
 
   </main>
 
-  <!-- Floating WhatsApp -->
-  <div class="wa-float-container">
-    <div class="glass-card wa-chat-box" id="waChatBox">
-      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
-        <span style="font-weight:700; font-size:0.88rem; color:#25d366;"><i class="fa-brands fa-whatsapp"></i> Chat Admin Estaka Dental</span>
-        <button onclick="toggleWaBox()" style="background:none; border:none; cursor:pointer;" aria-label="Tutup Obrolan WhatsApp"><i class="fa-solid fa-xmark"></i></button>
+  <!-- ===================================================================== -->
+  <!-- FLOATING ACTIONS: ESTAKA DENTAL AI ASSISTANT & WHATSAPP CARE          -->
+  <!-- ===================================================================== -->
+  <div class="landing-floating-container">
+    <!-- Floating AI Assistant Button -->
+    <div class="landing-float-circle btn-ai-bubble" onclick="toggleLandingAiChat()" title="Tanya AI Medis Odontolog">
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+    </div>
+
+    <!-- Floating WhatsApp Button -->
+    <a href="https://wa.me/6285338922586?text=Halo%20Admin%20Estaka%20Dental,%20saya%20ingin%20konsultasi%20layanan%20gigi." target="_blank" class="landing-float-circle btn-wa-bubble" title="Hubungi Care WhatsApp">
+      <i class="fa-brands fa-whatsapp"></i>
+    </a>
+  </div>
+
+  <!-- BUBBLE CHAT WIDGET: ESTAKA DENTAL AI ASSISTANT (SMART SESUAI CUSTOMPROMPT) -->
+  <div id="landingAiChatBox" class="landing-ai-chat-box">
+    <div class="landing-ai-chat-header">
+      <div style="display:flex; align-items:center; gap:10px;">
+        <div style="width:36px; height:36px; border-radius:10px; background:linear-gradient(135deg, #00b4d8, #0077b6); display:flex; align-items:center; justify-content:center; color:#ffffff; font-size:18px;">
+          <i class="fa-solid fa-robot"></i>
+        </div>
+        <div>
+          <div style="font-size:0.92rem; font-weight:800; color:#0077b6;">Estaka Dental AI Assistant</div>
+          <div style="font-size:0.72rem; color:#0284c7;" id="landingAiPersonaDisplay">Persona: Estaka Care</div>
+        </div>
       </div>
-      <p style="font-size:0.78rem; color:var(--text-muted); margin-bottom:8px;">Ada yang bisa kami bantu seputar jadwal dokter gigi atau konsultasi perawatan?</p>
-      <input type="text" id="waQuickMsgInput" placeholder="Ketik pesan konsultasi singkat..." style="width:100%; margin-bottom:8px;" />
-      <button class="nav-btn btn-primary" style="width:100%; background:#25d366; justify-content:center;" onclick="sendQuickWa()">
-        Kirim ke WhatsApp <i class="fa-solid fa-arrow-right"></i>
+      <button onclick="toggleLandingAiChat(false)" style="background:none; border:none; color:#64748b; font-size:20px; cursor:pointer;" aria-label="Tutup Obrolan AI">
+        <i class="fa-solid fa-xmark"></i>
       </button>
     </div>
-    <button class="wa-float-btn" onclick="toggleWaBox()" title="Hubungi Kami via WhatsApp" aria-label="Buka Chat WhatsApp">
-      <i class="fa-brands fa-whatsapp"></i>
-    </button>
+
+    <div id="landingAiMessages" class="landing-ai-chat-body">
+      <div class="landing-ai-bubble bubble-model-landing">
+        <span class="ai-persona-tag" id="landingAiWelcomeTag">Estaka Care</span><br>
+        Halo Kak! Selamat datang di Estaka Dental Clinic. Saya asisten AI medis odontolog cerdas kami. Ada yang bisa saya bantu terkait keluhan gigi, prosedur perawatan saluran akar, jadwal dokter, atau estimasi biaya? 😊
+      </div>
+    </div>
+
+    <!-- Quick Action Chips Pasien Publik -->
+    <div class="ai-quick-chips-container">
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Gigi geraham saya ngilu dan berdenyut, apa penyebabnya?')">Triage Gigi Ngilu</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana jadwal dokter gigi spesialis konservasi di Estaka?')">Jadwal Dokter</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Berapa estimasi biaya scaling pembersihan karang gigi dan tambal?')">Biaya Perawatan</button>
+      <button type="button" class="ai-chip" onclick="sendQuickAiPrompt('Bagaimana cara melakukan reservasi periksa gigi online?')">Cara Reservasi</button>
+    </div>
+
+    <form class="landing-ai-chat-footer" onsubmit="event.preventDefault(); sendLandingAiMessage();">
+      <input type="text" id="landingAiUserInput" class="cyber-input" style="padding:8px 12px; font-size:0.86rem; border-radius:12px;" placeholder="Tanyakan seputar perawatan gigi..." autocomplete="off">
+      <button type="submit" id="btnSendLandingAi" class="nav-btn btn-primary" style="padding:8px 14px; border-radius:12px; height:40px;">
+        <i class="fa-solid fa-paper-plane"></i>
+      </button>
+    </form>
   </div>
 
   <!-- Login Modal Terotorisasi Staf & Dokter -->
@@ -664,10 +878,18 @@
     let currentSlide = 0;
     let slideTimer = null;
     let deferredPwaPrompt = null;
+    let isSubmittingAppointment = false;
     
     let systemGroqKey = localStorage.getItem('estaka_groq_key') || localStorage.getItem('akshara_groq_key') || '';
     let systemTtsModel = localStorage.getItem('estaka_tts_model') || 'canopylabs/orpheus-arabic-saudi';
     let systemTtsVoice = localStorage.getItem('estaka_tts_voice') || 'abdullah';
+
+    // State Chat AI Landing Page
+    const landingAiState = {
+      history: [],
+      activePersonaPrompt: '',
+      activePersonaTitle: 'Estaka Care'
+    };
 
     window.addEventListener('DOMContentLoaded', function() {
       initTheme();
@@ -675,6 +897,7 @@
       renderDoctorCards(clinicDoctors);
       populateDoctorSelect(clinicDoctors);
       loadPublicData();
+      loadActiveLandingCustomPrompt();
       initInlineServiceWorker();
       initScrollToTopListener();
       checkCurrentRouteTab();
@@ -682,7 +905,7 @@
 
       syncTtsSelectors(systemTtsModel, systemTtsVoice);
 
-      // Unlock browser audio policy pada klik pertama halaman
+      // Unlock browser audio policy pada interaksi klik pertama
       document.body.addEventListener('click', function unlockAudio() {
         try {
           const ctx = new (window.AudioContext || window.webkitAudioContext)();
@@ -936,8 +1159,17 @@
         });
     }
 
+    /**
+     * Handle Reservasi Pasien (Bebas Dual-Commit & Bebas Input Ganda)
+     */
     function handleReservasiSubmit(e) {
       e.preventDefault();
+
+      if (isSubmittingAppointment) {
+        showToast('Pendaftaran sedang diproses, mohon tunggu...', 'info');
+        return;
+      }
+
       const btn = document.getElementById('btnSubmitReservasi');
       const rawHp = document.getElementById('resNoHp').value.trim();
       const cleanHp = sanitizePhoneNumberToE164(rawHp);
@@ -955,6 +1187,7 @@
         return;
       }
 
+      isSubmittingAppointment = true;
       btn.disabled = true;
       btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Mengonfirmasi Pendaftaran...';
 
@@ -978,52 +1211,135 @@
         keluhanUtama: document.getElementById('resKeluhan').value.trim()
       };
 
+      // SATU PINTU: Kirimkan hanya ke endpoint backend terpadu tanpa fetch sekunder!
       runApi('registerAppointment', payload)
         .then(function(res) {
+          isSubmittingAppointment = false;
           btn.disabled = false;
           btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Konfirmasi Pendaftaran Antrean';
 
-          if (res && res.status === 'success') {
+          if (res && (res.status === 'success' || res.success)) {
             showToast('Pendaftaran Berhasil! Nomor Antrean: ' + (res.kodeAntrean || res.bookingId), 'success');
-            
-            // Dual-Commit ke GAS
-            fetch(GAS_API_URL, {
-              method: 'POST',
-              headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-              body: JSON.stringify({ action: 'registerAppointment', payload: payload, args: [payload] })
-            }).catch(function() {});
-
             document.getElementById('formReservasi').reset();
             setDefaultBookingTime();
           } else {
-            showToast('Gagal mendaftar: ' + (res.message || 'Error server'), 'error');
+            showToast('Gagal mendaftar: ' + (res ? (res.message || 'Error server') : 'Koneksi terputus'), 'error');
           }
         })
         .catch(function(err) {
-          // Fallback direct GAS
-          fetch(GAS_API_URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-            body: JSON.stringify({ action: 'registerAppointment', payload: payload, args: [payload] })
-          })
-          .then(r => r.json())
-          .then(function(gasRes) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Konfirmasi Pendaftaran Antrean';
-            if (gasRes && gasRes.status === 'success') {
-              showToast('Pendaftaran Sukses via Cloud Bridge! Kode: ' + (gasRes.kodeAntrean || gasRes.bookingId), 'success');
-              document.getElementById('formReservasi').reset();
-              setDefaultBookingTime();
-            } else {
-              showToast('Pendaftaran gagal: ' + (gasRes.message || 'Error'), 'error');
-            }
-          })
-          .catch(function(fetchErr) {
-            btn.disabled = false;
-            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Konfirmasi Pendaftaran Antrean';
-            showToast('Terjadi kendala jaringan: ' + fetchErr.toString(), 'error');
-          });
+          isSubmittingAppointment = false;
+          btn.disabled = false;
+          btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Konfirmasi Pendaftaran Antrean';
+          showToast('Terjadi kendala jaringan: ' + err.toString(), 'error');
         });
+    }
+
+    // =========================================================================
+    // FITUR BARU: BUBBLE CHAT AI ASISTEN MEDIS CERDAS SESUAI CUSTOMPROMPT
+    // =========================================================================
+
+    function loadActiveLandingCustomPrompt() {
+      runApi('getCustomAiPrompts', {})
+        .then(function(res) {
+          if (res && (res.success || res.status === 'success') && res.prompts) {
+            const active = res.prompts.find(p => p.isActive === true || String(p.isActive).toLowerCase() === 'true');
+            if (active) {
+              landingAiState.activePersonaPrompt = active.systemPrompt;
+              landingAiState.activePersonaTitle = active.title;
+              const display = document.getElementById('landingAiPersonaDisplay');
+              const welcome = document.getElementById('landingAiWelcomeTag');
+              if (display) display.innerText = `Persona: ${active.title}`;
+              if (welcome) welcome.innerText = active.title;
+            }
+          }
+        })
+        .catch(function() {});
+    }
+
+    function toggleLandingAiChat(force) {
+      const box = document.getElementById('landingAiChatBox');
+      if (typeof force === 'boolean') {
+        box.style.display = force ? 'flex' : 'none';
+      } else {
+        box.style.display = box.style.display === 'flex' ? 'none' : 'flex';
+      }
+      if (box.style.display === 'flex') {
+        document.getElementById('landingAiUserInput').focus();
+      }
+    }
+
+    function sendQuickAiPrompt(text) {
+      sendLandingAiMessage(text);
+    }
+
+    function formatAiLandingText(text) {
+      if (!text) return '';
+      let clean = (text || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+      // Code block
+      clean = clean.replace(/```([\s\S]*?)```/g, '<pre style="background:rgba(15,23,42,0.06); padding:8px; border-radius:6px; font-family:monospace; font-size:0.8rem; overflow-x:auto;">$1</pre>');
+      // Bold
+      clean = clean.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+      clean = clean.replace(/\*([^*]+)\*/g, '<em>$1</em>');
+      // Bullets
+      clean = clean.replace(/^[\*•\-]\s+(.*)$/gm, '• $1');
+      // Line breaks
+      clean = clean.replace(/\n/g, '<br>');
+      return clean;
+    }
+
+    function sendLandingAiMessage(overridePrompt) {
+      const input = document.getElementById('landingAiUserInput');
+      const prompt = (overridePrompt || input.value).trim();
+      if (!prompt) return;
+
+      if (!overridePrompt) input.value = '';
+      appendLandingAiBubble('user', prompt);
+
+      const loadId = 'loadLandingAi_' + Date.now();
+      appendLandingAiBubble('model', `<i>${escapeHtml(landingAiState.activePersonaTitle)} sedang mengetik...</i>`, loadId);
+
+      const payload = {
+        prompt: prompt,
+        model: 'gemini-3.5-flash',
+        history: landingAiState.history,
+        systemPrompt: landingAiState.activePersonaPrompt,
+        customPrompt: landingAiState.activePersonaPrompt,
+        personaTitle: landingAiState.activePersonaTitle
+      };
+
+      runApi('askGeminiClinic', payload)
+        .then(function(res) {
+          const loadingEl = document.getElementById(loadId);
+          if (loadingEl) loadingEl.remove();
+
+          if (res && (res.success || res.status === 'success')) {
+            const reply = res.reply || res.text || 'Terima kasih atas pertanyaan Anda.';
+            appendLandingAiBubble('model', `<span class="ai-persona-tag">${escapeHtml(landingAiState.activePersonaTitle)}</span><br>${formatAiLandingText(reply)}`);
+            landingAiState.history.push({ role: 'user', text: prompt });
+            landingAiState.history.push({ role: 'model', text: reply });
+          } else {
+            appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Kendala Sistem</span><br>⚠️ Mohon maaf, asisten AI sedang sibuk. Silakan hubungi Customer Care via WhatsApp kami.`);
+          }
+        })
+        .catch(function() {
+          const loadingEl = document.getElementById(loadId);
+          if (loadingEl) loadingEl.remove();
+          appendLandingAiBubble('model', `<span class="ai-persona-tag" style="color:#ef4444;">Koneksi Terputus</span><br>⚠️ Gagal terhubung ke engine AI. Silakan coba kembali sesaat lagi.`);
+        });
+    }
+
+    function appendLandingAiBubble(role, contentHtml, id) {
+      const container = document.getElementById('landingAiMessages');
+      const div = document.createElement('div');
+      div.className = `landing-ai-bubble ${role === 'user' ? 'bubble-user-landing' : 'bubble-model-landing'}`;
+      if (id) div.id = id;
+      div.innerHTML = contentHtml;
+      container.appendChild(div);
+      container.scrollTop = container.scrollHeight;
+    }
+
+    function escapeHtml(s) {
+      return (s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
     }
 
     // =========================================================================
@@ -1296,17 +1612,6 @@
           btn.disabled = false;
           showToast('Error login: ' + err.toString(), 'error');
         });
-    }
-
-    function toggleWaBox() {
-      document.getElementById('waChatBox').classList.toggle('show');
-    }
-
-    function sendQuickWa() {
-      const msg = document.getElementById('waQuickMsgInput').value.trim() || 'Halo Admin Estaka Dental Clinic';
-      const targetUrl = 'https://api.whatsapp.com/send/?phone=6285338922586&text=' + encodeURIComponent(msg) + '&type=phone_number&app_absent=0';
-      window.open(targetUrl, '_blank');
-      toggleWaBox();
     }
 
     function openPwaModal() {
